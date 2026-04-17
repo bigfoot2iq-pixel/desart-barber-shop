@@ -184,28 +184,28 @@ const SERVICES: ServiceOption[] = [
   {
     id: "haircut",
     name: "Classic Cut",
-    description: "Timeless scissors or clipper work tailored to your face shape and lifestyle.",
+    description: "Scissors or clippers, shaped to you.",
     price: 60,
     duration: 45,
   },
   {
     id: "skinfade",
     name: "Skin Fade",
-    description: "Clean gradient from skin to length — precision work that speaks for itself.",
+    description: "Clean gradient, razor-sharp lines.",
     price: 100,
     duration: 60,
   },
   {
     id: "beard",
     name: "Beard Trim",
-    description: "Sculpted lines, defined edges and a perfectly shaped beard to frame your face.",
+    description: "Lines, edges, and shape.",
     price: 50,
     duration: 30,
   },
   {
     id: "shave",
     name: "Hot Towel Shave",
-    description: "The full ritual — warm towel, premium lather, straight razor. Pure luxury.",
+    description: "Hot towel, straight razor.",
     price: 80,
     duration: 45,
   },
@@ -260,6 +260,7 @@ export default function Home() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
@@ -444,8 +445,11 @@ export default function Home() {
     }
   }, [formComplete, step, isSubmitting, direction]);
 
-  const stepPanelClassName = (panelStep: number) =>
-    `step-panel${step === panelStep ? " active" : ""}${step === panelStep && direction === "back" ? " back" : ""}`;
+  const stepPanelClassName = (panelStep: number) => {
+    const isActive = step === panelStep;
+    const isBack = isActive && direction === "back";
+    return `absolute inset-0 overflow-y-auto p-5 ${isActive ? "relative opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} ${isActive ? (isBack ? "animate-slide-back" : "animate-slide-in") : ""} [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]`;
+  };
 
   return (
     <>
@@ -518,54 +522,61 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="services">
-        <div className="svc-inner">
-          <div className="svc-head">
+      <section id="services" className="bg-gold-bg text-brand-black">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
             <div>
               <div className="sl">What We Do</div>
-              <h2 className="sh2">
-                Our <em>Services</em>
-              </h2>
+              <h2 className="sh2">Services</h2>
             </div>
-            <p className="slead">Every cut is a craft. We take the time to get it right — every single time.</p>
+            <p className="slead">Cash only. Same-day booking available.</p>
           </div>
-          <div className="svc-grid">
+
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-[2px]">
             {SERVICES.map((service) => (
-              <div className="sc" key={service.id}>
-                {service.id === "haircut" && (
-                  <svg className="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                    <path d="M6 3v18M6 3c4 0 8 3 6 9S6 21 6 21M18 9v6M18 9c-2-4-6-3-6-3M18 15c-2 4-6 3-6 3" />
-                  </svg>
-                )}
-                {service.id === "skinfade" && (
-                  <svg className="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                    <circle cx="12" cy="12" r="9" />
-                    <circle cx="12" cy="12" r="5" />
-                    <circle cx="12" cy="12" r="1" />
-                    <path d="M12 3v2M12 19v2M3 12h2M19 12h2" />
-                  </svg>
-                )}
-                {service.id === "beard" && (
-                  <svg className="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                    <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
-                    <path d="M8 7V5a4 4 0 018 0v2M12 11v4" />
-                  </svg>
-                )}
-                {service.id === "shave" && (
-                  <svg className="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <path d="M9 9h.01M15 9h.01" />
-                  </svg>
-                )}
-                <div className="sc-name">{service.name}</div>
-                <div className="sc-desc">{service.description}</div>
-                <div className="sc-meta">
-                  <span className="sc-price">{service.price} MAD</span>
-                  <span className="sc-dur">{service.duration} min</span>
+              <div className="group relative overflow-hidden bg-[rgb(10_8_0/7%)] p-8 lg:px-8 lg:pt-10 lg:pb-9 transition-[background] duration-250 hover:bg-[rgb(10_8_0/14%)]" key={service.id}>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-black scale-x-0 origin-left transition-transform duration-350 group-hover:scale-x-100" />
+                <div className="font-playfair text-[22px] lg:text-[27px] font-normal mb-1.5">{service.name}</div>
+                <div className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] mb-8">{service.description}</div>
+                <div className="flex justify-between items-baseline mt-auto">
+                  <span className="text-[20px] font-medium">{service.price} <span className="text-[13px] font-normal text-[rgb(10_8_0/50%)]">MAD</span></span>
+                  <span className="text-[11px] tracking-[0.06em] text-[rgb(10_8_0/40%)]">{service.duration} min</span>
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="flex flex-col sm:hidden border-t border-[rgb(10_8_0/10%)]">
+            {SERVICES.map((service) => {
+              const isOpen = expandedService === service.id;
+              return (
+                <div key={service.id}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between py-5 px-1 text-left bg-transparent border-0 cursor-pointer font-[inherit]"
+                    onClick={() => setExpandedService(isOpen ? null : service.id)}
+                    aria-expanded={isOpen}
+                  >
+                    <span className="font-playfair text-[19px] font-normal">{service.name}</span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-[15px] font-medium">{service.price} MAD</span>
+                      <span className={`w-4 h-4 flex items-center justify-center transition-transform duration-250 ${isOpen ? "rotate-45" : ""}`}>
+                        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 3v10M3 8h10" /></svg>
+                      </span>
+                    </span>
+                  </button>
+                  <div className={`grid transition-[grid-template-rows] duration-250 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                    <div className="overflow-hidden">
+                      <div className="pb-5 px-1 -mt-1">
+                        <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.65] mb-2">{service.description}</p>
+                        <span className="text-[11px] tracking-[0.06em] text-[rgb(10_8_0/40%)]">{service.duration} min</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-b border-[rgb(10_8_0/8%)]" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -810,7 +821,7 @@ export default function Home() {
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
-            className="booking-panel-overlay"
+            className="fixed inset-0 z-[500] flex items-end justify-end p-5 pointer-events-none bg-[rgb(10_8_0/35%)] [backdrop-filter:blur(4px)] max-sm:p-0 max-sm:bg-[#fafaf8] max-sm:[backdrop-filter:none] max-sm:items-stretch max-sm:justify-stretch"
             onClick={(event) => {
               if (event.target === event.currentTarget) {
                 closeModal();
@@ -822,7 +833,7 @@ export default function Home() {
             transition={{ duration: 0.2 }}
           >
             <motion.div
-              className="booking-panel"
+              className="w-[375px] h-[727px] bg-[#fafaf8] rounded-l-[20px] flex flex-col overflow-hidden shadow-[-12px_0_60px_rgb(0_0_0/12%),-4px_0_20px_rgb(0_0_0/6%)] pointer-events-auto font-dm-sans max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:shadow-none [&_*]:font-[inherit] [&_.font-playfair]:font-playfair"
               role="dialog"
               aria-modal="true"
               initial={{ x: "100%" }}
@@ -830,16 +841,16 @@ export default function Home() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
-              <div className="panel-header">
+              <div className="relative flex items-center gap-1.5 px-5 pt-[18px] pb-4 bg-white border-b border-[rgb(10_8_0/6%)] shrink-0 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[rgb(10_8_0/4%)] after:to-transparent">
                 {step > 1 && step < 6 && (
-                  <button type="button" className="panel-back" onClick={prevStep} aria-label="Go back">
+                  <button type="button" className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)]" onClick={prevStep} aria-label="Go back">
                     <svg viewBox="0 0 9 16" width="9" height="16">
                       <path d="M8 1L1 8l7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                 )}
-                <div className="panel-header-center">
-                  <p className="panel-title" id="panel-title">
+                <div className="flex-1 flex flex-col items-start gap-1 min-w-0">
+                  <p className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em] transition-[opacity,transform] duration-200" id="panel-title">
                     {step === 1 && "Reserve Your Session"}
                     {step === 2 && "Choose Your Barber"}
                     {step === 3 && "Select Services"}
@@ -848,118 +859,126 @@ export default function Home() {
                     {step === 6 && "Booking Confirmed"}
                   </p>
                 </div>
-                <button type="button" className="panel-close" onClick={closeModal} aria-label="Close">
+                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/12%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/20%)]" onClick={closeModal} aria-label="Close">
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>
                 </button>
               </div>
 
-              <div className="panel-body">
+              <div className="flex-1 overflow-hidden relative bg-[#fafaf8]">
                 <div id="step-1" className={stepPanelClassName(1)}>
-                  <p className="sq">Where would you like your appointment?</p>
-                  <div className="lg2">
-                    {LOCATIONS.map((location) => (
-                      <button
-                        key={location.id}
-                        type="button"
-                        className={`lc2 ${selectedLocation?.id === location.id ? "selected" : ""}`}
-                        onClick={() => setSelectedLocation(location)}
-                      >
-                        <div className="lc2-icon-wrap">
-                          {location.id === "salon" ? (
-                            <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                              <polyline points="9 22 9 12 15 12 15 22" />
-                            </svg>
-                          ) : (
-                            <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                              <circle cx="12" cy="10" r="3" />
-                            </svg>
-                          )}
-                          {selectedLocation?.id === location.id && (
-                            <span className="lc2-badge">
-                              <svg viewBox="0 0 24 24" width="10" height="10">
-                                <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </span>
-                          )}
-                        </div>
-                        <div className="lc2-content">
-                          <div className="lc2-name">{location.name}</div>
-                          <div className="lc2-desc">
+                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Where would you like your appointment?</p>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {LOCATIONS.map((location) => {
+                      const isLocationSelected = selectedLocation?.id === location.id;
+                      return (
+                        <button
+                          key={location.id}
+                          type="button"
+                          className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/12%)] bg-[rgb(10_8_0/4%)] hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/7%)] hover:-translate-y-0.5"}`}
+                          onClick={() => setSelectedLocation(location)}
+                        >
+                          <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/6%)]"}`}>
                             {location.id === "salon" ? (
-                              <>
-                                14 Rue Mohammed V, Marrakech, Medina
-                                <div className="lc2-spacer" />
-                                Sat–Thu · 9:00–17:00
-                              </>
+                              <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                              </svg>
                             ) : (
-                              <>
-                                We travel to your address in Marrakech city
-                                <div className="lc2-spacer" />
-                                +30 MAD travel fee
-                              </>
+                              <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                              </svg>
+                            )}
+                            {isLocationSelected && (
+                              <span className="absolute -top-1 -right-1 w-[18px] h-[18px] rounded-full bg-white flex items-center justify-center text-gold shadow-[0_2px_6px_rgb(0_0_0/15%)] animate-badge-pop">
+                                <svg viewBox="0 0 24 24" width="10" height="10">
+                                  <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </span>
                             )}
                           </div>
-                        </div>
-                      </button>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-[15px] font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
+                            <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
+                              {location.id === "salon" ? (
+                                <>
+                                  14 Rue Mohammed V, Marrakech, Medina
+                                  <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
+                                  Sat–Thu · 9:00–17:00
+                                </>
+                              ) : (
+                                <>
+                                  We travel to your address in Marrakech city
+                                  <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
+                                  +30 MAD travel fee
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div id="step-2" className={stepPanelClassName(2)}>
-                  <p className="sq">Choose your barber — each one brings a unique style.</p>
-                  <div className="bpg">
-                    {BARBERS.map((barber) => (
-                      <button
-                        key={barber.id}
-                        type="button"
-                        className={`bp ${selectedBarber?.id === barber.id ? "selected" : ""}`}
-                        onClick={() => setSelectedBarber(barber)}
-                      >
-                        <div className="bp-av-wrap">
-                          <div className="bp-av">{barber.shortName}</div>
-                          {selectedBarber?.id === barber.id && (
-                            <span className="bp-check">
-                              <svg viewBox="0 0 24 24" width="10" height="10">
-                                <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </span>
-                          )}
-                        </div>
-                        <div className="bp-name">{barber.name.split(" ")[0]}</div>
-                        <div className="bp-role">{barber.role}</div>
-                      </button>
-                    ))}
+                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Choose your barber — each one brings a unique style.</p>
+                  <div className="flex flex-col gap-2">
+                    {BARBERS.map((barber) => {
+                      const isBarberSelected = selectedBarber?.id === barber.id;
+                      return (
+                        <button
+                          key={barber.id}
+                          type="button"
+                          className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left bg-white transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
+                          onClick={() => setSelectedBarber(barber)}
+                        >
+                          <div className="relative flex items-center justify-center shrink-0">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background] duration-250 ${isBarberSelected ? "border-2 border-gold bg-[linear-gradient(135deg,rgb(192_154_90/18%),rgb(192_154_90/10%))]" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
+                            {isBarberSelected && (
+                              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gold flex items-center justify-center text-white shadow-[0_2px_6px_rgb(192_154_90/30%)] animate-badge-pop">
+                                <svg viewBox="0 0 24 24" width="10" height="10">
+                                  <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[15px] font-semibold text-brand-black mb-px tracking-[-0.01em] leading-snug">{barber.name.split(" ")[0]}</div>
+                            <div className="text-xs text-[rgb(10_8_0/55%)] font-medium tracking-[0.02em] uppercase">{barber.role}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div id="step-3" className={stepPanelClassName(3)}>
-                  <p className="sq">Select one or more services — cash payment at time of service.</p>
-                  <div className="spl">
+                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Select one or more services — cash payment at time of service.</p>
+                  <div className="flex flex-col gap-2">
                     {SERVICES.map((service) => {
-                      const isSelected = selectedServices.some((selectedService) => selectedService.id === service.id);
+                      const isServiceSelected = selectedServices.some((s) => s.id === service.id);
                       return (
                         <button
                           key={service.id}
                           type="button"
-                          className={`sp ${isSelected ? "selected" : ""}`}
+                          className={`flex items-center justify-between rounded-xl px-4 py-3.5 bg-white transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-[rgb(192_154_90/4%)] shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                           onClick={() => toggleService(service)}
                         >
-                          <div className="sp-l">
-                            <div className="sp-chk">
-                              <svg viewBox="0 0 24 24">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-[22px] h-[22px] rounded-md shrink-0 flex items-center justify-center transition-[border-color,background,transform] duration-200 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold scale-105" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white"}`}>
+                              <svg className="w-[11px] h-[11px] stroke-white fill-none stroke-[2.5] transition-opacity duration-150" viewBox="0 0 24 24" style={{ opacity: isServiceSelected ? 1 : 0, transition: "opacity 0.15s ease" }}>
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             </div>
-                            <div className="sp-info">
-                              <div className="sp-name">{service.name}</div>
-                              <div className="sp-dur">{service.duration} min</div>
+                            <div className="flex flex-col gap-0.5">
+                              <div className="text-sm font-semibold text-brand-black tracking-[-0.01em]">{service.name}</div>
+                              <div className="text-[11px] text-[rgb(10_8_0/40%)] font-medium">{service.duration} min</div>
                             </div>
                           </div>
-                          <span className="sp-price">{service.price} MAD</span>
+                          <span className="text-[15px] font-bold text-brand-black tracking-[-0.02em]">{service.price} MAD</span>
                         </button>
                       );
                     })}
@@ -967,61 +986,67 @@ export default function Home() {
                 </div>
 
                 <div id="step-4" className={stepPanelClassName(4)}>
-                  <p className="sq">Pick a date and time that works for you.</p>
-                  <div className="dt-wrap">
-                    <div className="dt-section">
-                      <div className="dtlbl">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Pick a date and time that works for you.</p>
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col">
+                      <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
                           <rect x="3" y="4" width="18" height="18" rx="2" />
                           <path d="M16 2v4M8 2v4M3 10h18" />
                         </svg>
                         Select Date
                       </div>
-                      <div className="date-slots">
-                        {dateSlots.map((slot) => (
-                          <button
-                            key={slot.id}
-                            type="button"
-                            className={`ds ${selectedDate?.id === slot.id ? "selected" : ""}`}
-                            onClick={() => setSelectedDate(slot)}
-                          >
-                            <div className="ds-d">{slot.shortDay}</div>
-                            <div className="ds-n">{slot.displayDate.split(" ")[0]}</div>
-                            <div className="ds-m">{slot.displayDate.split(" ")[1]}</div>
-                          </button>
-                        ))}
+                      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        {dateSlots.map((slot) => {
+                          const isDateSelected = selectedDate?.id === slot.id;
+                          return (
+                            <button
+                              key={slot.id}
+                              type="button"
+                              className={`shrink-0 min-w-[56px] rounded-xl px-2 py-2.5 text-center transition-all duration-250 ${isDateSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                              onClick={() => setSelectedDate(slot)}
+                            >
+                              <div className={`text-[9px] uppercase tracking-[0.08em] mb-1 font-semibold transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/40%)]"}`}>{slot.shortDay}</div>
+                              <div className={`text-lg font-bold tracking-[-0.02em] transition-colors duration-200 ${isDateSelected ? "text-white" : "text-brand-black"}`}>{slot.displayDate.split(" ")[0]}</div>
+                              <div className={`text-[9px] font-medium uppercase tracking-[0.06em] mt-0.5 transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/35%)]"}`}>{slot.displayDate.split(" ")[1]}</div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="dt-section">
-                      <div className="dtlbl">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/6%)]">
+                      <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
                           <circle cx="12" cy="12" r="10" />
                           <path d="M12 6v6l4 2" />
                         </svg>
                         Select Time
                       </div>
-                      <div className="tg">
-                        {TIME_SLOTS.map((slot) => (
-                          <button
-                            key={slot}
-                            type="button"
-                            className={`ts ${selectedTime === slot ? "selected" : ""}`}
-                            onClick={() => setSelectedTime(slot)}
-                          >
-                            {slot}
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
+                        {TIME_SLOTS.map((slot) => {
+                          const isTimeSelected = selectedTime === slot;
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-brand-black text-gold3 shadow-[0_4px_12px_rgb(0_0_0/15%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                              onClick={() => setSelectedTime(slot)}
+                            >
+                              {slot}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div id="step-5" className={stepPanelClassName(5)}>
-                  <div className="sumbox">
-                    <div className="sumbox-title">Booking Summary</div>
-                    <div className="sr">
-                      <span className="sl2">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 mb-[22px] flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)]">
+                    <div className="font-playfair text-[11px] font-bold tracking-[0.12em] uppercase text-[rgb(10_8_0/40%)] mb-3 pb-2.5 border-b border-[rgb(10_8_0/6%)]">Booking Summary</div>
+                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
                           <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
                           <circle cx="12" cy="10" r="3" />
                         </svg>
@@ -1029,9 +1054,9 @@ export default function Home() {
                       </span>
                       <span>{selectedLocation?.description ?? "—"}</span>
                     </div>
-                    <div className="sr">
-                      <span className="sl2">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
                           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                           <circle cx="12" cy="7" r="4" />
                         </svg>
@@ -1039,9 +1064,9 @@ export default function Home() {
                       </span>
                       <span>{selectedBarber?.name ?? "—"}</span>
                     </div>
-                    <div className="sr">
-                      <span className="sl2">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
                           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
                         </svg>
@@ -1049,9 +1074,9 @@ export default function Home() {
                       </span>
                       <span>{selectedServicesLabel || "—"}</span>
                     </div>
-                    <div className="sr">
-                      <span className="sl2">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
                           <rect x="3" y="4" width="18" height="18" rx="2" />
                           <path d="M16 2v4M8 2v4M3 10h18" />
                         </svg>
@@ -1061,15 +1086,15 @@ export default function Home() {
                         {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
                       </span>
                     </div>
-                    <div className="sr tot">
-                      <span className="sl2">Total</span>
-                      <span className="sv">{total} MAD</span>
+                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
+                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">Total</span>
+                      <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
                     </div>
                   </div>
 
-                  <div className="fg">
-                    <div className="ff">
-                      <label htmlFor="f-first">First Name</label>
+                  <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
                       <input
                         id="f-first"
                         type="text"
@@ -1077,10 +1102,11 @@ export default function Home() {
                         autoComplete="given-name"
                         value={firstName}
                         onChange={(event) => setFirstName(event.target.value)}
+                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                       />
                     </div>
-                    <div className="ff">
-                      <label htmlFor="f-last">Last Name</label>
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
                       <input
                         id="f-last"
                         type="text"
@@ -1088,10 +1114,11 @@ export default function Home() {
                         autoComplete="family-name"
                         value={lastName}
                         onChange={(event) => setLastName(event.target.value)}
+                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                       />
                     </div>
-                    <div className="ff full">
-                      <label htmlFor="f-phone">Phone Number</label>
+                    <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                      <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
                       <input
                         id="f-phone"
                         type="tel"
@@ -1099,11 +1126,12 @@ export default function Home() {
                         autoComplete="tel"
                         value={phone}
                         onChange={(event) => setPhone(event.target.value)}
+                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                       />
                     </div>
-                    <div className="ff full">
-                      <label htmlFor="f-email">
-                        Email <span>(optional)</span>
+                    <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                      <label htmlFor="f-email" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">
+                        Email <span className="text-[rgb(10_8_0/28%)] font-normal normal-case tracking-normal">(optional)</span>
                       </label>
                       <input
                         id="f-email"
@@ -1112,12 +1140,13 @@ export default function Home() {
                         autoComplete="email"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
+                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                       />
                     </div>
                   </div>
 
-                  <div className="fnote">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-4 flex items-start gap-2 px-3.5 py-3 bg-[rgb(192_154_90/5%)] rounded-[10px] border border-[rgb(192_154_90/10%)]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 16v-4M12 8h.01" />
                     </svg>
@@ -1126,43 +1155,39 @@ export default function Home() {
                 </div>
 
                 <div id="step-6" className={stepPanelClassName(6)}>
-                  <div className="succ-wrap">
-                    <div className="sc-ck">
-                      <div className="sc-ck-ring">
-                        <svg viewBox="0 0 24 24">
+                  <div className="text-center pt-5 pb-2">
+                    <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
+                      <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+                        <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </div>
                     </div>
-                    <h2 className="sc-h">You&apos;re all set!</h2>
-                    <p className="sc-p">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
-                    <div className="sc-det">
-                      <div className="sr">
-                        <span className="sl2">Name</span>
-                        <span>
-                          {firstName} {lastName}
-                        </span>
+                    <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
+                    <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
+                    <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
+                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                        <span className="opacity-50 text-xs font-medium">Name</span>
+                        <span>{firstName} {lastName}</span>
                       </div>
-                      <div className="sr">
-                        <span className="sl2">Date & Time</span>
-                        <span>
-                          {selectedDate?.fullDate} · {selectedTime}
-                        </span>
+                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                        <span className="opacity-50 text-xs font-medium">Date & Time</span>
+                        <span>{selectedDate?.fullDate} · {selectedTime}</span>
                       </div>
-                      <div className="sr">
-                        <span className="sl2">Barber</span>
+                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                        <span className="opacity-50 text-xs font-medium">Barber</span>
                         <span>{selectedBarber?.name}</span>
                       </div>
-                      <div className="sr">
-                        <span className="sl2">Services</span>
+                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                        <span className="opacity-50 text-xs font-medium">Services</span>
                         <span>{selectedServicesLabel}</span>
                       </div>
-                      <div className="sr tot">
-                        <span className="sl2">Total</span>
-                        <span className="sv">{total} MAD</span>
+                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
+                        <span className="opacity-50 text-xs font-medium">Total</span>
+                        <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
                       </div>
                     </div>
-                    <button type="button" className="succ-close" onClick={finishBooking}>
+                    <button type="button" className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
                       Close
                     </button>
                   </div>
