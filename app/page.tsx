@@ -384,9 +384,10 @@ export default function Home() {
     if (step <= 1 || isSubmitting) return;
     setDirection("back");
     const targetStep = step - 1;
-    if (targetStep < 2) setSelectedBarber(null);
-    if (targetStep < 3) setSelectedServices([]);
-    if (targetStep < 4) {
+    if (targetStep <= 1) setSelectedLocation(null);
+    if (targetStep <= 2) setSelectedBarber(null);
+    if (targetStep <= 3) setSelectedServices([]);
+    if (targetStep <= 4) {
       setSelectedDate(null);
       setSelectedTime(null);
     }
@@ -395,51 +396,46 @@ export default function Home() {
 
   // Auto-advance on single-choice steps
   useEffect(() => {
-    if (direction === "back") return;
     if (step === 1 && selectedLocation) {
       const t = window.setTimeout(() => {
         setDirection("forward");
         setStep((current) => Math.min(current + 1, 5));
-      }, 350);
+      }, 500);
       return () => window.clearTimeout(t);
     }
-  }, [selectedLocation, step, direction]);
+  }, [selectedLocation, step]);
 
   useEffect(() => {
-    if (direction === "back") return;
     if (step === 2 && selectedBarber) {
       const t = window.setTimeout(() => {
         setDirection("forward");
         setStep((current) => Math.min(current + 1, 5));
-      }, 350);
+      }, 500);
       return () => window.clearTimeout(t);
     }
-  }, [selectedBarber, step, direction]);
+  }, [selectedBarber, step]);
 
   useEffect(() => {
-    if (direction === "back") return;
     if (step === 3 && selectedServices.length > 0) {
       const t = window.setTimeout(() => {
         setDirection("forward");
         setStep((current) => Math.min(current + 1, 5));
-      }, 350);
+      }, 500);
       return () => window.clearTimeout(t);
     }
-  }, [selectedServices, step, direction]);
+  }, [selectedServices, step]);
 
   useEffect(() => {
-    if (direction === "back") return;
     if (step === 4 && selectedDate && selectedTime) {
       const t = window.setTimeout(() => {
         setDirection("forward");
         setStep((current) => Math.min(current + 1, 5));
-      }, 350);
+      }, 500);
       return () => window.clearTimeout(t);
     }
-  }, [selectedDate, selectedTime, step, direction]);
+  }, [selectedDate, selectedTime, step]);
 
   useEffect(() => {
-    if (direction === "back") return;
     if (step === 5 && formComplete && !isSubmitting) {
       const t = window.setTimeout(() => {
         setIsSubmitting(true);
@@ -451,12 +447,28 @@ export default function Home() {
       }, 600);
       return () => window.clearTimeout(t);
     }
-  }, [formComplete, step, isSubmitting, direction]);
+  }, [formComplete, step, isSubmitting]);
 
-  const stepPanelClassName = (panelStep: number) => {
-    const isActive = step === panelStep;
-    const isBack = isActive && direction === "back";
-    return `absolute inset-0 overflow-y-auto p-5 ${isActive ? "relative opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} ${isActive ? (isBack ? "animate-slide-back" : "animate-slide-in") : ""} [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]`;
+  const stepVariants = {
+    enter: (dir: "forward" | "back") => ({
+      x: dir === "forward" ? 60 : -60,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: "forward" | "back") => ({
+      x: dir === "forward" ? -60 : 60,
+      opacity: 0,
+    }),
+  };
+
+  const stepTransition = {
+    type: "spring" as const,
+    stiffness: 300,
+    damping: 30,
+    mass: 0.8,
   };
 
   return (
@@ -534,10 +546,10 @@ export default function Home() {
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
             <div>
-              <div className="sl">What We Do</div>
-              <h2 className="sh2">Services</h2>
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">What We Do</div>
+              <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">Services</h2>
             </div>
-            <p className="slead">Cash only. Same-day booking available.</p>
+            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Cash only. Same-day booking available.</p>
           </div>
 
           <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-[2px]">
@@ -603,11 +615,11 @@ export default function Home() {
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
             <div>
-              <div className="sl text-[rgb(254_251_243/50%)]">The Craftsmen</div>
-              <h2 className="sh2 text-brand-white">
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(254_251_243/50%)] mb-[14px]">The Craftsmen</div>
+              <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic text-brand-white">
                 Meet Our <em className="text-gold3">Team</em>
               </h2>
-              <p className="slead text-[rgb(254_251_243/50%)]">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
+              <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60 text-[rgb(254_251_243/50%)]">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
             </div>
           </div>
 
@@ -705,78 +717,78 @@ export default function Home() {
         </div>
       </div>
 
-      <section id="locations">
-        <div className="loc-inner">
-          <div className="loc-head">
+      <section id="locations" className="bg-gold-bg text-brand-black">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="flex items-end justify-between gap-5 flex-wrap mb-[50px]">
             <div>
-              <div className="sl">Find Us</div>
-              <h2 className="sh2">
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">Find Us</div>
+              <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">
                 Our <em>Locations</em>
               </h2>
             </div>
-            <p className="slead">Visit us at the salon or let us come to you — your call.</p>
+            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Visit us at the salon or let us come to you — your call.</p>
           </div>
-          <div className="loc-cards">
-            <div className="lic">
-              <h3>Desart Salon</h3>
-              <span className="ltag">Flagship Location</span>
-              <div className="ld">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
+              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">Desart Salon</h3>
+              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">Flagship Location</span>
+              <div className="flex items-start gap-3.5 mb-[18px]">
+                <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                <p>
+                <p className="text-sm leading-[1.7] opacity-70">
                   14 Rue Mohammed V, Medína
                   <br />
                   Marrakech 40000, Morocco
                 </p>
               </div>
-              <div className="ld">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <div className="flex items-start gap-3.5 mb-[18px]">
+                <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                 </svg>
-                <p>+212 600 000 000</p>
+                <p className="text-sm leading-[1.7] opacity-70">+212 600 000 000</p>
               </div>
-              <div className="lhours">
-                <div className="lhr">
-                  <span className="day">Saturday – Thursday</span>
-                  <span className="time">9:00 – 17:00</span>
+              <div className="flex flex-col gap-0 mt-[18px]">
+                <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
+                  <span className="opacity-50">Saturday – Thursday</span>
+                  <span className="font-medium">9:00 – 17:00</span>
                 </div>
-                <div className="lhr">
-                  <span className="day">Friday</span>
-                  <span className="time">Closed</span>
+                <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
+                  <span className="opacity-50">Friday</span>
+                  <span className="font-medium">Closed</span>
                 </div>
               </div>
-              <button type="button" className="loc-cta open-booking" onClick={openModal}>
+              <button type="button" className="mt-8 bg-brand-black text-white text-[11px] font-medium tracking-[0.1em] uppercase py-[13px] px-7 rounded-[3px] inline-block cursor-pointer transition-all duration-200 hover:bg-ink hover:-translate-y-px open-booking" onClick={openModal}>
                 Book This Location →
               </button>
             </div>
 
-            <div className="lic">
-              <h3>Home Visit</h3>
-              <span className="ltag">+30 MAD Travel Fee</span>
-              <div className="ld">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
+              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">Home Visit</h3>
+              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">+30 MAD Travel Fee</span>
+              <div className="flex items-start gap-3.5 mb-[18px]">
+                <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <p>We travel anywhere within Marrakech city limits. Just provide your address at booking.</p>
+                <p className="text-sm leading-[1.7] opacity-70">We travel anywhere within Marrakech city limits. Just provide your address at booking.</p>
               </div>
-              <div className="ld">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <div className="flex items-start gap-3.5 mb-[18px]">
+                <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <p>Sat–Thu · 9:00 – 17:00. Same barbers, same quality, at your door.</p>
+                <p className="text-sm leading-[1.7] opacity-70">Sat–Thu · 9:00 – 17:00. Same barbers, same quality, at your door.</p>
               </div>
-              <div className="ld">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <div className="flex items-start gap-3.5 mb-[18px]">
+                <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="2" y="6" width="20" height="12" rx="2" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                <p>Cash payment on the day. No card required at booking.</p>
+                <p className="text-sm leading-[1.7] opacity-70">Cash payment on the day. No card required at booking.</p>
               </div>
-              <button type="button" className="loc-cta open-booking" onClick={openModal}>
+              <button type="button" className="mt-8 bg-brand-black text-white text-[11px] font-medium tracking-[0.1em] uppercase py-[13px] px-7 rounded-[3px] inline-block cursor-pointer transition-all duration-200 hover:bg-ink hover:-translate-y-px open-booking" onClick={openModal}>
                 Book Home Visit →
               </button>
             </div>
@@ -784,64 +796,64 @@ export default function Home() {
         </div>
       </section>
 
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-top">
-            <div className="fbrand">
-              <span className="flogo">DESART</span>
-              <p>
+      <footer className="bg-brand-black text-white pt-12 sm:pt-20 pb-10 px-4 sm:px-14 border-t border-[rgb(254_251_243/10%)]">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-[1.8fr_1fr_1fr] gap-10 sm:gap-16 mb-16">
+            <div>
+              <span className="font-playfair text-[28px] font-bold tracking-[0.14em] text-gold3 block mb-4">DESART</span>
+              <p className="text-sm text-[rgb(254_251_243/40%)] leading-[1.85] max-w-[270px]">
                 Premium barbershop experience in the heart of Marrakech. Walk-ins welcome, appointments preferred. Cash
                 only — always.
               </p>
             </div>
-            <div className="fcol">
-              <h4>Navigate</h4>
-              <ul>
+            <div>
+              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">Navigate</h4>
+              <ul className="list-none flex flex-col gap-3">
                 <li>
-                  <a href="#services">Services</a>
+                  <a href="#services" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Services</a>
                 </li>
                 <li>
-                  <a href="#team">Our Team</a>
+                  <a href="#team" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Our Team</a>
                 </li>
                 <li>
-                  <a href="#locations">Locations</a>
+                  <a href="#locations" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Locations</a>
                 </li>
                 <li>
-                  <button type="button" className="open-booking" onClick={openModal}>
+                  <button type="button" className="text-sm text-[rgb(254_251_243/40%)] p-0 transition-colors duration-200 hover:text-white open-booking" onClick={openModal}>
                     Book Now
                   </button>
                 </li>
               </ul>
             </div>
-            <div className="fcol">
-              <h4>Contact</h4>
-              <ul>
-                <li>14 Rue Mohammed V, Marrakech</li>
+            <div>
+              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">Contact</h4>
+              <ul className="list-none flex flex-col gap-3">
+                <li className="text-sm text-[rgb(254_251_243/40%)]">14 Rue Mohammed V, Marrakech</li>
                 <li>
-                  <a href="tel:+212600000000">+212 600 000 000</a>
+                  <a href="tel:+212600000000" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 600 000 000</a>
                 </li>
-                <li>Sat–Thu: 9:00 – 17:00</li>
-                <li>Friday: Closed</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">Sat–Thu: 9:00 – 17:00</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">Friday: Closed</li>
               </ul>
             </div>
           </div>
-          <div className="footer-bottom">
-            <p>© 2025 Desart. Cash only · Marrakech, Morocco</p>
-            <div className="fsocial">
-              <a className="fsoc" href="#" aria-label="Instagram">
-                <svg viewBox="0 0 24 24">
+          <div className="border-t border-[rgb(254_251_243/10%)] pt-7 flex justify-between items-center flex-wrap gap-3">
+            <p className="text-[13px] text-[rgb(254_251_243/28%)]">© 2025 Desart. Cash only · Marrakech, Morocco</p>
+            <div className="flex gap-3.5">
+              <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="Instagram">
+                <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
                   <rect x="2" y="2" width="20" height="20" rx="5" />
                   <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
               </a>
-              <a className="fsoc" href="#" aria-label="TikTok">
-                <svg viewBox="0 0 24 24">
+              <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="TikTok">
+                <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
                   <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5" />
                 </svg>
               </a>
-              <a className="fsoc" href="#" aria-label="WhatsApp">
-                <svg viewBox="0 0 24 24">
+              <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="WhatsApp">
+                <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
                   <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                 </svg>
               </a>
@@ -890,15 +902,31 @@ export default function Home() {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
               <div className="relative flex items-center gap-1.5 px-5 pt-[18px] pb-4 bg-white border-b border-[rgb(10_8_0/6%)] shrink-0 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[rgb(10_8_0/4%)] after:to-transparent">
-                {step > 1 && step < 6 && (
-                  <button type="button" className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)]" onClick={prevStep} aria-label="Go back">
-                    <svg viewBox="0 0 9 16" width="9" height="16">
-                      <path d="M8 1L1 8l7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                )}
+                <AnimatePresence>
+                  {step > 1 && step < 6 && (
+                    <motion.button
+                      key="back-arrow"
+                      type="button"
+                      initial={false}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } }}
+                      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                      className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)]"
+                      onClick={prevStep}
+                      aria-label="Go back"
+                    >
+                      <svg viewBox="0 0 9 16" width="9" height="16">
+                        <path d="M8 1L1 8l7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
                 <div className="flex-1 flex flex-col items-start gap-1 min-w-0">
-                  <p className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em] transition-[opacity,transform] duration-200" id="panel-title">
+                  <p
+                    key={`header-${step}`}
+                    className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em]"
+                    id="panel-title"
+                  >
                     {step === 1 && "Reserve Your Session"}
                     {step === 2 && "Choose Your Barber"}
                     {step === 3 && "Select Services"}
@@ -915,324 +943,348 @@ export default function Home() {
               </div>
 
               <div className="flex-1 overflow-hidden relative bg-[#fafaf8]">
-                <div id="step-1" className={stepPanelClassName(1)}>
-                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Where would you like your appointment?</p>
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {LOCATIONS.map((location) => {
-                      const isLocationSelected = selectedLocation?.id === location.id;
-                      return (
-                        <button
-                          key={location.id}
-                          type="button"
-                          className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/12%)] bg-[rgb(10_8_0/4%)] hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/7%)] hover:-translate-y-0.5"}`}
-                          onClick={() => setSelectedLocation(location)}
-                        >
-                          <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/6%)]"}`}>
-                            {location.id === "salon" ? (
-                              <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                <polyline points="9 22 9 12 15 12 15 22" />
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={step}
+                    custom={direction}
+                    variants={stepVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={stepTransition}
+                    className="absolute inset-0 overflow-y-auto p-5 [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]"
+                    data-scrollbar
+                  >
+                    {step === 1 && (
+                      <>
+                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Where would you like your appointment?</p>
+                        <div className="grid grid-cols-1 gap-2.5">
+                          {LOCATIONS.map((location) => {
+                            const isLocationSelected = selectedLocation?.id === location.id;
+                            return (
+                              <button
+                                key={location.id}
+                                type="button"
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/12%)] bg-[rgb(10_8_0/4%)] hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/7%)] hover:-translate-y-0.5"}`}
+                                onClick={() => setSelectedLocation(location)}
+                              >
+                                <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/6%)]"}`}>
+                                  {location.id === "salon" ? (
+                                    <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                      <polyline points="9 22 9 12 15 12 15 22" />
+                                    </svg>
+                                  ) : (
+                                    <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                                      <circle cx="12" cy="10" r="3" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className={`text-[15px] font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
+                                  <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
+                                    {location.id === "salon" ? (
+                                      <>
+                                        14 Rue Mohammed V, Marrakech, Medina
+                                        <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
+                                        Sat–Thu · 9:00–17:00
+                                      </>
+                                    ) : (
+                                      <>
+                                        We travel to your address in Marrakech city
+                                        <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
+                                        +30 MAD travel fee
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {step === 2 && (
+                      <>
+                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Choose your barber — each one brings a unique style.</p>
+                        <div className="flex flex-col gap-2">
+                          {BARBERS.map((barber) => {
+                            const isBarberSelected = selectedBarber?.id === barber.id;
+                            return (
+                              <button
+                                key={barber.id}
+                                type="button"
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left bg-white transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
+                                onClick={() => setSelectedBarber(barber)}
+                              >
+                                <div className="relative flex items-center justify-center shrink-0">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background] duration-250 ${isBarberSelected ? "border-2 border-gold bg-[linear-gradient(135deg,rgb(192_154_90/18%),rgb(192_154_90/10%))]" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
+                                  {isBarberSelected && (
+                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gold flex items-center justify-center text-white shadow-[0_2px_6px_rgb(192_154_90/30%)] animate-badge-pop">
+                                      <svg viewBox="0 0 24 24" width="10" height="10">
+                                        <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                                      </svg>
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[15px] font-semibold text-brand-black mb-px tracking-[-0.01em] leading-snug">{barber.name.split(" ")[0]}</div>
+                                  <div className="text-xs text-[rgb(10_8_0/55%)] font-medium tracking-[0.02em] uppercase">{barber.role}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {step === 3 && (
+                      <>
+                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Select one or more services — cash payment at time of service.</p>
+                        <div className="flex flex-col gap-2">
+                          {SERVICES.map((service) => {
+                            const isServiceSelected = selectedServices.some((s) => s.id === service.id);
+                            return (
+                              <button
+                                key={service.id}
+                                type="button"
+                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 bg-white transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-[rgb(192_154_90/4%)] shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                onClick={() => toggleService(service)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-[22px] h-[22px] rounded-md shrink-0 flex items-center justify-center transition-[border-color,background,transform] duration-200 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold scale-105" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white"}`}>
+                                    <svg className="w-[11px] h-[11px] stroke-white fill-none stroke-[2.5] transition-opacity duration-150" viewBox="0 0 24 24" style={{ opacity: isServiceSelected ? 1 : 0, transition: "opacity 0.15s ease" }}>
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="text-sm font-semibold text-brand-black tracking-[-0.01em]">{service.name}</div>
+                                    <div className="text-[11px] text-[rgb(10_8_0/40%)] font-medium">{service.duration} min</div>
+                                  </div>
+                                </div>
+                                <span className="text-[15px] font-bold text-brand-black tracking-[-0.02em]">{service.price} MAD</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {step === 4 && (
+                      <>
+                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Pick a date and time that works for you.</p>
+                        <div className="flex flex-col gap-6">
+                          <div className="flex flex-col">
+                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <path d="M16 2v4M8 2v4M3 10h18" />
                               </svg>
-                            ) : (
-                              <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              Select Date
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                              {dateSlots.map((slot) => {
+                                const isDateSelected = selectedDate?.id === slot.id;
+                                return (
+                                  <button
+                                    key={slot.id}
+                                    type="button"
+                                    className={`shrink-0 min-w-[56px] rounded-xl px-2 py-2.5 text-center transition-all duration-250 ${isDateSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                                    onClick={() => setSelectedDate(slot)}
+                                  >
+                                    <div className={`text-[9px] uppercase tracking-[0.08em] mb-1 font-semibold transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/40%)]"}`}>{slot.shortDay}</div>
+                                    <div className={`text-lg font-bold tracking-[-0.02em] transition-colors duration-200 ${isDateSelected ? "text-white" : "text-brand-black"}`}>{slot.displayDate.split(" ")[0]}</div>
+                                    <div className={`text-[9px] font-medium uppercase tracking-[0.06em] mt-0.5 transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/35%)]"}`}>{slot.displayDate.split(" ")[1]}</div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/6%)]">
+                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                              </svg>
+                              Select Time
+                            </div>
+                            <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
+                              {TIME_SLOTS.map((slot) => {
+                                const isTimeSelected = selectedTime === slot;
+                                return (
+                                  <button
+                                    key={slot}
+                                    type="button"
+                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-brand-black text-gold3 shadow-[0_4px_12px_rgb(0_0_0/15%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                                    onClick={() => setSelectedTime(slot)}
+                                  >
+                                    {slot}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {step === 5 && (
+                      <>
+                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 mb-[22px] flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)]">
+                          <div className="font-playfair text-[11px] font-bold tracking-[0.12em] uppercase text-[rgb(10_8_0/40%)] mb-3 pb-2.5 border-b border-[rgb(10_8_0/6%)]">Booking Summary</div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
                                 <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
                                 <circle cx="12" cy="10" r="3" />
                               </svg>
-                            )}
+                              Location
+                            </span>
+                            <span>{selectedLocation?.description ?? "—"}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className={`text-[15px] font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
-                            <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
-                              {location.id === "salon" ? (
-                                <>
-                                  14 Rue Mohammed V, Marrakech, Medina
-                                  <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
-                                  Sat–Thu · 9:00–17:00
-                                </>
-                              ) : (
-                                <>
-                                  We travel to your address in Marrakech city
-                                  <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
-                                  +30 MAD travel fee
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div id="step-2" className={stepPanelClassName(2)}>
-                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Choose your barber — each one brings a unique style.</p>
-                  <div className="flex flex-col gap-2">
-                    {BARBERS.map((barber) => {
-                      const isBarberSelected = selectedBarber?.id === barber.id;
-                      return (
-                        <button
-                          key={barber.id}
-                          type="button"
-                          className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left bg-white transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
-                          onClick={() => setSelectedBarber(barber)}
-                        >
-                          <div className="relative flex items-center justify-center shrink-0">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background] duration-250 ${isBarberSelected ? "border-2 border-gold bg-[linear-gradient(135deg,rgb(192_154_90/18%),rgb(192_154_90/10%))]" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
-                            {isBarberSelected && (
-                              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gold flex items-center justify-center text-white shadow-[0_2px_6px_rgb(192_154_90/30%)] animate-badge-pop">
-                                <svg viewBox="0 0 24 24" width="10" height="10">
-                                  <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[15px] font-semibold text-brand-black mb-px tracking-[-0.01em] leading-snug">{barber.name.split(" ")[0]}</div>
-                            <div className="text-xs text-[rgb(10_8_0/55%)] font-medium tracking-[0.02em] uppercase">{barber.role}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div id="step-3" className={stepPanelClassName(3)}>
-                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Select one or more services — cash payment at time of service.</p>
-                  <div className="flex flex-col gap-2">
-                    {SERVICES.map((service) => {
-                      const isServiceSelected = selectedServices.some((s) => s.id === service.id);
-                      return (
-                        <button
-                          key={service.id}
-                          type="button"
-                          className={`flex items-center justify-between rounded-xl px-4 py-3.5 bg-white transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-[rgb(192_154_90/4%)] shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
-                          onClick={() => toggleService(service)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-[22px] h-[22px] rounded-md shrink-0 flex items-center justify-center transition-[border-color,background,transform] duration-200 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold scale-105" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white"}`}>
-                              <svg className="w-[11px] h-[11px] stroke-white fill-none stroke-[2.5] transition-opacity duration-150" viewBox="0 0 24 24" style={{ opacity: isServiceSelected ? 1 : 0, transition: "opacity 0.15s ease" }}>
-                                <polyline points="20 6 9 17 4 12" />
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
                               </svg>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <div className="text-sm font-semibold text-brand-black tracking-[-0.01em]">{service.name}</div>
-                              <div className="text-[11px] text-[rgb(10_8_0/40%)] font-medium">{service.duration} min</div>
-                            </div>
+                              Barber
+                            </span>
+                            <span>{selectedBarber?.name ?? "—"}</span>
                           </div>
-                          <span className="text-[15px] font-bold text-brand-black tracking-[-0.02em]">{service.price} MAD</span>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                              </svg>
+                              Services
+                            </span>
+                            <span>{selectedServicesLabel || "—"}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <path d="M16 2v4M8 2v4M3 10h18" />
+                              </svg>
+                              Date & Time
+                            </span>
+                            <span>
+                              {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
+                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">Total</span>
+                            <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                          <div className="flex flex-col gap-1.5">
+                            <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
+                            <input
+                              id="f-first"
+                              type="text"
+                              placeholder="Mohamed"
+                              autoComplete="given-name"
+                              value={firstName}
+                              onChange={(event) => setFirstName(event.target.value)}
+                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
+                            <input
+                              id="f-last"
+                              type="text"
+                              placeholder="Alaoui"
+                              autoComplete="family-name"
+                              value={lastName}
+                              onChange={(event) => setLastName(event.target.value)}
+                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                            <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
+                            <input
+                              id="f-phone"
+                              type="tel"
+                              placeholder="+212 6XX XXX XXX"
+                              autoComplete="tel"
+                              value={phone}
+                              onChange={(event) => setPhone(event.target.value)}
+                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                            <label htmlFor="f-email" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">
+                              Email <span className="text-[rgb(10_8_0/28%)] font-normal normal-case tracking-normal">(optional)</span>
+                            </label>
+                            <input
+                              id="f-email"
+                              type="email"
+                              placeholder="your@email.com"
+                              autoComplete="email"
+                              value={email}
+                              onChange={(event) => setEmail(event.target.value)}
+                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-4 flex items-start gap-2 px-3.5 py-3 bg-[rgb(192_154_90/5%)] rounded-[10px] border border-[rgb(192_154_90/10%)]">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 16v-4M12 8h.01" />
+                          </svg>
+                          Cash only, due at time of service. Free cancellations — just let us know.
+                        </div>
+                      </>
+                    )}
+
+                    {step === 6 && (
+                      <div className="text-center pt-5 pb-2">
+                        <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
+                          <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+                            <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        </div>
+                        <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
+                        <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
+                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 text-xs font-medium">Name</span>
+                            <span>{firstName} {lastName}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 text-xs font-medium">Date & Time</span>
+                            <span>{selectedDate?.fullDate} · {selectedTime}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 text-xs font-medium">Barber</span>
+                            <span>{selectedBarber?.name}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                            <span className="opacity-50 text-xs font-medium">Services</span>
+                            <span>{selectedServicesLabel}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
+                            <span className="opacity-50 text-xs font-medium">Total</span>
+                            <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
+                          </div>
+                        </div>
+                        <button type="button" className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
+                          Close
                         </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div id="step-4" className={stepPanelClassName(4)}>
-                  <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Pick a date and time that works for you.</p>
-                  <div className="flex flex-col gap-6">
-                    <div className="flex flex-col">
-                      <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-                          <rect x="3" y="4" width="18" height="18" rx="2" />
-                          <path d="M16 2v4M8 2v4M3 10h18" />
-                        </svg>
-                        Select Date
                       </div>
-                      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        {dateSlots.map((slot) => {
-                          const isDateSelected = selectedDate?.id === slot.id;
-                          return (
-                            <button
-                              key={slot.id}
-                              type="button"
-                              className={`shrink-0 min-w-[56px] rounded-xl px-2 py-2.5 text-center transition-all duration-250 ${isDateSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
-                              onClick={() => setSelectedDate(slot)}
-                            >
-                              <div className={`text-[9px] uppercase tracking-[0.08em] mb-1 font-semibold transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/40%)]"}`}>{slot.shortDay}</div>
-                              <div className={`text-lg font-bold tracking-[-0.02em] transition-colors duration-200 ${isDateSelected ? "text-white" : "text-brand-black"}`}>{slot.displayDate.split(" ")[0]}</div>
-                              <div className={`text-[9px] font-medium uppercase tracking-[0.06em] mt-0.5 transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/35%)]"}`}>{slot.displayDate.split(" ")[1]}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/6%)]">
-                      <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        Select Time
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
-                        {TIME_SLOTS.map((slot) => {
-                          const isTimeSelected = selectedTime === slot;
-                          return (
-                            <button
-                              key={slot}
-                              type="button"
-                              className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-brand-black text-gold3 shadow-[0_4px_12px_rgb(0_0_0/15%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
-                              onClick={() => setSelectedTime(slot)}
-                            >
-                              {slot}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div id="step-5" className={stepPanelClassName(5)}>
-                  <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 mb-[22px] flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)]">
-                    <div className="font-playfair text-[11px] font-bold tracking-[0.12em] uppercase text-[rgb(10_8_0/40%)] mb-3 pb-2.5 border-b border-[rgb(10_8_0/6%)]">Booking Summary</div>
-                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        Location
-                      </span>
-                      <span>{selectedLocation?.description ?? "—"}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        Barber
-                      </span>
-                      <span>{selectedBarber?.name ?? "—"}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                        </svg>
-                        Services
-                      </span>
-                      <span>{selectedServicesLabel || "—"}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                          <rect x="3" y="4" width="18" height="18" rx="2" />
-                          <path d="M16 2v4M8 2v4M3 10h18" />
-                        </svg>
-                        Date & Time
-                      </span>
-                      <span>
-                        {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
-                      <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">Total</span>
-                      <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
-                      <input
-                        id="f-first"
-                        type="text"
-                        placeholder="Mohamed"
-                        autoComplete="given-name"
-                        value={firstName}
-                        onChange={(event) => setFirstName(event.target.value)}
-                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
-                      <input
-                        id="f-last"
-                        type="text"
-                        placeholder="Alaoui"
-                        autoComplete="family-name"
-                        value={lastName}
-                        onChange={(event) => setLastName(event.target.value)}
-                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                      <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
-                      <input
-                        id="f-phone"
-                        type="tel"
-                        placeholder="+212 6XX XXX XXX"
-                        autoComplete="tel"
-                        value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
-                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                      <label htmlFor="f-email" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">
-                        Email <span className="text-[rgb(10_8_0/28%)] font-normal normal-case tracking-normal">(optional)</span>
-                      </label>
-                      <input
-                        id="f-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-4 flex items-start gap-2 px-3.5 py-3 bg-[rgb(192_154_90/5%)] rounded-[10px] border border-[rgb(192_154_90/10%)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 16v-4M12 8h.01" />
-                    </svg>
-                    Cash only, due at time of service. Free cancellations — just let us know.
-                  </div>
-                </div>
-
-                <div id="step-6" className={stepPanelClassName(6)}>
-                  <div className="text-center pt-5 pb-2">
-                    <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
-                      <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
-                        <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                    </div>
-                    <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
-                    <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
-                    <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
-                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                        <span className="opacity-50 text-xs font-medium">Name</span>
-                        <span>{firstName} {lastName}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                        <span className="opacity-50 text-xs font-medium">Date & Time</span>
-                        <span>{selectedDate?.fullDate} · {selectedTime}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                        <span className="opacity-50 text-xs font-medium">Barber</span>
-                        <span>{selectedBarber?.name}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                        <span className="opacity-50 text-xs font-medium">Services</span>
-                        <span>{selectedServicesLabel}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
-                        <span className="opacity-50 text-xs font-medium">Total</span>
-                        <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
-                      </div>
-                    </div>
-                    <button type="button" className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
-                      Close
-                    </button>
-                  </div>
-                </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
           </motion.div>
