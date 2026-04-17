@@ -1,6 +1,7 @@
 import { type User } from '@supabase/supabase-js';
+import { type UserRole } from '@/lib/types/database';
 
-export type UserRole = 'admin' | 'professional' | 'customer';
+export type { UserRole };
 
 export function getRole(user: User | null): UserRole | null {
   if (!user) return null;
@@ -17,8 +18,8 @@ export function hasAnyRole(user: User | null, roles: UserRole[]): boolean {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  admin: ['manage_all', 'view_analytics', 'manage_users', 'manage_bookings', 'manage_barbers', 'manage_services'],
-  professional: ['view_own_bookings', 'manage_own_schedule', 'update_profile'],
+  admin: ['manage_all', 'view_analytics', 'manage_users', 'manage_bookings', 'manage_barbers', 'manage_services', 'assign_professionals', 'confirm_appointments'],
+  professional: ['view_own_bookings', 'manage_own_schedule', 'update_profile', 'manage_own_availability'],
   customer: ['create_booking', 'view_own_bookings', 'update_profile'],
 };
 
