@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type LocationOption = {
@@ -53,7 +54,97 @@ const TIME_SLOTS = [
   "16:30",
   "17:00",
 ];
-const HERO_VIDEOS = ["/videos/hero-1.mp4", "/videos/hero-2.mp4", "/videos/hero-3.mp4", "/videos/hero-4.mp4"];
+const HERO_VIDEOS = ["/videos/hero-1.mp4", "/videos/hero-2.mp4", "/videos/hero-3.mp4", "/videos/hero-4.mp4", "/videos/hero-1.mp4", "/videos/hero-2.mp4", "/videos/hero-3.mp4", "/videos/hero-4.mp4"];
+
+const VIDEO_META: { src: string; title: string; style: string; likes: string; views: string }[] = [
+  { src: HERO_VIDEOS[0], title: "The Classic Cut — Where Tradition Meets Modern Elegance", style: "Timeless Precision", likes: "2.4K", views: "12.8K" },
+  { src: HERO_VIDEOS[1], title: "Skin Fade Mastery — Clean Lines, Bold Statements", style: "Sharp & Refined", likes: "3.1K", views: "18.2K" },
+  { src: HERO_VIDEOS[2], title: "Beard Sculpting — Artistry in Every Detail", style: "Precision Crafted", likes: "1.9K", views: "9.5K" },
+  { src: HERO_VIDEOS[3], title: "Hot Towel Ritual — The Ultimate Grooming Experience", style: "Pure Luxury", likes: "2.7K", views: "15.3K" },
+  { src: HERO_VIDEOS[4], title: "Textured Flow — Effortless Style, Expert Execution", style: "Modern Edge", likes: "2.1K", views: "11.4K" },
+  { src: HERO_VIDEOS[5], title: "Straight Razor Finish — Old School, New Standard", style: "Heritage Craft", likes: "1.6K", views: "8.7K" },
+  { src: HERO_VIDEOS[6], title: "The Full Transformation — From Rough to Refined", style: "Complete Makeover", likes: "3.8K", views: "22.1K" },
+  { src: HERO_VIDEOS[7], title: "Signature Styling — Your Look, Elevated", style: "Bespoke Grooming", likes: "2.9K", views: "16.5K" },
+];
+
+function getVideoMeta(src: string) {
+  return VIDEO_META.find((m) => m.src === src) || { title: "", style: "", likes: "", views: "" };
+}
+
+function VideoCell({ src, index, featured = false }: { src: string; index: number; featured?: boolean }) {
+  const meta = getVideoMeta(src);
+
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-md bg-brand-black shrink-0 h-[700px] border transition-[border-color,transform,box-shadow] duration-350 ease-out ${featured ? "border-gold3 shadow-[0_0_16px_rgb(212_175_55/0.15)]" : "border-transparent"} hover:border-gold3 hover:shadow-[0_0_20px_rgb(212_175_55/0.2)] focus-visible:outline-2 focus-visible:outline-gold3 focus-visible:outline-offset-2`}
+      role="img"
+      aria-label={`${meta.title} - ${meta.style} style`}
+      tabIndex={0}
+    >
+      <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" className="w-full h-full object-cover block [filter:brightness(0.65)_contrast(1.1)_saturate(1.1)] transition-[filter,transform] duration-500 ease-out group-hover:[filter:brightness(0.75)_contrast(1.05)_saturate(1.15)] group-hover:scale-105">
+        <source src={src} type="video/mp4" />
+      </video>
+      <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[rgb(0_0_0/0.75)] border border-[rgb(212_175_55/0.5)] text-[#fefbe3] text-[10px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(8px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-gold3 before:shrink-0">{meta.style}</span>
+      <div className="absolute inset-0 flex flex-col justify-end p-3 bg-gradient-to-b from-[rgb(10_8_0/0)] from-40% to-[rgb(10_8_0/0.85)] opacity-0 transition-opacity duration-350 ease-out pointer-events-none group-hover:opacity-100">
+        <div className="flex justify-start items-end">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] font-semibold text-[rgb(254_251_243/0.95)] tracking-[0.02em]">{meta.title}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileVideoCarousel() {
+  const [activeIndex, setActiveIndex] = useState(3);
+  const touchStartX = useRef<number | null>(null);
+  const videos = HERO_VIDEOS.slice(0, 6);
+  const count = videos.length;
+
+  const leftVideo = videos[(activeIndex - 1 + count) % count];
+  const centerVideo = videos[activeIndex];
+  const rightVideo = videos[(activeIndex + 1) % count];
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) {
+      setActiveIndex((prev) => (prev + (delta < 0 ? 1 : -1) + count) % count);
+    }
+    touchStartX.current = null;
+  };
+
+  return (
+    <>
+      <div className="absolute w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        {videos.map((src) => (
+          <video key={src} preload="auto" src={src} muted />
+        ))}
+      </div>
+      <div
+        className="flex items-center justify-center gap-1.5 w-full [touch-action:pan-y] px-2"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
+          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]" src={leftVideo} />
+        </div>
+        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[60%] aspect-[9/14]">
+          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block" src={centerVideo} />
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded bg-[rgb(0_0_0/0.7)] border border-[rgb(212_175_55/0.4)] text-[#fefbe3] text-[8px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(6px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:bg-gold3 before:shrink-0">{getVideoMeta(centerVideo).style}</span>
+        </div>
+        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
+          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]" src={rightVideo} />
+        </div>
+      </div>
+    </>
+  );
+}
 
 const LOCATIONS: LocationOption[] = [
   {
@@ -228,6 +319,8 @@ export default function Home() {
     return true;
   })();
 
+  const formComplete = Boolean(firstName.trim() && lastName.trim() && phone.trim());
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
@@ -267,10 +360,11 @@ export default function Home() {
     );
   };
 
-  const nextStep = () => {
-    if (!canContinue || isSubmitting) return;
+  const advanceStep = () => {
+    if (isSubmitting) return;
 
     if (step === 5) {
+      if (!formComplete) return;
       setIsSubmitting(true);
       submitTimerRef.current = window.setTimeout(() => {
         setIsSubmitting(false);
@@ -290,97 +384,136 @@ export default function Home() {
     setStep((current) => Math.max(current - 1, 1));
   };
 
+  // Auto-advance on single-choice steps
+  useEffect(() => {
+    if (direction === "back") return;
+    if (step === 1 && selectedLocation) {
+      const t = window.setTimeout(() => {
+        setDirection("forward");
+        setStep((current) => Math.min(current + 1, 5));
+      }, 350);
+      return () => window.clearTimeout(t);
+    }
+  }, [selectedLocation, step, direction]);
+
+  useEffect(() => {
+    if (direction === "back") return;
+    if (step === 2 && selectedBarber) {
+      const t = window.setTimeout(() => {
+        setDirection("forward");
+        setStep((current) => Math.min(current + 1, 5));
+      }, 350);
+      return () => window.clearTimeout(t);
+    }
+  }, [selectedBarber, step, direction]);
+
+  useEffect(() => {
+    if (direction === "back") return;
+    if (step === 3 && selectedServices.length > 0) {
+      const t = window.setTimeout(() => {
+        setDirection("forward");
+        setStep((current) => Math.min(current + 1, 5));
+      }, 350);
+      return () => window.clearTimeout(t);
+    }
+  }, [selectedServices, step, direction]);
+
+  useEffect(() => {
+    if (direction === "back") return;
+    if (step === 4 && selectedDate && selectedTime) {
+      const t = window.setTimeout(() => {
+        setDirection("forward");
+        setStep((current) => Math.min(current + 1, 5));
+      }, 350);
+      return () => window.clearTimeout(t);
+    }
+  }, [selectedDate, selectedTime, step, direction]);
+
+  useEffect(() => {
+    if (direction === "back") return;
+    if (step === 5 && formComplete && !isSubmitting) {
+      const t = window.setTimeout(() => {
+        setIsSubmitting(true);
+        submitTimerRef.current = window.setTimeout(() => {
+          setIsSubmitting(false);
+          setDirection("forward");
+          setStep(6);
+        }, 1400);
+      }, 600);
+      return () => window.clearTimeout(t);
+    }
+  }, [formComplete, step, isSubmitting, direction]);
+
   const stepPanelClassName = (panelStep: number) =>
     `step-panel${step === panelStep ? " active" : ""}${step === panelStep && direction === "back" ? " back" : ""}`;
 
   return (
     <>
-      <nav id="main-nav" className={isScrolled ? "scrolled" : undefined}>
-        <a className="nav-logo" href="#">
-          THE FADE
+      <nav id="main-nav" className={`fixed top-0 left-0 right-0 z-[300] flex items-center justify-between px-[56px] py-5 transition-[background,padding] duration-300 ${isScrolled ? "bg-[rgb(10_8_0/90%)] [backdrop-filter:blur(18px)] py-[14px] border-b border-[rgb(254_251_243/10%)]" : ""}`}>
+        <a className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3" href="#">
+          <img src="/logo.jpg" alt="Desart" className="w-8 h-8 rounded-full object-cover shrink-0 md:w-9 md:h-9" />
+          DESART
         </a>
-        <ul className="nav-links">
-          <li>
-            <a href="#services">Services</a>
-          </li>
-          <li>
-            <a href="#team">Team</a>
-          </li>
-          <li>
-            <a href="#locations">Locations</a>
-          </li>
-        </ul>
-        <button type="button" className="nav-cta open-booking" onClick={openModal}>
-          Book Now
-        </button>
-        <button type="button" className="nav-hamburger" aria-label="Menu">
-          <span />
-          <span />
-          <span />
+        <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label="Menu">
+          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
+          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
+          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
         </button>
       </nav>
 
-      <section className="hero">
-        <div className="hero-split">
-          <div className="hero-text-side">
-            <div className="hero-content hero-content-split">
-              <h1 className="hero-h1">
-                Sharp <em>cuts.</em>
+      <section className="relative w-full min-h-svh overflow-hidden bg-brand-black lg:h-svh lg:max-h-svh">
+        <div className="relative w-full min-h-svh lg:flex lg:flex-row lg:h-full lg:overflow-visible lg:[clip-path:inset(-200px_0_0_0)]">
+          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[100px] px-5 pb-4 lg:flex-none lg:w-[42%] lg:justify-start lg:pt-[120px] lg:px-12 lg:pb-[60px] lg:h-full">
+            <div className="text-center p-0 max-w-full lg:text-left">
+              <h1 className="font-playfair text-[clamp(58px,15vw,96px)] lg:text-[clamp(52px,4.8vw,100px)] font-normal leading-[0.82] tracking-[-0.02em] text-brand-white [animation:fade-up_0.9s_ease-out_0.3s_both]">
+                Sharp <span className="italic text-gold4 tracking-[-0.04em] font-medium">cuts.</span>
                 <br />
-                <span className="ol">Sharper</span> style.
+                <span className="[-webkit-text-stroke:1.5px_var(--color-gold3)] text-transparent">Sharper</span> style.
               </h1>
-              <p className="hero-sub">
-                Premium grooming for those who know the difference. Walk in looking good — walk out looking exceptional.
+              <p className="text-[13px] lg:text-[15px] font-light text-[rgb(254_251_243/48%)] lg:text-[rgb(254_251_243/55%)] max-w-[340px] lg:max-w-[420px] mx-auto mt-5 lg:mt-6 lg:mb-9 lg:mx-0 leading-[1.65] tracking-[0.02em] [animation:fade-up_0.9s_ease-out_0.5s_both]">
+                Premium grooming for those who know the difference.
               </p>
-              <button type="button" className="btn-gold hero-cta-btn open-booking" onClick={openModal}>
-                Book Now
-              </button>
-            </div>
-            <div className="hero-scroll hero-scroll-split">
-              <div className="hero-scroll-track">
-                <div className="hero-scroll-thumb" />
+              <div className="w-12 h-px bg-gold3 my-5 mx-auto lg:mx-0 [animation:fade-up_0.9s_ease-out_0.6s_both]" />
+              <div className="flex items-center gap-2 text-[10px] font-normal tracking-[0.14em] uppercase text-[rgb(254_251_243/38%)] justify-center lg:justify-start [animation:fade-up_0.9s_ease-out_0.7s_both]">
+                <span>AGADIR</span>
+                <span className="text-gold3 opacity-60 text-[8px]">·</span>
+                <span>Always Available</span>
+                <span className="text-gold3 opacity-60 text-[8px]">·</span>
+                <span>By Appointment</span>
               </div>
+            </div>
+            
+            <div className="w-full mt-[60px] lg:hidden [animation:fade-up_1s_ease-out_1.5s_both]">
+              <MobileVideoCarousel />
             </div>
           </div>
 
-          <div className="hero-video-grid">
-            <div className="vg-grid-inner">
-              <div className="vg-col vg-col-down">
-                <div className="vg-track">
+          <div className="hidden lg:block lg:flex-1 lg:relative lg:overflow-visible lg:z-[1] lg:-mt-[120px]">
+            <div className="grid grid-cols-3 gap-1 h-full">
+              <div className="group overflow-hidden relative h-full">
+                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
                   {[HERO_VIDEOS[0], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[3]].map((src, i) => (
-                    <div className="vg-cell" key={`c1-${i}`}>
-                      <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-                        <source src={src} type="video/mp4" />
-                      </video>
-                    </div>
+                    <VideoCell key={`c1-${i}`} src={src} index={i} />
                   ))}
                 </div>
               </div>
-              <div className="vg-col vg-col-up">
-                <div className="vg-track">
+              <div className="group overflow-hidden relative h-full">
+                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-up group-hover:[animation-play-state:paused]">
                   {[HERO_VIDEOS[1], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[2], HERO_VIDEOS[1], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[2]].map((src, i) => (
-                    <div className="vg-cell" key={`c2-${i}`}>
-                      <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-                        <source src={src} type="video/mp4" />
-                      </video>
-                    </div>
+                    <VideoCell key={`c2-${i}`} src={src} index={i} featured={i === 0} />
                   ))}
                 </div>
               </div>
-              <div className="vg-col vg-col-down">
-                <div className="vg-track">
+              <div className="group overflow-hidden relative h-full">
+                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
                   {[HERO_VIDEOS[2], HERO_VIDEOS[0], HERO_VIDEOS[3], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[0], HERO_VIDEOS[3], HERO_VIDEOS[1]].map((src, i) => (
-                    <div className="vg-cell" key={`c3-${i}`}>
-                      <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-                        <source src={src} type="video/mp4" />
-                      </video>
-                    </div>
+                    <VideoCell key={`c3-${i}`} src={src} index={i} />
                   ))}
                 </div>
               </div>
             </div>
-            <div className="vg-fade vg-fade-top" />
-            <div className="vg-fade vg-fade-bottom" />
+            <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none top-0 bg-gradient-to-b from-brand-black to-transparent" />
+            <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none bottom-[110px] bg-gradient-to-t from-brand-black to-transparent" />
           </div>
         </div>
       </section>
@@ -509,7 +642,7 @@ export default function Home() {
           <p className="qtext">
             Your chair is waiting. Your best look is one appointment <em>away.</em>
           </p>
-          <cite className="qcite">The Fade — Marrakech, Since 2019</cite>
+          <cite className="qcite">Desart — Marrakech, Since 2019</cite>
         </div>
       </div>
 
@@ -526,7 +659,7 @@ export default function Home() {
           </div>
           <div className="loc-cards">
             <div className="lic">
-              <h3>The Fade Salon</h3>
+              <h3>Desart Salon</h3>
               <span className="ltag">Flagship Location</span>
               <div className="ld">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -596,7 +729,7 @@ export default function Home() {
         <div className="footer-inner">
           <div className="footer-top">
             <div className="fbrand">
-              <span className="flogo">THE FADE</span>
+              <span className="flogo">DESART</span>
               <p>
                 Premium barbershop experience in the heart of Marrakech. Walk-ins welcome, appointments preferred. Cash
                 only — always.
@@ -634,7 +767,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>© 2025 The Fade. Cash only · Marrakech, Morocco</p>
+            <p>© 2025 Desart. Cash only · Marrakech, Morocco</p>
             <div className="fsocial">
               <a className="fsoc" href="#" aria-label="Instagram">
                 <svg viewBox="0 0 24 24">
@@ -658,370 +791,387 @@ export default function Home() {
         </div>
       </footer>
 
-      <button type="button" className="float-book open-booking" onClick={openModal}>
-        <div className="fpulse" />
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="18" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-        Book Now
-      </button>
+      <AnimatePresence>
+        {!isModalOpen && (
+          <motion.button
+            type="button"
+            className="float-book open-booking"
+            onClick={openModal}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+          >
+            Book Now
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      <div
-        id="modal-overlay"
-        className={`modal-overlay${isModalOpen ? " open" : ""}`}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) {
-            closeModal();
-          }
-        }}
-      >
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-          <div className="mhdr">
-            <div className="mtop">
-              <span className="mtitle" id="modal-title">
-                {step === 1 && "Reserve Your Session"}
-                {step === 2 && "Choose Your Barber"}
-                {step === 3 && "Select Services"}
-                {step === 4 && "Pick a Time"}
-                {step === 5 && "Your Details"}
-                {step === 6 && ""}
-              </span>
-              <button type="button" className="mclose close-booking" onClick={closeModal}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {step < 6 && (
-              <div className="prog-bar" id="prog-bar">
-                {STEP_LABELS.map((label, index) => {
-                  const stepNumber = index + 1;
-                  const isDone = step > stepNumber;
-                  const isActive = step === stepNumber;
-                  return (
-                    <div key={label} className={`ps ${isDone ? "done" : ""} ${isActive ? "active" : ""}`} data-s={stepNumber}>
-                      <div className="pc">
-                        {isDone ? (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        ) : (
-                          stepNumber
-                        )}
-                      </div>
-                      <span className="pl">{label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="mbody">
-            <div id="step-1" className={stepPanelClassName(1)}>
-              <p className="sq">Where would you like your appointment?</p>
-              <div className="lg2">
-                {LOCATIONS.map((location) => (
-                  <button
-                    key={location.id}
-                    type="button"
-                    className={`lc2 ${selectedLocation?.id === location.id ? "selected" : ""}`}
-                    onClick={() => setSelectedLocation(location)}
-                  >
-                    {location.id === "salon" ? (
-                      <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                      </svg>
-                    ) : (
-                      <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                    )}
-                    <div className="lc2-name">{location.name}</div>
-                    <div className="lc2-desc">
-                      {location.id === "salon" ? (
-                        <>
-                          14 Rue Mohammed V
-                          <br />
-                          Marrakech, Medina
-                          <br />
-                          <br />
-                          Sat–Thu · 9:00–17:00
-                        </>
-                      ) : (
-                        <>
-                          We travel to your address in Marrakech city.
-                          <br />
-                          <br />
-                          +30 MAD travel fee
-                        </>
-                      )}
-                    </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="booking-panel-overlay"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                closeModal();
+              }
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="booking-panel"
+              role="dialog"
+              aria-modal="true"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            >
+              <div className="panel-header">
+                {step > 1 && step < 6 && (
+                  <button type="button" className="panel-back" onClick={prevStep} aria-label="Go back">
+                    <svg viewBox="0 0 9 16" width="9" height="16">
+                      <path d="M8 1L1 8l7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </button>
-                ))}
-              </div>
-            </div>
-
-            <div id="step-2" className={stepPanelClassName(2)}>
-              <p className="sq">Choose your barber — each one brings a unique style.</p>
-              <div className="bpg">
-                {BARBERS.map((barber) => (
-                  <button
-                    key={barber.id}
-                    type="button"
-                    className={`bp ${selectedBarber?.id === barber.id ? "selected" : ""}`}
-                    onClick={() => setSelectedBarber(barber)}
-                  >
-                    <div className="bp-av">{barber.shortName}</div>
-                    <div className="bp-name">{barber.name.split(" ")[0]}</div>
-                    <div className="bp-role">{barber.role}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div id="step-3" className={stepPanelClassName(3)}>
-              <p className="sq">Select one or more services — cash payment at time of service.</p>
-              <div className="spl">
-                {SERVICES.map((service) => {
-                  const isSelected = selectedServices.some((selectedService) => selectedService.id === service.id);
-                  return (
-                    <button
-                      key={service.id}
-                      type="button"
-                      className={`sp ${isSelected ? "selected" : ""}`}
-                      onClick={() => toggleService(service)}
-                    >
-                      <div className="sp-l">
-                        <div className="sp-chk">
-                          <svg viewBox="0 0 24 24">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="sp-name">{service.name}</div>
-                          <div className="sp-dur">{service.duration} min</div>
-                        </div>
-                      </div>
-                      <span className="sp-price">{service.price} MAD</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div id="step-4" className={stepPanelClassName(4)}>
-              <p className="sq">Pick a date and time that works for you. (9:00 – 17:00, Fridays closed)</p>
-              <div className="dt-wrap">
-                <div>
-                  <div className="dtlbl">Date</div>
-                  <div className="date-slots">
-                    {dateSlots.map((slot) => (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        className={`ds ${selectedDate?.id === slot.id ? "selected" : ""}`}
-                        onClick={() => setSelectedDate(slot)}
-                      >
-                        <div className="ds-d">{slot.shortDay}</div>
-                        <div className="ds-n">{slot.displayDate}</div>
-                      </button>
-                    ))}
-                  </div>
+                )}
+                <div className="panel-header-center">
+                  <p className="panel-title" id="panel-title">
+                    {step === 1 && "Reserve Your Session"}
+                    {step === 2 && "Choose Your Barber"}
+                    {step === 3 && "Select Services"}
+                    {step === 4 && "Pick a Time"}
+                    {step === 5 && "Your Details"}
+                    {step === 6 && "Booking Confirmed"}
+                  </p>
                 </div>
-                <div>
-                  <div className="dtlbl">Time</div>
-                  <div className="tg">
-                    {TIME_SLOTS.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        className={`ts ${selectedTime === slot ? "selected" : ""}`}
-                        onClick={() => setSelectedTime(slot)}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id="step-5" className={stepPanelClassName(5)}>
-              <div className="sumbox">
-                <div className="sr">
-                  <span className="sl2">Location</span>
-                  <span>{selectedLocation?.description ?? "—"}</span>
-                </div>
-                <div className="sr">
-                  <span className="sl2">Barber</span>
-                  <span>{selectedBarber?.name ?? "—"}</span>
-                </div>
-                <div className="sr">
-                  <span className="sl2">Services</span>
-                  <span>{selectedServicesLabel || "—"}</span>
-                </div>
-                <div className="sr">
-                  <span className="sl2">Date & Time</span>
-                  <span>
-                    {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
-                  </span>
-                </div>
-                <div className="sr tot">
-                  <span className="sl2">Total (cash)</span>
-                  <span className="sv">{total} MAD</span>
-                </div>
-              </div>
-
-              <div className="fg">
-                <div className="ff">
-                  <label htmlFor="f-first">First Name</label>
-                  <input
-                    id="f-first"
-                    type="text"
-                    placeholder="Mohamed"
-                    autoComplete="given-name"
-                    value={firstName}
-                    onChange={(event) => setFirstName(event.target.value)}
-                  />
-                </div>
-                <div className="ff">
-                  <label htmlFor="f-last">Last Name</label>
-                  <input
-                    id="f-last"
-                    type="text"
-                    placeholder="Alaoui"
-                    autoComplete="family-name"
-                    value={lastName}
-                    onChange={(event) => setLastName(event.target.value)}
-                  />
-                </div>
-                <div className="ff full">
-                  <label htmlFor="f-phone">Phone Number</label>
-                  <input
-                    id="f-phone"
-                    type="tel"
-                    placeholder="+212 6XX XXX XXX"
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={(event) => setPhone(event.target.value)}
-                  />
-                </div>
-                <div className="ff full">
-                  <label htmlFor="f-email">
-                    Email <span>(optional)</span>
-                  </label>
-                  <input
-                    id="f-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="fnote">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4M12 8h.01" />
-                </svg>
-                Cash only, due at time of service. Free cancellations — just let us know.
-              </div>
-            </div>
-
-            <div id="step-6" className={stepPanelClassName(6)}>
-              <div className="succ-wrap">
-                <div className="sc-ck">
-                  <svg viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12" />
+                <button type="button" className="panel-close" onClick={closeModal} aria-label="Close">
+                  <svg viewBox="0 0 10 10" width="10" height="10">
+                    <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>
-                </div>
-                <h2 className="sc-h">You&apos;re all set!</h2>
-                <p className="sc-p">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
-                <div className="sc-det">
-                  <div className="sr">
-                    <span className="sl2">Name</span>
-                    <span>
-                      {firstName} {lastName}
-                    </span>
-                  </div>
-                  <div className="sr">
-                    <span className="sl2">Date & Time</span>
-                    <span>
-                      {selectedDate?.fullDate} · {selectedTime}
-                    </span>
-                  </div>
-                  <div className="sr">
-                    <span className="sl2">Barber</span>
-                    <span>{selectedBarber?.name}</span>
-                  </div>
-                  <div className="sr">
-                    <span className="sl2">Services</span>
-                    <span>{selectedServicesLabel}</span>
-                  </div>
-                  <div className="sr tot">
-                    <span className="sl2">Total</span>
-                    <span className="sv">{total} MAD</span>
-                  </div>
-                </div>
+                </button>
               </div>
-            </div>
-          </div>
 
-          {step < 6 ? (
-            <div className="mfoot" id="modal-footer">
-              <span className="cpill">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="2" y="6" width="20" height="12" rx="2" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                Cash only
-              </span>
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                {step > 1 && (
-                  <button type="button" className="btn-bk" id="btn-back" onClick={prevStep}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                    Back
-                  </button>
-                )}
-                {isSubmitting ? (
-                  <div className="snd">
-                    <div className="spnr" />
-                    Sending confirmation…
+              <div className="panel-body">
+                <div id="step-1" className={stepPanelClassName(1)}>
+                  <p className="sq">Where would you like your appointment?</p>
+                  <div className="lg2">
+                    {LOCATIONS.map((location) => (
+                      <button
+                        key={location.id}
+                        type="button"
+                        className={`lc2 ${selectedLocation?.id === location.id ? "selected" : ""}`}
+                        onClick={() => setSelectedLocation(location)}
+                      >
+                        <div className="lc2-icon-wrap">
+                          {location.id === "salon" ? (
+                            <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                              <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                          ) : (
+                            <svg className="lc2-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                          )}
+                          {selectedLocation?.id === location.id && (
+                            <span className="lc2-badge">
+                              <svg viewBox="0 0 24 24" width="10" height="10">
+                                <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                        <div className="lc2-content">
+                          <div className="lc2-name">{location.name}</div>
+                          <div className="lc2-desc">
+                            {location.id === "salon" ? (
+                              <>
+                                14 Rue Mohammed V, Marrakech, Medina
+                                <div className="lc2-spacer" />
+                                Sat–Thu · 9:00–17:00
+                              </>
+                            ) : (
+                              <>
+                                We travel to your address in Marrakech city
+                                <div className="lc2-spacer" />
+                                +30 MAD travel fee
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn-nx"
-                    id="btn-next"
-                    onClick={nextStep}
-                    disabled={!canContinue}
-                  >
-                    {step === 5 ? "Confirm Booking" : "Continue"}
+                </div>
+
+                <div id="step-2" className={stepPanelClassName(2)}>
+                  <p className="sq">Choose your barber — each one brings a unique style.</p>
+                  <div className="bpg">
+                    {BARBERS.map((barber) => (
+                      <button
+                        key={barber.id}
+                        type="button"
+                        className={`bp ${selectedBarber?.id === barber.id ? "selected" : ""}`}
+                        onClick={() => setSelectedBarber(barber)}
+                      >
+                        <div className="bp-av-wrap">
+                          <div className="bp-av">{barber.shortName}</div>
+                          {selectedBarber?.id === barber.id && (
+                            <span className="bp-check">
+                              <svg viewBox="0 0 24 24" width="10" height="10">
+                                <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                        <div className="bp-name">{barber.name.split(" ")[0]}</div>
+                        <div className="bp-role">{barber.role}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div id="step-3" className={stepPanelClassName(3)}>
+                  <p className="sq">Select one or more services — cash payment at time of service.</p>
+                  <div className="spl">
+                    {SERVICES.map((service) => {
+                      const isSelected = selectedServices.some((selectedService) => selectedService.id === service.id);
+                      return (
+                        <button
+                          key={service.id}
+                          type="button"
+                          className={`sp ${isSelected ? "selected" : ""}`}
+                          onClick={() => toggleService(service)}
+                        >
+                          <div className="sp-l">
+                            <div className="sp-chk">
+                              <svg viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </div>
+                            <div className="sp-info">
+                              <div className="sp-name">{service.name}</div>
+                              <div className="sp-dur">{service.duration} min</div>
+                            </div>
+                          </div>
+                          <span className="sp-price">{service.price} MAD</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div id="step-4" className={stepPanelClassName(4)}>
+                  <p className="sq">Pick a date and time that works for you.</p>
+                  <div className="dt-wrap">
+                    <div className="dt-section">
+                      <div className="dtlbl">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" />
+                          <path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        Select Date
+                      </div>
+                      <div className="date-slots">
+                        {dateSlots.map((slot) => (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            className={`ds ${selectedDate?.id === slot.id ? "selected" : ""}`}
+                            onClick={() => setSelectedDate(slot)}
+                          >
+                            <div className="ds-d">{slot.shortDay}</div>
+                            <div className="ds-n">{slot.displayDate.split(" ")[0]}</div>
+                            <div className="ds-m">{slot.displayDate.split(" ")[1]}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="dt-section">
+                      <div className="dtlbl">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 6v6l4 2" />
+                        </svg>
+                        Select Time
+                      </div>
+                      <div className="tg">
+                        {TIME_SLOTS.map((slot) => (
+                          <button
+                            key={slot}
+                            type="button"
+                            className={`ts ${selectedTime === slot ? "selected" : ""}`}
+                            onClick={() => setSelectedTime(slot)}
+                          >
+                            {slot}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="step-5" className={stepPanelClassName(5)}>
+                  <div className="sumbox">
+                    <div className="sumbox-title">Booking Summary</div>
+                    <div className="sr">
+                      <span className="sl2">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        Location
+                      </span>
+                      <span>{selectedLocation?.description ?? "—"}</span>
+                    </div>
+                    <div className="sr">
+                      <span className="sl2">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        Barber
+                      </span>
+                      <span>{selectedBarber?.name ?? "—"}</span>
+                    </div>
+                    <div className="sr">
+                      <span className="sl2">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        Services
+                      </span>
+                      <span>{selectedServicesLabel || "—"}</span>
+                    </div>
+                    <div className="sr">
+                      <span className="sl2">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" />
+                          <path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        Date & Time
+                      </span>
+                      <span>
+                        {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
+                      </span>
+                    </div>
+                    <div className="sr tot">
+                      <span className="sl2">Total</span>
+                      <span className="sv">{total} MAD</span>
+                    </div>
+                  </div>
+
+                  <div className="fg">
+                    <div className="ff">
+                      <label htmlFor="f-first">First Name</label>
+                      <input
+                        id="f-first"
+                        type="text"
+                        placeholder="Mohamed"
+                        autoComplete="given-name"
+                        value={firstName}
+                        onChange={(event) => setFirstName(event.target.value)}
+                      />
+                    </div>
+                    <div className="ff">
+                      <label htmlFor="f-last">Last Name</label>
+                      <input
+                        id="f-last"
+                        type="text"
+                        placeholder="Alaoui"
+                        autoComplete="family-name"
+                        value={lastName}
+                        onChange={(event) => setLastName(event.target.value)}
+                      />
+                    </div>
+                    <div className="ff full">
+                      <label htmlFor="f-phone">Phone Number</label>
+                      <input
+                        id="f-phone"
+                        type="tel"
+                        placeholder="+212 6XX XXX XXX"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                      />
+                    </div>
+                    <div className="ff full">
+                      <label htmlFor="f-email">
+                        Email <span>(optional)</span>
+                      </label>
+                      <input
+                        id="f-email"
+                        type="email"
+                        placeholder="your@email.com"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="fnote">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 18l6-6-6-6" />
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4M12 8h.01" />
                     </svg>
-                  </button>
-                )}
+                    Cash only, due at time of service. Free cancellations — just let us know.
+                  </div>
+                </div>
+
+                <div id="step-6" className={stepPanelClassName(6)}>
+                  <div className="succ-wrap">
+                    <div className="sc-ck">
+                      <div className="sc-ck-ring">
+                        <svg viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    </div>
+                    <h2 className="sc-h">You&apos;re all set!</h2>
+                    <p className="sc-p">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
+                    <div className="sc-det">
+                      <div className="sr">
+                        <span className="sl2">Name</span>
+                        <span>
+                          {firstName} {lastName}
+                        </span>
+                      </div>
+                      <div className="sr">
+                        <span className="sl2">Date & Time</span>
+                        <span>
+                          {selectedDate?.fullDate} · {selectedTime}
+                        </span>
+                      </div>
+                      <div className="sr">
+                        <span className="sl2">Barber</span>
+                        <span>{selectedBarber?.name}</span>
+                      </div>
+                      <div className="sr">
+                        <span className="sl2">Services</span>
+                        <span>{selectedServicesLabel}</span>
+                      </div>
+                      <div className="sr tot">
+                        <span className="sl2">Total</span>
+                        <span className="sv">{total} MAD</span>
+                      </div>
+                    </div>
+                    <button type="button" className="succ-close" onClick={finishBooking}>
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="mfoot" id="modal-footer" style={{ justifyContent: "center" }}>
-              <button type="button" className="btn-nx" onClick={finishBooking}>
-                Close
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
