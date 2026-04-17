@@ -694,13 +694,14 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="quote-sec">
-        <div className="qbody">
-          <span className="qmark">&quot;</span>
-          <p className="qtext">
-            Your chair is waiting. Your best look is one appointment <em>away.</em>
+      <div className="relative overflow-hidden bg-black2 border-t-2 border-gold/30 py-16 px-6 text-center md:py-24 md:px-14 lg:py-28">
+        <div className="pointer-events-none absolute -top-[200px] left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(192,154,90,0.07)_0%,transparent_65%)]" />
+        <div className="relative z-10 mx-auto max-w-[820px]">
+          
+          <p className="mb-7 font-playfair text-[clamp(1.875rem,4.5vw,3.25rem)] font-normal italic leading-snug text-brand-white">
+            Your chair is waiting. Your best look is one appointment <em className="not-italic text-gold3">away.</em>
           </p>
-          <cite className="qcite">Desart — Marrakech, Since 2019</cite>
+          <cite className="text-xs font-normal uppercase tracking-[0.18em] text-brand-white/30 not-italic">Desart — Marrakech, Since 2019</cite>
         </div>
       </div>
 

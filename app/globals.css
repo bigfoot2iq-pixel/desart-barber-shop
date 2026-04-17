@@ -191,65 +191,7 @@ section {
   }
 }
 
-.quote-sec {
-  background: var(--black2);
-  padding: 100px 56px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
 
-.quote-sec::before {
-  content: "";
-  position: absolute;
-  top: -200px;
-  left: 50%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(192 154 90 / 7%) 0%, transparent 65%);
-  transform: translateX(-50%);
-}
-
-.qbody {
-  position: relative;
-  z-index: 1;
-  max-width: 820px;
-  margin: 0 auto;
-}
-
-.qmark {
-  font-family: "Playfair Display", serif;
-  font-size: 120px;
-  line-height: 0.4;
-  color: var(--gold);
-  opacity: 0.22;
-  margin-bottom: 22px;
-  display: block;
-}
-
-.qtext {
-  font-family: "Playfair Display", serif;
-  font-size: clamp(30px, 4.5vw, 52px);
-  font-weight: 400;
-  font-style: italic;
-  color: var(--white);
-  line-height: 1.25;
-  margin-bottom: 28px;
-}
-
-.qtext em {
-  color: var(--gold3);
-  font-style: normal;
-}
-
-.qcite {
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgb(254 251 243 / 30%);
-}
 
 #locations {
   background: var(--gold-bg);
