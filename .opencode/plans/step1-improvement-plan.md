@@ -206,14 +206,14 @@
     <>
       14 Rue Mohammed V
       <br />
-      Marrakech, Medina
+      Agadir, Medina
       <br />
       <br />
       Sat–Thu · 9:00–17:00
     </>
   ) : (
     <>
-      We travel to your address in Marrakech city.
+      We travel to your address in Agadir city.
       <br />
       <br />
       +30 MAD travel fee
@@ -227,7 +227,7 @@
     <>
       14 Rue Mohammed V
       <br />
-      Marrakech, Medina
+      Agadir, Medina
       <div className="lc2-spacer" />
       Sat–Thu · 9:00–17:00
     </>
@@ -235,7 +235,7 @@
     <>
       We travel to your address
       <br />
-      in Marrakech city
+      in Agadir city
       <div className="lc2-spacer" />
       +30 MAD travel fee
     </>

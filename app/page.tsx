@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
 
 type LocationOption = {
   id: "salon" | "home";
@@ -32,7 +33,7 @@ type DateSlot = {
 };
 
 const REEL_DURATION_MS = 5000;
-const STEP_LABELS = ["Location", "Barber", "Services", "Time", "Details"];
+const STEP_LABELS = ["Choose a Location", "Choose a Berber", "Choose a Service", "Choose a Time", "Details"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TIME_SLOTS = [
@@ -54,97 +55,7 @@ const TIME_SLOTS = [
   "16:30",
   "17:00",
 ];
-const HERO_VIDEOS = ["/videos/hero-1.mp4", "/videos/hero-2.mp4", "/videos/hero-3.mp4", "/videos/hero-4.mp4", "/videos/hero-1.mp4", "/videos/hero-2.mp4", "/videos/hero-3.mp4", "/videos/hero-4.mp4"];
 
-const VIDEO_META: { src: string; title: string; style: string; likes: string; views: string }[] = [
-  { src: HERO_VIDEOS[0], title: "The Classic Cut — Where Tradition Meets Modern Elegance", style: "Timeless Precision", likes: "2.4K", views: "12.8K" },
-  { src: HERO_VIDEOS[1], title: "Skin Fade Mastery — Clean Lines, Bold Statements", style: "Sharp & Refined", likes: "3.1K", views: "18.2K" },
-  { src: HERO_VIDEOS[2], title: "Beard Sculpting — Artistry in Every Detail", style: "Precision Crafted", likes: "1.9K", views: "9.5K" },
-  { src: HERO_VIDEOS[3], title: "Hot Towel Ritual — The Ultimate Grooming Experience", style: "Pure Luxury", likes: "2.7K", views: "15.3K" },
-  { src: HERO_VIDEOS[4], title: "Textured Flow — Effortless Style, Expert Execution", style: "Modern Edge", likes: "2.1K", views: "11.4K" },
-  { src: HERO_VIDEOS[5], title: "Straight Razor Finish — Old School, New Standard", style: "Heritage Craft", likes: "1.6K", views: "8.7K" },
-  { src: HERO_VIDEOS[6], title: "The Full Transformation — From Rough to Refined", style: "Complete Makeover", likes: "3.8K", views: "22.1K" },
-  { src: HERO_VIDEOS[7], title: "Signature Styling — Your Look, Elevated", style: "Bespoke Grooming", likes: "2.9K", views: "16.5K" },
-];
-
-function getVideoMeta(src: string) {
-  return VIDEO_META.find((m) => m.src === src) || { title: "", style: "", likes: "", views: "" };
-}
-
-function VideoCell({ src, index, featured = false }: { src: string; index: number; featured?: boolean }) {
-  const meta = getVideoMeta(src);
-
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-md bg-brand-black shrink-0 h-[700px] border transition-[border-color,transform,box-shadow] duration-350 ease-out ${featured ? "border-gold3 shadow-[0_0_16px_rgb(212_175_55/0.15)]" : "border-transparent"} hover:border-gold3 hover:shadow-[0_0_20px_rgb(212_175_55/0.2)] focus-visible:outline-2 focus-visible:outline-gold3 focus-visible:outline-offset-2`}
-      role="img"
-      aria-label={`${meta.title} - ${meta.style} style`}
-      tabIndex={0}
-    >
-      <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" className="w-full h-full object-cover block [filter:brightness(0.65)_contrast(1.1)_saturate(1.1)] transition-[filter,transform] duration-500 ease-out group-hover:[filter:brightness(0.75)_contrast(1.05)_saturate(1.15)] group-hover:scale-105">
-        <source src={src} type="video/mp4" />
-      </video>
-      <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[rgb(0_0_0/0.75)] border border-[rgb(212_175_55/0.5)] text-[#fefbe3] text-[10px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(8px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-gold3 before:shrink-0">{meta.style}</span>
-      <div className="absolute inset-0 flex flex-col justify-end p-3 bg-gradient-to-b from-[rgb(10_8_0/0)] from-40% to-[rgb(10_8_0/0.85)] opacity-0 transition-opacity duration-350 ease-out pointer-events-none group-hover:opacity-100">
-        <div className="flex justify-start items-end">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[13px] font-semibold text-[rgb(254_251_243/0.95)] tracking-[0.02em]">{meta.title}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileVideoCarousel() {
-  const [activeIndex, setActiveIndex] = useState(3);
-  const touchStartX = useRef<number | null>(null);
-  const videos = HERO_VIDEOS.slice(0, 6);
-  const count = videos.length;
-
-  const leftVideo = videos[(activeIndex - 1 + count) % count];
-  const centerVideo = videos[activeIndex];
-  const rightVideo = videos[(activeIndex + 1) % count];
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(delta) > 40) {
-      setActiveIndex((prev) => (prev + (delta < 0 ? 1 : -1) + count) % count);
-    }
-    touchStartX.current = null;
-  };
-
-  return (
-    <>
-      <div className="absolute w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {videos.map((src) => (
-          <video key={src} preload="auto" src={src} muted />
-        ))}
-      </div>
-      <div
-        className="flex items-center justify-center gap-1.5 w-full [touch-action:pan-y] px-2"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
-          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]" src={leftVideo} />
-        </div>
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[60%] aspect-[9/14]">
-          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block" src={centerVideo} />
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded bg-[rgb(0_0_0/0.7)] border border-[rgb(212_175_55/0.4)] text-[#fefbe3] text-[8px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(6px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:bg-gold3 before:shrink-0">{getVideoMeta(centerVideo).style}</span>
-        </div>
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
-          <video autoPlay muted loop playsInline className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]" src={rightVideo} />
-        </div>
-      </div>
-    </>
-  );
-}
 
 const LOCATIONS: LocationOption[] = [
   {
@@ -218,7 +129,7 @@ const MARQUEE_ITEMS = [
   "Hot Towel Shaves",
   "Cash Only · No Fuss",
   "Same Day Booking",
-  "Marrakech Finest",
+  "Agadir Finest",
 ];
 
 function buildDateSlots(): DateSlot[] {
@@ -262,9 +173,116 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [expandedTeamMember, setExpandedTeamMember] = useState<string | null>(null);
+  const [calendarExpanded, setCalendarExpanded] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
+  const availableDateIds = useMemo(() => new Set(dateSlots.map((s) => s.id)), [dateSlots]);
+
+  const currentWeekDays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dow = today.getDay();
+    const mondayOffset = dow === 0 ? 1 : dow === 1 ? 0 : -(dow - 1);
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+
+    const days: { date: number; dateStr: string; shortDay: string; monthStr: string; isPast: boolean; isAvailable: boolean; isFriday: boolean; isSelected: boolean }[] = [];
+
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const isPast = d < today;
+      const isFriday = d.getDay() === 5;
+      days.push({
+        date: d.getDate(),
+        dateStr,
+        shortDay: dayNames[i],
+        monthStr: MONTHS[d.getMonth()],
+        isPast,
+        isAvailable: !isPast && !isFriday && availableDateIds.has(dateStr),
+        isFriday,
+        isSelected: false,
+      });
+    }
+    return days;
+  }, [availableDateIds]);
+
+  const monthYearLabel = `${MONTHS[calendarMonth.month]} ${calendarMonth.year}`;
+
+  const canGoPrevMonth = (() => {
+    const now = new Date();
+    return calendarMonth.year > now.getFullYear() || (calendarMonth.year === now.getFullYear() && calendarMonth.month > now.getMonth());
+  })();
+
+  const canGoNextMonth = dateSlots.some((slot) => {
+    const d = new Date(slot.id + "T12:00:00");
+    const nextMonth = calendarMonth.month === 11 ? 0 : calendarMonth.month + 1;
+    const nextYear = calendarMonth.month === 11 ? calendarMonth.year + 1 : calendarMonth.year;
+    return d.getFullYear() === nextYear && d.getMonth() === nextMonth;
+  });
+
+  const goPrevMonth = () => {
+    if (!canGoPrevMonth) return;
+    setCalendarMonth((prev) => ({
+      year: prev.month === 0 ? prev.year - 1 : prev.year,
+      month: prev.month === 0 ? 11 : prev.month - 1,
+    }));
+  };
+
+  const goNextMonth = () => {
+    if (!canGoNextMonth) return;
+    setCalendarMonth((prev) => ({
+      year: prev.month === 11 ? prev.year + 1 : prev.year,
+      month: prev.month === 11 ? 0 : prev.month + 1,
+    }));
+  };
+
+  const calendarDays = useMemo(() => {
+    const { year, month } = calendarMonth;
+    const firstDayRaw = new Date(year, month, 1).getDay();
+    const firstDayMon = firstDayRaw === 0 ? 6 : firstDayRaw - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+    const days: { date: number; isCurrentMonth: boolean; isAvailable: boolean; dateStr: string; isFriday: boolean }[] = [];
+
+    for (let i = firstDayMon - 1; i >= 0; i--) {
+      days.push({ date: prevMonthLastDay - i, isCurrentMonth: false, isAvailable: false, dateStr: "", isFriday: false });
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dayOfWeek = new Date(year, month, d).getDay();
+      days.push({
+        date: d,
+        isCurrentMonth: true,
+        isAvailable: availableDateIds.has(dateStr),
+        dateStr,
+        isFriday: dayOfWeek === 5,
+      });
+    }
+
+    const totalCells = days.length;
+    const rows = Math.ceil(totalCells / 7);
+    const targetCells = rows * 7;
+    for (let i = 1; i <= targetCells - totalCells; i++) {
+      days.push({ date: i, isCurrentMonth: false, isAvailable: false, dateStr: "", isFriday: false });
+    }
+
+    return days;
+  }, [calendarMonth, availableDateIds]);
+
+  const handleCalendarDateSelect = (dateStr: string) => {
+    const slot = dateSlots.find((s) => s.id === dateStr);
+    if (slot) setSelectedDate(slot);
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 60);
@@ -343,6 +361,11 @@ export default function Home() {
     setPhone("");
     setEmail("");
     setIsSubmitting(false);
+    setCalendarExpanded(false);
+    setCalendarMonth(() => {
+      const now = new Date();
+      return { year: now.getFullYear(), month: now.getMonth() };
+    });
   };
 
   const finishBooking = () => {
@@ -513,29 +536,7 @@ export default function Home() {
           </div>
 
           <div className="hidden lg:block lg:flex-1 lg:relative lg:overflow-visible lg:z-[1] lg:-mt-[120px]">
-            <div className="grid grid-cols-3 gap-1 h-full">
-              <div className="group overflow-hidden relative h-full">
-                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
-                  {[HERO_VIDEOS[0], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[3]].map((src, i) => (
-                    <VideoCell key={`c1-${i}`} src={src} index={i} />
-                  ))}
-                </div>
-              </div>
-              <div className="group overflow-hidden relative h-full">
-                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-up group-hover:[animation-play-state:paused]">
-                  {[HERO_VIDEOS[1], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[2], HERO_VIDEOS[1], HERO_VIDEOS[3], HERO_VIDEOS[0], HERO_VIDEOS[2]].map((src, i) => (
-                    <VideoCell key={`c2-${i}`} src={src} index={i} featured={i === 0} />
-                  ))}
-                </div>
-              </div>
-              <div className="group overflow-hidden relative h-full">
-                <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
-                  {[HERO_VIDEOS[2], HERO_VIDEOS[0], HERO_VIDEOS[3], HERO_VIDEOS[1], HERO_VIDEOS[2], HERO_VIDEOS[0], HERO_VIDEOS[3], HERO_VIDEOS[1]].map((src, i) => (
-                    <VideoCell key={`c3-${i}`} src={src} index={i} />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <DesktopVideoGrid />
             <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none top-0 bg-gradient-to-b from-brand-black to-transparent" />
             <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none bottom-[110px] bg-gradient-to-t from-brand-black to-transparent" />
           </div>
@@ -713,7 +714,7 @@ export default function Home() {
           <p className="mb-7 font-playfair text-[clamp(1.875rem,4.5vw,3.25rem)] font-normal italic leading-snug text-brand-white">
             Your chair is waiting. Your best look is one appointment <em className="not-italic text-gold3">away.</em>
           </p>
-          <cite className="text-xs font-normal uppercase tracking-[0.18em] text-brand-white/30 not-italic">Desart — Marrakech, Since 2019</cite>
+          <cite className="text-xs font-normal uppercase tracking-[0.18em] text-brand-white/30 not-italic">Desart — Agadir, Since 2019</cite>
         </div>
       </div>
 
@@ -740,7 +741,7 @@ export default function Home() {
                 <p className="text-sm leading-[1.7] opacity-70">
                   14 Rue Mohammed V, Medína
                   <br />
-                  Marrakech 40000, Morocco
+                  Agadir 40000, Morocco
                 </p>
               </div>
               <div className="flex items-start gap-3.5 mb-[18px]">
@@ -772,7 +773,7 @@ export default function Home() {
                   <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">We travel anywhere within Marrakech city limits. Just provide your address at booking.</p>
+                <p className="text-sm leading-[1.7] opacity-70">We travel anywhere within Agadir city limits. Just provide your address at booking.</p>
               </div>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -802,7 +803,7 @@ export default function Home() {
             <div>
               <span className="font-playfair text-[28px] font-bold tracking-[0.14em] text-gold3 block mb-4">DESART</span>
               <p className="text-sm text-[rgb(254_251_243/40%)] leading-[1.85] max-w-[270px]">
-                Premium barbershop experience in the heart of Marrakech. Walk-ins welcome, appointments preferred. Cash
+                Premium barbershop experience in the heart of Agadir. Walk-ins welcome, appointments preferred. Cash
                 only — always.
               </p>
             </div>
@@ -828,7 +829,7 @@ export default function Home() {
             <div>
               <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">Contact</h4>
               <ul className="list-none flex flex-col gap-3">
-                <li className="text-sm text-[rgb(254_251_243/40%)]">14 Rue Mohammed V, Marrakech</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">14 Rue Mohammed V, Agadir</li>
                 <li>
                   <a href="tel:+212600000000" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 600 000 000</a>
                 </li>
@@ -838,23 +839,13 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-[rgb(254_251_243/10%)] pt-7 flex justify-between items-center flex-wrap gap-3">
-            <p className="text-[13px] text-[rgb(254_251_243/28%)]">© 2025 Desart. Cash only · Marrakech, Morocco</p>
+            <p className="text-[13px] text-[rgb(254_251_243/28%)]">© 2026 Desart. Cash only · Agadir, Morocco</p>
             <div className="flex gap-3.5">
               <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="Instagram">
                 <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
                   <rect x="2" y="2" width="20" height="20" rx="5" />
                   <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                </svg>
-              </a>
-              <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="TikTok">
-                <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
-                  <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5" />
-                </svg>
-              </a>
-              <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="WhatsApp">
-                <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
-                  <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                 </svg>
               </a>
             </div>
@@ -927,10 +918,10 @@ export default function Home() {
                     className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em]"
                     id="panel-title"
                   >
-                    {step === 1 && "Reserve Your Session"}
-                    {step === 2 && "Choose Your Barber"}
-                    {step === 3 && "Select Services"}
-                    {step === 4 && "Pick a Time"}
+                    {step === 1 && "Choose a Location"}
+                    {step === 2 && "Choose a Berber"}
+                    {step === 3 && "Choose a Service"}
+                    {step === 4 && "Choose a Time"}
                     {step === 5 && "Your Details"}
                     {step === 6 && "Booking Confirmed"}
                   </p>
@@ -986,13 +977,13 @@ export default function Home() {
                                   <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
                                     {location.id === "salon" ? (
                                       <>
-                                        14 Rue Mohammed V, Marrakech, Medina
+                                        14 Rue Mohammed V, Agadir, Medina
                                         <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
                                         Sat–Thu · 9:00–17:00
                                       </>
                                     ) : (
                                       <>
-                                        We travel to your address in Marrakech city
+                                        We travel to your address in Agadir city
                                         <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
                                         +30 MAD travel fee
                                       </>
@@ -1016,7 +1007,7 @@ export default function Home() {
                               <button
                                 key={barber.id}
                                 type="button"
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedBarber(barber)}
                               >
                                 <div className="relative flex items-center justify-center shrink-0">
@@ -1043,7 +1034,7 @@ export default function Home() {
                               <button
                                 key={service.id}
                                 type="button"
-                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => toggleService(service)}
                               >
                                 <div className="flex flex-col gap-0.5 items-start">
@@ -1070,22 +1061,113 @@ export default function Home() {
                               </svg>
                               Select Date
                             </div>
-                            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                              {dateSlots.map((slot) => {
-                                const isDateSelected = selectedDate?.id === slot.id;
-                                return (
-                                  <button
-                                    key={slot.id}
-                                    type="button"
-                                    className={`shrink-0 min-w-[56px] rounded-xl px-2 py-2.5 text-center transition-all duration-250 ${isDateSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
-                                    onClick={() => setSelectedDate(slot)}
-                                  >
-                                    <div className={`text-[9px] uppercase tracking-[0.08em] mb-1 font-semibold transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/40%)]"}`}>{slot.shortDay}</div>
-                                    <div className={`text-lg font-bold tracking-[-0.02em] transition-colors duration-200 ${isDateSelected ? "text-white" : "text-brand-black"}`}>{slot.displayDate.split(" ")[0]}</div>
-                                    <div className={`text-[9px] font-medium uppercase tracking-[0.06em] mt-0.5 transition-colors duration-200 ${isDateSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/35%)]"}`}>{slot.displayDate.split(" ")[1]}</div>
-                                  </button>
-                                );
-                              })}
+
+                            {!calendarExpanded && (
+                              <div className="flex items-stretch gap-1.5">
+                                {currentWeekDays.map((day) => {
+                                  const isDateSelected = selectedDate?.id === day.dateStr;
+                                  return (
+                                    <button
+                                      key={day.dateStr}
+                                      type="button"
+                                      disabled={day.isPast || !day.isAvailable}
+                                      onClick={() => {
+                                        if (day.isAvailable) {
+                                          const slot = dateSlots.find((s) => s.id === day.dateStr);
+                                          if (slot) setSelectedDate(slot);
+                                        }
+                                      }}
+                                      className={`flex-1 flex flex-col items-center justify-center rounded-xl py-2.5 transition-all duration-250 ${
+                                        isDateSelected
+                                          ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]"
+                                          : day.isPast || day.isFriday
+                                          ? "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
+                                          : day.isAvailable
+                                          ? "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)] cursor-pointer"
+                                          : "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
+                                      }`}
+                                    >
+                                      <span className={`text-lg font-bold tracking-[-0.02em] leading-none ${
+                                        isDateSelected ? "text-white" : day.isPast || day.isFriday || !day.isAvailable ? "text-[rgb(10_8_0/18%)] line-through" : "text-brand-black"
+                                      }`}>{day.date}</span>
+                                      <span className={`text-[10px] font-semibold uppercase tracking-[0.08em] mt-1 ${
+                                        isDateSelected ? "text-[rgb(255_255_255/80%)]" : day.isPast || day.isFriday || !day.isAvailable ? "text-[rgb(10_8_0/22%)]" : "text-[rgb(10_8_0/40%)]"
+                                      }`}>{day.shortDay}</span>
+                                    </button>
+                                  );
+                                })}
+                                <button
+                                  type="button"
+                                  onClick={() => setCalendarExpanded(true)}
+                                  className="flex-1 flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-[rgb(10_8_0/10%)] bg-white transition-all duration-250 hover:border-[rgb(10_8_0/18%)] hover:bg-[rgb(10_8_0/2%)] cursor-pointer"
+                                >
+                                  <svg viewBox="0 0 12 6" width="13" height="7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/30%)]">
+                                    <path d="M1 1l5 4 5-4" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+
+                            <div className={`grid transition-[grid-template-rows] duration-350 ease-out ${calendarExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                              <div className="overflow-hidden">
+                                <div className="pt-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[13px] font-semibold text-brand-black tracking-[-0.01em]">{monthYearLabel}</span>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={goPrevMonth}
+                                        disabled={!canGoPrevMonth}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoPrevMonth ? "border-[rgb(10_8_0/8%)] text-brand-black hover:border-[rgb(10_8_0/20%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/5%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                      >
+                                        <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 1L1 8l8 7" /></svg>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={goNextMonth}
+                                        disabled={!canGoNextMonth}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoNextMonth ? "border-[rgb(10_8_0/8%)] text-brand-black hover:border-[rgb(10_8_0/20%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/5%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                      >
+                                        <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l8 7-8 7" /></svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-7 gap-1 mb-1">
+                                    {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                                      <div key={i} className="text-center text-[9px] font-semibold uppercase tracking-[0.1em] text-[rgb(10_8_0/30%)] py-1">{d}</div>
+                                    ))}
+                                  </div>
+                                  <div className="grid grid-cols-7 gap-1">
+                                    {calendarDays.map((day, i) => {
+                                      if (!day.isCurrentMonth) {
+                                        return (
+                                          <div key={i} className="rounded-lg py-2 text-center text-[13px] text-[rgb(10_8_0/12%)]">{day.date}</div>
+                                        );
+                                      }
+                                      const isDateSelected = day.dateStr === selectedDate?.id;
+                                      return (
+                                        <button
+                                          key={i}
+                                          type="button"
+                                          disabled={!day.isAvailable}
+                                          onClick={() => day.isAvailable && handleCalendarDateSelect(day.dateStr)}
+                                          className={`rounded-lg py-2 text-center text-[13px] font-semibold transition-all duration-200 ${
+                                            isDateSelected
+                                              ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]"
+                                              : day.isAvailable
+                                              ? "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
+                                              : day.isFriday
+                                              ? "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] text-[rgb(10_8_0/20%)] line-through cursor-not-allowed"
+                                              : "text-[rgb(10_8_0/25%)] cursor-not-allowed"
+                                          }`}
+                                        >
+                                          {day.date}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/6%)]">
@@ -1103,7 +1185,7 @@ export default function Home() {
                                   <button
                                     key={slot}
                                     type="button"
-                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                     onClick={() => setSelectedTime(slot)}
                                   >
                                     {slot}
@@ -1118,110 +1200,128 @@ export default function Home() {
 
                     {step === 5 && (
                       <>
-                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 mb-[22px] flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)]">
-                          <div className="font-playfair text-[11px] font-bold tracking-[0.12em] uppercase text-[rgb(10_8_0/40%)] mb-3 pb-2.5 border-b border-[rgb(10_8_0/6%)]">Booking Summary</div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                                <circle cx="12" cy="10" r="3" />
-                              </svg>
-                              Location
-                            </span>
-                            <span>{selectedLocation?.description ?? "—"}</span>
+                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Almost there — just a few details to wrap up your booking.</p>
+
+                        <div className="flex flex-col gap-4 mb-[22px]">
+                          <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Booking Summary
                           </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                              Barber
-                            </span>
-                            <span>{selectedBarber?.name ?? "—"}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                                <polyline points="14 2 14 8 20 8" />
-                              </svg>
-                              Services
-                            </span>
-                            <span>{selectedServicesLabel || "—"}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
-                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 shrink-0">
-                                <rect x="3" y="4" width="18" height="18" rx="2" />
-                                <path d="M16 2v4M8 2v4M3 10h18" />
-                              </svg>
-                              Date & Time
-                            </span>
-                            <span>
-                              {selectedDate?.fullDate ?? "—"} {selectedTime ? `· ${selectedTime}` : ""}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
-                            <span className="opacity-50 flex items-center gap-[5px] text-xs font-medium">Total</span>
-                            <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
+                          <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/7%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
+                            <div className="flex justify-between items-center gap-3 py-2">
+                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                                  <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                Location
+                              </span>
+                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedLocation?.description ?? "—"}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                  <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                Barber
+                              </span>
+                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedBarber?.name ?? "—"}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                  <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                                Services
+                              </span>
+                              <span className="text-sm font-semibold tracking-[-0.01em] text-right">{selectedServicesLabel || "—"}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                                  <path d="M16 2v4M8 2v4M3 10h18" />
+                                </svg>
+                                Date & Time
+                              </span>
+                              <span className="text-sm font-semibold tracking-[-0.01em]">
+                                {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/10%)]">
+                              <span className="text-[rgb(10_8_0/40%)] text-[11px] font-semibold tracking-[0.02em] uppercase">Total</span>
+                              <span className="text-[17px] font-bold tracking-[-0.02em] text-gold">{total} MAD</span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                          <div className="flex flex-col gap-1.5">
-                            <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
-                            <input
-                              id="f-first"
-                              type="text"
-                              placeholder="Mohamed"
-                              autoComplete="given-name"
-                              value={firstName}
-                              onChange={(event) => setFirstName(event.target.value)}
-                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                            />
+                        <div className="flex flex-col gap-4">
+                          <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Contact Information
                           </div>
-                          <div className="flex flex-col gap-1.5">
-                            <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
-                            <input
-                              id="f-last"
-                              type="text"
-                              placeholder="Alaoui"
-                              autoComplete="family-name"
-                              value={lastName}
-                              onChange={(event) => setLastName(event.target.value)}
-                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                            <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
-                            <input
-                              id="f-phone"
-                              type="tel"
-                              placeholder="+212 6XX XXX XXX"
-                              autoComplete="tel"
-                              value={phone}
-                              onChange={(event) => setPhone(event.target.value)}
-                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                            <label htmlFor="f-email" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[rgb(10_8_0/40%)]">
-                              Email <span className="text-[rgb(10_8_0/28%)] font-normal normal-case tracking-normal">(optional)</span>
-                            </label>
-                            <input
-                              id="f-email"
-                              type="email"
-                              placeholder="your@email.com"
-                              autoComplete="email"
-                              value={email}
-                              onChange={(event) => setEmail(event.target.value)}
-                              className="bg-white border-[1.5px] border-[rgb(10_8_0/8%)] rounded-[10px] px-3.5 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/2%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                            />
+                          <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                            <div className="flex flex-col gap-1.5">
+                              <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
+                              <input
+                                id="f-first"
+                                type="text"
+                                placeholder="Mohamed"
+                                autoComplete="given-name"
+                                value={firstName}
+                                onChange={(event) => setFirstName(event.target.value)}
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
+                              <input
+                                id="f-last"
+                                type="text"
+                                placeholder="Alaoui"
+                                autoComplete="family-name"
+                                value={lastName}
+                                onChange={(event) => setLastName(event.target.value)}
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                              <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
+                              <input
+                                id="f-phone"
+                                type="tel"
+                                placeholder="+212 6XX XXX XXX"
+                                autoComplete="tel"
+                                value={phone}
+                                onChange={(event) => setPhone(event.target.value)}
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                              <label htmlFor="f-email" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">
+                                Email <span className="text-[rgb(10_8_0/28%)] font-normal normal-case tracking-normal">(optional)</span>
+                              </label>
+                              <input
+                                id="f-email"
+                                type="email"
+                                placeholder="your@email.com"
+                                autoComplete="email"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-4 flex items-start gap-2 px-3.5 py-3 bg-[rgb(192_154_90/5%)] rounded-[10px] border border-[rgb(192_154_90/10%)]">
+                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/10%)]">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
                             <circle cx="12" cy="12" r="10" />
                             <path d="M12 16v-4M12 8h.01" />

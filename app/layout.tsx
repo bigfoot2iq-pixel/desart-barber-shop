@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -17,7 +18,10 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "DESART — Premium Barbershop",
-  description: "Premium barbershop landing page for Desart in Marrakech.",
+  description: "Premium barbershop landing page for Desart in Agadir.",
+  icons: {
+    icon: "/logo.jpg",
+  },
 };
 
 export const viewport = {
@@ -36,7 +40,7 @@ export default function RootLayout({
       className={`${playfair.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gold-bg text-brand-black font-dm-sans text-base leading-[1.65] overflow-x-hidden w-full">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
