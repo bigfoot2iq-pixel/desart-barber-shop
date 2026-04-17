@@ -965,10 +965,10 @@ export default function Home() {
                               <button
                                 key={location.id}
                                 type="button"
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/12%)] bg-[rgb(10_8_0/4%)] hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/7%)] hover:-translate-y-0.5"}`}
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedLocation(location)}
                               >
-                                <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/6%)]"}`}>
+                                <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/4%)]"}`}>
                                   {location.id === "salon" ? (
                                     <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -982,7 +982,7 @@ export default function Home() {
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className={`text-[15px] font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
+                                  <div className={`text-sm font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
                                   <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
                                     {location.id === "salon" ? (
                                       <>
@@ -1016,22 +1016,15 @@ export default function Home() {
                               <button
                                 key={barber.id}
                                 type="button"
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left bg-white transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(0_0_0/6%)]"}`}
                                 onClick={() => setSelectedBarber(barber)}
                               >
                                 <div className="relative flex items-center justify-center shrink-0">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background] duration-250 ${isBarberSelected ? "border-2 border-gold bg-[linear-gradient(135deg,rgb(192_154_90/18%),rgb(192_154_90/10%))]" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
-                                  {isBarberSelected && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gold flex items-center justify-center text-white shadow-[0_2px_6px_rgb(192_154_90/30%)] animate-badge-pop">
-                                      <svg viewBox="0 0 24 24" width="10" height="10">
-                                        <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                                      </svg>
-                                    </span>
-                                  )}
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background,color] duration-250 ${isBarberSelected ? "border-2 border-[rgb(255_255_255/30%)] bg-[rgb(255_255_255/25%)] text-white" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-[15px] font-semibold text-brand-black mb-px tracking-[-0.01em] leading-snug">{barber.name.split(" ")[0]}</div>
-                                  <div className="text-xs text-[rgb(10_8_0/55%)] font-medium tracking-[0.02em] uppercase">{barber.role}</div>
+                                  <div className={`text-sm font-semibold mb-px tracking-[-0.01em] leading-snug ${isBarberSelected ? "text-white" : "text-brand-black"}`}>{barber.name.split(" ")[0]}</div>
+                                  <div className={`text-[11px] font-medium tracking-[0.02em] uppercase ${isBarberSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{barber.role}</div>
                                 </div>
                               </button>
                             );
@@ -1050,21 +1043,14 @@ export default function Home() {
                               <button
                                 key={service.id}
                                 type="button"
-                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 bg-white transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-[rgb(192_154_90/4%)] shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => toggleService(service)}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-[22px] h-[22px] rounded-md shrink-0 flex items-center justify-center transition-[border-color,background,transform] duration-200 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold scale-105" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white"}`}>
-                                    <svg className="w-[11px] h-[11px] stroke-white fill-none stroke-[2.5] transition-opacity duration-150" viewBox="0 0 24 24" style={{ opacity: isServiceSelected ? 1 : 0, transition: "opacity 0.15s ease" }}>
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
+                                <div className="flex flex-col gap-0.5 items-start">
+                                    <div className={`text-sm font-semibold tracking-[-0.01em] text-left ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.name}</div>
+                                    <div className={`text-[11px] font-medium text-left ${isServiceSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/40%)]"}`}>{service.duration} min</div>
                                   </div>
-                                  <div className="flex flex-col gap-0.5">
-                                    <div className="text-sm font-semibold text-brand-black tracking-[-0.01em]">{service.name}</div>
-                                    <div className="text-[11px] text-[rgb(10_8_0/40%)] font-medium">{service.duration} min</div>
-                                  </div>
-                                </div>
-                                <span className="text-[15px] font-bold text-brand-black tracking-[-0.02em]">{service.price} MAD</span>
+                                <span className={`text-[15px] font-bold tracking-[-0.02em] ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.price} MAD</span>
                               </button>
                             );
                           })}
@@ -1117,7 +1103,7 @@ export default function Home() {
                                   <button
                                     key={slot}
                                     type="button"
-                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-brand-black text-gold3 shadow-[0_4px_12px_rgb(0_0_0/15%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
+                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:-translate-y-px hover:shadow-[0_3px_8px_rgb(0_0_0/5%)]"}`}
                                     onClick={() => setSelectedTime(slot)}
                                   >
                                     {slot}
