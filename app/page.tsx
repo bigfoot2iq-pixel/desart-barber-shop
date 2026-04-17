@@ -261,6 +261,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
+  const [expandedTeamMember, setExpandedTeamMember] = useState<string | null>(null);
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
@@ -382,7 +383,14 @@ export default function Home() {
   const prevStep = () => {
     if (step <= 1 || isSubmitting) return;
     setDirection("back");
-    setStep((current) => Math.max(current - 1, 1));
+    const targetStep = step - 1;
+    if (targetStep < 2) setSelectedBarber(null);
+    if (targetStep < 3) setSelectedServices([]);
+    if (targetStep < 4) {
+      setSelectedDate(null);
+      setSelectedTime(null);
+    }
+    setStep(targetStep);
   };
 
   // Auto-advance on single-choice steps
@@ -467,7 +475,7 @@ export default function Home() {
 
       <section className="relative w-full min-h-svh overflow-hidden bg-brand-black lg:h-svh lg:max-h-svh">
         <div className="relative w-full min-h-svh lg:flex lg:flex-row lg:h-full lg:overflow-visible lg:[clip-path:inset(-200px_0_0_0)]">
-          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[100px] px-5 pb-4 lg:flex-none lg:w-[48%] lg:justify-start lg:pt-[120px] lg:pl-0 lg:pr-[56px] lg:pb-[60px] lg:h-full">
+          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[65px] px-5 pb-4 lg:flex-none lg:w-[48%] lg:justify-start lg:pt-[120px] lg:pl-0 lg:pr-[56px] lg:pb-[60px] lg:h-full">
             <div className="text-center p-0 max-w-full lg:text-left">
               <h1 className="font-playfair text-[clamp(60px,16vw,104px)] lg:text-[clamp(68px,7vw,148px)] font-normal leading-[0.85] tracking-[-0.02em] text-brand-white [animation:fade-up_0.9s_ease-out_0.3s_both]">
                 Sharp <span className="italic text-gold4 tracking-[-0.04em] font-medium">cuts.</span>
@@ -591,58 +599,97 @@ export default function Home() {
         </div>
       </div>
 
-      <section id="team">
-        <div className="team-inner">
-          <div style={{ marginBottom: "56px" }}>
-            <div className="sl">The Craftsmen</div>
-            <h2 className="sh2">
-              Meet Our <em>Team</em>
-            </h2>
-            <p className="slead">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
+      <section id="team" className="bg-brand-black text-brand-white">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
+            <div>
+              <div className="sl text-[rgb(254_251_243/50%)]">The Craftsmen</div>
+              <h2 className="sh2 text-brand-white">
+                Meet Our <em className="text-gold3">Team</em>
+              </h2>
+              <p className="slead text-[rgb(254_251_243/50%)]">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
+            </div>
           </div>
-          <div className="team-grid">
-            <div className="bc">
-              <div className="bc-img">
-                <div className="bc-av">AK</div>
-              </div>
-              <div className="bc-body">
-                <div className="bc-name">Amine Karimi</div>
-                <div className="bc-role">Master Barber · 8 Yrs</div>
-                <div className="bc-tags">
-                  <span className="bt">Skin Fades</span>
-                  <span className="bt">Classic Cuts</span>
-                  <span className="bt">Beard Art</span>
+
+          {/* Mobile: Accordion */}
+          <div className="flex flex-col sm:hidden border-t border-[rgb(254_251_243/10%)]">
+            {BARBERS.map((barber) => {
+              const isOpen = expandedTeamMember === barber.id;
+              const tags = barber.id === "amine"
+                ? ["Skin Fades", "Classic Cuts", "Beard Art"]
+                : barber.id === "youssef"
+                ? ["Textured Hair", "Curls", "Modern Fades"]
+                : ["Hot Shaves", "Kids Cuts", "Styling"];
+              const years = barber.id === "amine" ? "8 Yrs" : barber.id === "youssef" ? "5 Yrs" : "4 Yrs";
+              const fullRole = barber.id === "amine" ? "Master Barber" : "Senior Barber";
+              return (
+                <div key={barber.id}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between py-5 px-1 text-left bg-transparent border-0 cursor-pointer font-[inherit]"
+                    onClick={() => setExpandedTeamMember(isOpen ? null : barber.id)}
+                    aria-expanded={isOpen}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-full border-[1.5px] border-[rgb(192_154_90/35%)] bg-[rgb(192_154_90/10%)] flex items-center justify-center font-playfair text-[15px] text-gold3 shrink-0">
+                        {barber.shortName}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-playfair text-[19px] font-normal text-brand-white">{barber.name}</span>
+                        <span className="text-[11px] tracking-[0.08em] uppercase text-gold3 mt-0.5">{fullRole} · {years}</span>
+                      </div>
+                    </div>
+                    <span className={`w-4 h-4 flex items-center justify-center transition-transform duration-250 text-brand-white ${isOpen ? "rotate-45" : ""}`}>
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 3v10M3 8h10" /></svg>
+                    </span>
+                  </button>
+                  <div className={`grid transition-[grid-template-rows] duration-250 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                    <div className="overflow-hidden">
+                      <div className="pb-5 px-1 -mt-1">
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.map((tag) => (
+                            <span key={tag} className="text-[11px] text-[rgb(254_251_243/50%)] border border-[rgb(254_251_243/10%)] rounded-[3px] px-2.5 py-1 tracking-[0.04em]">{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-b border-[rgb(254_251_243/8%)]" />
                 </div>
-              </div>
-            </div>
-            <div className="bc">
-              <div className="bc-img">
-                <div className="bc-av">YB</div>
-              </div>
-              <div className="bc-body">
-                <div className="bc-name">Youssef Benali</div>
-                <div className="bc-role">Senior Barber · 5 Yrs</div>
-                <div className="bc-tags">
-                  <span className="bt">Textured Hair</span>
-                  <span className="bt">Curls</span>
-                  <span className="bt">Modern Fades</span>
+              );
+            })}
+          </div>
+
+          {/* Desktop: Cards */}
+          <div className="hidden sm:grid sm:grid-cols-3 sm:gap-5">
+            {BARBERS.map((barber) => {
+              const tags = barber.id === "amine"
+                ? ["Skin Fades", "Classic Cuts", "Beard Art"]
+                : barber.id === "youssef"
+                ? ["Textured Hair", "Curls", "Modern Fades"]
+                : ["Hot Shaves", "Kids Cuts", "Styling"];
+              const years = barber.id === "amine" ? "8 Yrs" : barber.id === "youssef" ? "5 Yrs" : "4 Yrs";
+              const fullRole = barber.id === "amine" ? "Master Barber" : "Senior Barber";
+              return (
+                <div key={barber.id} className="group bg-ink border border-[rgb(254_251_243/10%)] rounded-[18px] overflow-hidden transition-[border-color,transform] duration-300 hover:border-[rgb(192_154_90/40%)] hover:-translate-y-1.5">
+                  <div className="relative h-[300px] bg-[#161208] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_40%,rgb(192_154_90/7%),transparent_70%)]" />
+                    <div className="relative w-24 h-24 rounded-full bg-[rgb(192_154_90/10%)] border-[1.5px] border-[rgb(192_154_90/35%)] flex items-center justify-center font-playfair text-[38px] font-normal text-gold3">
+                      {barber.shortName}
+                    </div>
+                  </div>
+                  <div className="p-7">
+                    <div className="font-playfair text-[26px] font-normal text-brand-white mb-0.5">{barber.name}</div>
+                    <div className="text-xs text-gold3 tracking-[0.08em] uppercase mb-4">{fullRole} · {years}</div>
+                    <div className="flex flex-wrap gap-[7px]">
+                      {tags.map((tag) => (
+                        <span key={tag} className="text-[11px] text-[rgb(254_251_243/50%)] border border-[rgb(254_251_243/10%)] rounded-[3px] px-2.5 py-1 tracking-[0.04em]">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="bc">
-              <div className="bc-img">
-                <div className="bc-av">KM</div>
-              </div>
-              <div className="bc-body">
-                <div className="bc-name">Karim Mansouri</div>
-                <div className="bc-role">Senior Barber · 4 Yrs</div>
-                <div className="bc-tags">
-                  <span className="bt">Hot Shaves</span>
-                  <span className="bt">Kids Cuts</span>
-                  <span className="bt">Styling</span>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -890,13 +937,6 @@ export default function Home() {
                                 <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
                                 <circle cx="12" cy="10" r="3" />
                               </svg>
-                            )}
-                            {isLocationSelected && (
-                              <span className="absolute -top-1 -right-1 w-[18px] h-[18px] rounded-full bg-white flex items-center justify-center text-gold shadow-[0_2px_6px_rgb(0_0_0/15%)] animate-badge-pop">
-                                <svg viewBox="0 0 24 24" width="10" height="10">
-                                  <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
