@@ -250,3 +250,267 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
   if (error) throw error;
   return data as Appointment;
 }
+
+export async function getAllAppointments(status?: Appointment['status']): Promise<AppointmentWithDetails[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from('appointments')
+    .select(`
+      *,
+      professional:professionals!appointments_professional_id_fkey(*, salon:salons(*)),
+      preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
+      customer:profiles!appointments_customer_id_fkey(*),
+      salon:salons(*),
+      services:appointment_services(service_id, services(*))
+    `)
+    .order('appointment_date', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data as Record<string, unknown>[]).map(mapAppointmentDetails);
+}
+
+export async function getTodayAppointmentsCount(): Promise<number> {
+  const supabase = createClient();
+  const today = new Date().toISOString().split('T')[0];
+  const { count, error } = await supabase
+    .from('appointments')
+    .select('*', { count: 'exact', head: true })
+    .eq('appointment_date', today);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function searchAppointments(search: string, status?: Appointment['status']): Promise<AppointmentWithDetails[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from('appointments')
+    .select(`
+      *,
+      professional:professionals!appointments_professional_id_fkey(*, salon:salons(*)),
+      preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
+      customer:profiles!appointments_customer_id_fkey(*),
+      salon:salons(*),
+      services:appointment_services(service_id, services(*))
+    `)
+    .order('appointment_date', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const results = (data as Record<string, unknown>[]).map(mapAppointmentDetails);
+  if (!search) return results;
+
+  const q = search.toLowerCase();
+  return results.filter((a) => {
+    const name = `${a.customer?.first_name ?? ''} ${a.customer?.last_name ?? ''}`.toLowerCase();
+    const phone = a.customer?.phone?.toLowerCase() ?? '';
+    return name.includes(q) || phone.includes(q);
+  });
+}
+
+export async function getAppointmentsByDateRange(startDate: string, endDate: string, status?: Appointment['status']): Promise<AppointmentWithDetails[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from('appointments')
+    .select(`
+      *,
+      professional:professionals!appointments_professional_id_fkey(*, salon:salons(*)),
+      preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
+      customer:profiles!appointments_customer_id_fkey(*),
+      salon:salons(*),
+      services:appointment_services(service_id, services(*))
+    `)
+    .gte('appointment_date', startDate)
+    .lte('appointment_date', endDate)
+    .order('appointment_date', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data as Record<string, unknown>[]).map(mapAppointmentDetails);
+}
+
+export async function getAllSalons(): Promise<Salon[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('salons')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+  return data as Salon[];
+}
+
+export async function createSalon(salon: Omit<Salon, 'id' | 'created_at' | 'updated_at'>): Promise<Salon> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('salons')
+    .insert(salon)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Salon;
+}
+
+export async function updateSalon(id: string, updates: Partial<Salon>): Promise<Salon> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('salons')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Salon;
+}
+
+export async function getAllProfessionals(): Promise<ProfessionalWithSalon[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professionals')
+    .select('*, salon:salons(*)')
+    .order('display_name');
+
+  if (error) throw error;
+  return data as unknown as ProfessionalWithSalon[];
+}
+
+export async function createProfessional(professional: Omit<Professional, 'created_at' | 'updated_at'>): Promise<Professional> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professionals')
+    .insert(professional)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Professional;
+}
+
+export async function updateProfessional(id: string, updates: Partial<Professional>): Promise<Professional> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professionals')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Professional;
+}
+
+export async function getAllServices(): Promise<Service[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('services')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+  return data as Service[];
+}
+
+export async function createService(service: Omit<Service, 'id' | 'created_at' | 'updated_at'>): Promise<Service> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('services')
+    .insert(service)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Service;
+}
+
+export async function updateService(id: string, updates: Partial<Service>): Promise<Service> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('services')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Service;
+}
+
+export async function getProfessionalServices(professionalId: string): Promise<string[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professional_services')
+    .select('service_id')
+    .eq('professional_id', professionalId);
+
+  if (error) throw error;
+  return (data as { service_id: string }[]).map((r) => r.service_id);
+}
+
+export async function setProfessionalServices(professionalId: string, serviceIds: string[]): Promise<void> {
+  const supabase = createClient();
+  await supabase
+    .from('professional_services')
+    .delete()
+    .eq('professional_id', professionalId);
+
+  if (serviceIds.length > 0) {
+    const rows = serviceIds.map((service_id) => ({
+      professional_id: professionalId,
+      service_id,
+    }));
+    const { error } = await supabase
+      .from('professional_services')
+      .insert(rows);
+    if (error) throw error;
+  }
+}
+
+export async function createProfile(profile: Omit<Profile, 'created_at' | 'updated_at'>): Promise<Profile> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert(profile)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Profile;
+}
+
+export async function getActiveProfessionalsCount(): Promise<number> {
+  const supabase = createClient();
+  const { count, error } = await supabase
+    .from('professionals')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function getActiveServicesCount(): Promise<number> {
+  const supabase = createClient();
+  const { count, error } = await supabase
+    .from('services')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true);
+
+  if (error) throw error;
+  return count ?? 0;
+}

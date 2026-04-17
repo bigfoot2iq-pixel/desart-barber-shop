@@ -127,8 +127,6 @@ export default function LoginPage() {
         <DesktopVideoGrid />
         <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none top-0 bg-gradient-to-b from-brand-black to-transparent" />
         <div className="absolute left-0 right-0 h-[100px] z-[3] pointer-events-none bottom-0 bg-gradient-to-t from-brand-black to-transparent" />
-        {/* Left edge fade into login panel */}
-        <div className="absolute top-0 bottom-0 w-[80px] z-[2] pointer-events-none left-0 bg-gradient-to-r from-brand-black to-transparent" />
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Playfair_Display, DM_Sans, Geist } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -37,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${dmSans.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", playfair.variable, dmSans.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col bg-gold-bg text-brand-black font-dm-sans text-base leading-[1.65] overflow-x-hidden w-full">
         <AuthProvider>{children}</AuthProvider>
