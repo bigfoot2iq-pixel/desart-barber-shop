@@ -450,10 +450,10 @@ export default function Home() {
   return (
     <>
       <nav id="main-nav" className={`fixed top-0 left-0 right-0 z-[300] flex items-center justify-between px-[56px] py-5 transition-[background,padding] duration-300 ${isScrolled ? "bg-[rgb(10_8_0/90%)] [backdrop-filter:blur(18px)] py-[14px] border-b border-[rgb(254_251_243/10%)]" : ""}`}>
-        <a className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3" href="#">
+        <div className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3">
           <img src="/logo.jpg" alt="Desart" className="w-8 h-8 rounded-full object-cover shrink-0 md:w-9 md:h-9" />
           DESART
-        </a>
+        </div>
         <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label="Menu">
           <span className="block w-[22px] h-[1.5px] bg-brand-white" />
           <span className="block w-[22px] h-[1.5px] bg-brand-white" />
@@ -463,17 +463,17 @@ export default function Home() {
 
       <section className="relative w-full min-h-svh overflow-hidden bg-brand-black lg:h-svh lg:max-h-svh">
         <div className="relative w-full min-h-svh lg:flex lg:flex-row lg:h-full lg:overflow-visible lg:[clip-path:inset(-200px_0_0_0)]">
-          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[100px] px-5 pb-4 lg:flex-none lg:w-[42%] lg:justify-start lg:pt-[120px] lg:px-12 lg:pb-[60px] lg:h-full">
+          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[100px] px-5 pb-4 lg:flex-none lg:w-[48%] lg:justify-start lg:pt-[120px] lg:pl-0 lg:pr-[56px] lg:pb-[60px] lg:h-full">
             <div className="text-center p-0 max-w-full lg:text-left">
-              <h1 className="font-playfair text-[clamp(58px,15vw,96px)] lg:text-[clamp(52px,4.8vw,100px)] font-normal leading-[0.82] tracking-[-0.02em] text-brand-white [animation:fade-up_0.9s_ease-out_0.3s_both]">
+              <h1 className="font-playfair text-[clamp(60px,16vw,104px)] lg:text-[clamp(68px,7vw,148px)] font-normal leading-[0.85] tracking-[-0.02em] text-brand-white [animation:fade-up_0.9s_ease-out_0.3s_both]">
                 Sharp <span className="italic text-gold4 tracking-[-0.04em] font-medium">cuts.</span>
                 <br />
-                <span className="[-webkit-text-stroke:1.5px_var(--color-gold3)] text-transparent">Sharper</span> style.
+                <span className="[-webkit-text-stroke:2px_var(--color-gold3)] text-transparent">Sharper</span> style.
               </h1>
-              <p className="text-[13px] lg:text-[15px] font-light text-[rgb(254_251_243/48%)] lg:text-[rgb(254_251_243/55%)] max-w-[340px] lg:max-w-[420px] mx-auto mt-5 lg:mt-6 lg:mb-9 lg:mx-0 leading-[1.65] tracking-[0.02em] [animation:fade-up_0.9s_ease-out_0.5s_both]">
+              <p className="text-[13px] lg:text-[15px] font-light text-[rgb(254_251_243/48%)] lg:text-[rgb(254_251_243/55%)] max-w-[340px] lg:max-w-[460px] mx-auto mt-5 lg:mt-8 lg:mb-10 lg:mx-0 leading-[1.65] tracking-[0.02em] [animation:fade-up_0.9s_ease-out_0.5s_both]">
                 Premium grooming for those who know the difference.
               </p>
-              <div className="w-12 h-px bg-gold3 my-5 mx-auto lg:mx-0 [animation:fade-up_0.9s_ease-out_0.6s_both]" />
+              <div className="w-14 h-px bg-gold3 my-5 mx-auto lg:mx-0 [animation:fade-up_0.9s_ease-out_0.6s_both]" />
               <div className="flex items-center gap-2 text-[10px] font-normal tracking-[0.14em] uppercase text-[rgb(254_251_243/38%)] justify-center lg:justify-start [animation:fade-up_0.9s_ease-out_0.7s_both]">
                 <span>AGADIR</span>
                 <span className="text-gold3 opacity-60 text-[8px]">·</span>
