@@ -122,6 +122,16 @@ function buildDateSlots(): DateSlot[] {
   return slots;
 }
 
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default function Home() {
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
   const [salons, setSalons] = useState<LocationOption[]>([]);
@@ -152,6 +162,10 @@ export default function Home() {
   const [homePin, setHomePin] = useState<{ lat: number; lng: number } | null>(null);
   const [homeLocating, setHomeLocating] = useState(false);
   const [homeGeoError, setHomeGeoError] = useState<string | null>(null);
+  const [nearbyActive, setNearbyActive] = useState(false);
+  const [nearbyLocating, setNearbyLocating] = useState(false);
+  const [rawSalons, setRawSalons] = useState<Salon[]>([]);
+  const [salonDistances, setSalonDistances] = useState<Record<string, number>>({});
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
@@ -203,6 +217,7 @@ export default function Home() {
 
     getActiveSalons()
       .then((data: Salon[]) => {
+        setRawSalons(data);
         const mapped: LocationOption[] = data.map((s) => ({
           id: s.id,
           name: s.name,
@@ -277,6 +292,48 @@ export default function Home() {
       month: prev.month === 11 ? 0 : prev.month + 1,
     }));
   };
+
+  const handleNearby = useCallback(() => {
+    if (nearbyActive) {
+      setNearbyActive(false);
+      setSalonDistances({});
+      setSalons(
+        rawSalons.map((s) => ({
+          id: s.id,
+          name: s.name,
+          description: s.address,
+          imageUrl: s.image_url,
+          type: "salon" as const,
+        }))
+      );
+      return;
+    }
+    setNearbyLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const distances: Record<string, number> = {};
+        rawSalons.forEach((s) => {
+          distances[s.id] = haversineKm(latitude, longitude, s.latitude, s.longitude);
+        });
+        setSalonDistances(distances);
+        const sorted = [...rawSalons].sort((a, b) => distances[a.id] - distances[b.id]);
+        setSalons(
+          sorted.map((s) => ({
+            id: s.id,
+            name: s.name,
+            description: s.address,
+            imageUrl: s.image_url,
+            type: "salon" as const,
+          }))
+        );
+        setNearbyActive(true);
+        setNearbyLocating(false);
+      },
+      () => { setNearbyLocating(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [nearbyActive, rawSalons]);
 
   const openHomePanel = useCallback(() => {
     setHomePin((prev) => prev ?? { lat: 30.4202, lng: -9.5982 });
@@ -1039,12 +1096,18 @@ export default function Home() {
                     {step === 1 && (
                       <>
                         <div className="flex mb-4">
-                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/22%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]">
+                          <button type="button" onClick={handleNearby} disabled={nearbyLocating} className={`flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${nearbyActive ? "border-gold bg-gold text-white" : nearbyLocating ? "border-[rgb(10_8_0/22%)] bg-white text-black cursor-wait" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"}`}>
                             Nearby
-                            <svg width="10" height="12" viewBox="0 0 10 12" fill="none" className="ml-1.5 opacity-60">
-                              <path d="M5 0C2.79 0 1 1.79 1 4c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" fill="currentColor"/>
-                              <circle cx="5" cy="4" r="1.5" fill="white"/>
-                            </svg>
+                            {nearbyLocating ? (
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="ml-1.5 animate-spin opacity-60" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/>
+                              </svg>
+                            ) : (
+                              <svg width="10" height="12" viewBox="0 0 10 12" fill="none" className={`ml-1.5 ${nearbyActive ? "opacity-80" : "opacity-60"}`}>
+                                <path d="M5 0C2.79 0 1 1.79 1 4c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" fill="currentColor"/>
+                                <circle cx="5" cy="4" r="1.5" fill="white"/>
+                              </svg>
+                            )}
                           </button>
                           <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/22%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]" onClick={openHomePanel}>
                             Come to me
@@ -1054,7 +1117,7 @@ export default function Home() {
                             </svg>
                           </button>
                         </div>
-                        <div className="grid grid-cols-1 gap-2.5">
+                        <div className={`grid grid-cols-1 gap-2.5 transition-opacity ${nearbyLocating ? "animate-pulse pointer-events-none" : ""}`}>
                           {salons.map((location) => {
                             const isLocationSelected = selectedLocation?.id === location.id;
                             return (
@@ -1077,6 +1140,14 @@ export default function Home() {
                                 <div className="flex-1 min-w-0">
                                   <div className={`text-[17px] font-semibold leading-snug tracking-[-0.408px] mb-0.5 ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
                                   <div className={`text-[13px] leading-[18px] tracking-[-0.078px] font-normal ${isLocationSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{location.description}</div>
+                                  {nearbyActive && salonDistances[location.id] != null && (
+                                    <div className="mt-2">
+                                      <div className="w-[30px] border-t border-[rgb(199_199_204)] mb-1" />
+                                      <p data-testid="text:distance" className={`text-[15px] leading-[18px] tracking-[-0.24px] ${isLocationSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/55%)]"}`}>
+                                        {salonDistances[location.id].toFixed(2)} Km
+                                      </p>
+                                    </div>
+                                  )}
                                 </div>
                               </button>
                             );
