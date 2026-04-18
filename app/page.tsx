@@ -1,8 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
+import { getActiveProfessionalsWithServices, getActiveServices } from "@/lib/queries";
+import type { ProfessionalWithServices } from "@/lib/queries/appointments";
 
 type LocationOption = {
   id: "salon" | "home";
@@ -11,14 +13,18 @@ type LocationOption = {
 };
 
 type BarberOption = {
-  id: "amine" | "youssef" | "karim";
+  id: string;
   shortName: string;
   name: string;
   role: string;
+  years: number;
+  tags: string[];
+  imageUrl: string | null;
+  offersHomeVisit: boolean;
 };
 
 type ServiceOption = {
-  id: "haircut" | "skinfade" | "beard" | "shave";
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -70,57 +76,7 @@ const LOCATIONS: LocationOption[] = [
   },
 ];
 
-const BARBERS: BarberOption[] = [
-  {
-    id: "amine",
-    shortName: "AK",
-    name: "Amine Karimi",
-    role: "Master Barber",
-  },
-  {
-    id: "youssef",
-    shortName: "YB",
-    name: "Youssef Benali",
-    role: "Senior Barber",
-  },
-  {
-    id: "karim",
-    shortName: "KM",
-    name: "Karim Mansouri",
-    role: "Senior Barber",
-  },
-];
 
-const SERVICES: ServiceOption[] = [
-  {
-    id: "haircut",
-    name: "Classic Cut",
-    description: "Scissors or clippers, shaped to you.",
-    price: 60,
-    duration: 45,
-  },
-  {
-    id: "skinfade",
-    name: "Skin Fade",
-    description: "Clean gradient, razor-sharp lines.",
-    price: 100,
-    duration: 60,
-  },
-  {
-    id: "beard",
-    name: "Beard Trim",
-    description: "Lines, edges, and shape.",
-    price: 50,
-    duration: 30,
-  },
-  {
-    id: "shave",
-    name: "Hot Towel Shave",
-    description: "Hot towel, straight razor.",
-    price: 80,
-    duration: 45,
-  },
-];
 
 const MARQUEE_ITEMS = [
   "Precision Fades",
@@ -156,6 +112,8 @@ function buildDateSlots(): DateSlot[] {
 }
 
 export default function Home() {
+  const [barbers, setBarbers] = useState<BarberOption[]>([]);
+  const [services, setServices] = useState<ServiceOption[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -182,6 +140,47 @@ export default function Home() {
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
   const availableDateIds = useMemo(() => new Set(dateSlots.map((s) => s.id)), [dateSlots]);
+
+  useEffect(() => {
+    getActiveProfessionalsWithServices()
+      .then((data: ProfessionalWithServices[]) => {
+        const mapped: BarberOption[] = data.map((p) => ({
+          id: p.id,
+          shortName: p.display_name
+            .split(" ")
+            .map((w) => w[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2),
+          name: p.display_name,
+          role: p.profession,
+          years: p.years_of_experience,
+          tags: p.services.map((s) => s.name),
+          imageUrl: p.profile_image_url,
+          offersHomeVisit: p.offers_home_visit,
+        }));
+        setBarbers(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load professionals:", err);
+      });
+
+    getActiveServices()
+      .then((data) => {
+        setServices(
+          data.map((s) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description ?? "",
+            price: s.price_mad,
+            duration: s.duration_minutes,
+          }))
+        );
+      })
+      .catch((err) => {
+        console.error("Failed to load services:", err);
+      });
+  }, []);
 
   const currentWeekDays = useMemo(() => {
     const today = new Date();
@@ -554,7 +553,7 @@ export default function Home() {
           </div>
 
           <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-[2px]">
-            {SERVICES.map((service) => (
+            {services.map((service) => (
               <div className="group relative overflow-hidden bg-[rgb(10_8_0/7%)] p-8 lg:px-8 lg:pt-10 lg:pb-9 transition-[background] duration-250 hover:bg-[rgb(10_8_0/14%)]" key={service.id}>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-black scale-x-0 origin-left transition-transform duration-350 group-hover:scale-x-100" />
                 <div className="font-playfair text-[22px] lg:text-[27px] font-normal mb-1.5">{service.name}</div>
@@ -568,7 +567,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col sm:hidden border-t border-[rgb(10_8_0/10%)]">
-            {SERVICES.map((service) => {
+            {services.map((service) => {
               const isOpen = expandedService === service.id;
               return (
                 <div key={service.id}>
@@ -626,15 +625,11 @@ export default function Home() {
 
           {/* Mobile: Accordion */}
           <div className="flex flex-col sm:hidden border-t border-[rgb(254_251_243/10%)]">
-            {BARBERS.map((barber) => {
+            {barbers.length === 0 && (
+              <p className="text-center text-[rgb(254_251_243/40%)] py-10 text-[13px]">Loading team...</p>
+            )}
+            {barbers.map((barber) => {
               const isOpen = expandedTeamMember === barber.id;
-              const tags = barber.id === "amine"
-                ? ["Skin Fades", "Classic Cuts", "Beard Art"]
-                : barber.id === "youssef"
-                ? ["Textured Hair", "Curls", "Modern Fades"]
-                : ["Hot Shaves", "Kids Cuts", "Styling"];
-              const years = barber.id === "amine" ? "8 Yrs" : barber.id === "youssef" ? "5 Yrs" : "4 Yrs";
-              const fullRole = barber.id === "amine" ? "Master Barber" : "Senior Barber";
               return (
                 <div key={barber.id}>
                   <button
@@ -649,7 +644,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col">
                         <span className="font-playfair text-[19px] font-normal text-brand-white">{barber.name}</span>
-                        <span className="text-[11px] tracking-[0.08em] uppercase text-gold3 mt-0.5">{fullRole} · {years}</span>
+                        <span className="text-[11px] tracking-[0.08em] uppercase text-gold3 mt-0.5">{barber.role} · {barber.years} Yrs</span>
                       </div>
                     </div>
                     <span className={`w-4 h-4 flex items-center justify-center transition-transform duration-250 text-brand-white ${isOpen ? "rotate-45" : ""}`}>
@@ -660,7 +655,7 @@ export default function Home() {
                     <div className="overflow-hidden">
                       <div className="pb-5 px-1 -mt-1">
                         <div className="flex flex-wrap gap-1.5">
-                          {tags.map((tag) => (
+                          {barber.tags.map((tag) => (
                             <span key={tag} className="text-[11px] text-[rgb(254_251_243/50%)] border border-[rgb(254_251_243/10%)] rounded-[3px] px-2.5 py-1 tracking-[0.04em]">{tag}</span>
                           ))}
                         </div>
@@ -675,27 +670,25 @@ export default function Home() {
 
           {/* Desktop: Cards */}
           <div className="hidden sm:grid sm:grid-cols-3 sm:gap-5">
-            {BARBERS.map((barber) => {
-              const tags = barber.id === "amine"
-                ? ["Skin Fades", "Classic Cuts", "Beard Art"]
-                : barber.id === "youssef"
-                ? ["Textured Hair", "Curls", "Modern Fades"]
-                : ["Hot Shaves", "Kids Cuts", "Styling"];
-              const years = barber.id === "amine" ? "8 Yrs" : barber.id === "youssef" ? "5 Yrs" : "4 Yrs";
-              const fullRole = barber.id === "amine" ? "Master Barber" : "Senior Barber";
+            {barbers.map((barber) => {
               return (
                 <div key={barber.id} className="group bg-ink border border-[rgb(254_251_243/10%)] rounded-[18px] overflow-hidden transition-[border-color,transform] duration-300 hover:border-[rgb(192_154_90/40%)] hover:-translate-y-1.5">
-                  <div className="relative h-[300px] bg-[#161208] flex items-center justify-center">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_40%,rgb(192_154_90/7%),transparent_70%)]" />
-                    <div className="relative w-24 h-24 rounded-full bg-[rgb(192_154_90/10%)] border-[1.5px] border-[rgb(192_154_90/35%)] flex items-center justify-center font-playfair text-[38px] font-normal text-gold3">
-                      {barber.shortName}
-                    </div>
+                  <div className="relative h-[300px] bg-[#161208] flex items-center justify-center overflow-hidden">
+                    {barber.imageUrl ? (
+                      <>
+                        <img src={barber.imageUrl} alt={barber.name} className="absolute inset-0 w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(22_18_8)_0%,rgb(22_18_8/60%)_40%,transparent_70%)]" />
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_40%,rgb(192_154_90/7%),transparent_70%)]" />
+                    )}
+                    
                   </div>
                   <div className="p-7">
                     <div className="font-playfair text-[26px] font-normal text-brand-white mb-0.5">{barber.name}</div>
-                    <div className="text-xs text-gold3 tracking-[0.08em] uppercase mb-4">{fullRole} · {years}</div>
+                    <div className="text-xs text-gold3 tracking-[0.08em] uppercase mb-4">{barber.role} · {barber.years} Yrs</div>
                     <div className="flex flex-wrap gap-[7px]">
-                      {tags.map((tag) => (
+                      {barber.tags.map((tag) => (
                         <span key={tag} className="text-[11px] text-[rgb(254_251_243/50%)] border border-[rgb(254_251_243/10%)] rounded-[3px] px-2.5 py-1 tracking-[0.04em]">{tag}</span>
                       ))}
                     </div>
@@ -1001,7 +994,7 @@ export default function Home() {
                       <>
                         <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Choose your barber — each one brings a unique style.</p>
                         <div className="flex flex-col gap-2">
-                          {BARBERS.map((barber) => {
+                          {barbers.map((barber) => {
                             const isBarberSelected = selectedBarber?.id === barber.id;
                             return (
                               <button
@@ -1011,7 +1004,11 @@ export default function Home() {
                                 onClick={() => setSelectedBarber(barber)}
                               >
                                 <div className="relative flex items-center justify-center shrink-0">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background,color] duration-250 ${isBarberSelected ? "border-2 border-[rgb(255_255_255/30%)] bg-[rgb(255_255_255/25%)] text-white" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
+                                  {barber.imageUrl ? (
+                                    <img src={barber.imageUrl} alt={barber.name} className={`w-10 h-10 rounded-full object-cover transition-[border-color] duration-250 ${isBarberSelected ? "border-2 border-[rgb(255_255_255/30%)]" : "border-2 border-[rgb(192_154_90/20%)]"}`} />
+                                  ) : (
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-playfair text-[15px] font-medium transition-[border-color,background,color] duration-250 ${isBarberSelected ? "border-2 border-[rgb(255_255_255/30%)] bg-[rgb(255_255_255/25%)] text-white" : "border-2 border-[rgb(192_154_90/20%)] bg-[linear-gradient(135deg,rgb(192_154_90/12%),rgb(192_154_90/6%))] text-gold2"}`}>{barber.shortName}</div>
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className={`text-sm font-semibold mb-px tracking-[-0.01em] leading-snug ${isBarberSelected ? "text-white" : "text-brand-black"}`}>{barber.name.split(" ")[0]}</div>
@@ -1028,7 +1025,7 @@ export default function Home() {
                       <>
                         <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Select one or more services — cash payment at time of service.</p>
                         <div className="flex flex-col gap-2">
-                          {SERVICES.map((service) => {
+                          {services.map((service) => {
                             const isServiceSelected = selectedServices.some((s) => s.id === service.id);
                             return (
                               <button

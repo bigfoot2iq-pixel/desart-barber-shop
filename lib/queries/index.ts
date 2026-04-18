@@ -3,6 +3,7 @@ export {
   getSalonById,
   getActiveProfessionals,
   getProfessionalById,
+  getActiveProfessionalsWithServices,
   getServicesForProfessional,
   getActiveServices,
   getProfessionalAvailability,

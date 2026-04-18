@@ -12,6 +12,14 @@ import type {
 
 type ServiceRow = { service_id: string; services: Service };
 type ProfessionalWithSalon = Professional & { salon: Salon };
+type ProfessionalWithServicesRow = Professional & {
+  salon: Salon;
+  professional_services: { service_id: string; services: Service }[];
+};
+export type ProfessionalWithServices = Professional & {
+  salon: Salon;
+  services: Service[];
+};
 
 export async function getActiveSalons(): Promise<Salon[]> {
   const supabase = createClient();
@@ -66,6 +74,24 @@ export async function getProfessionalById(id: string): Promise<ProfessionalWithS
 
   if (error) throw error;
   return data as unknown as ProfessionalWithSalon;
+}
+
+export async function getActiveProfessionalsWithServices(): Promise<ProfessionalWithServices[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professionals')
+    .select('*, salon:salons(*), professional_services(service_id, services(*))')
+    .eq('is_active', true)
+    .order('display_name');
+
+  if (error) throw error;
+
+  return (data as unknown as ProfessionalWithServicesRow[]).map((prof) => ({
+    ...prof,
+    services: (prof.professional_services ?? [])
+      .map((ps) => ps.services)
+      .filter((s) => s.is_active),
+  }));
 }
 
 export async function getServicesForProfessional(professionalId: string): Promise<Service[]> {
