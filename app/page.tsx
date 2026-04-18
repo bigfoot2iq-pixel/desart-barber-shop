@@ -2,14 +2,19 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
-import { getActiveProfessionalsWithServices, getActiveServices } from "@/lib/queries";
+import { getActiveProfessionalsWithServices, getActiveServices, getActiveSalons } from "@/lib/queries";
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
+import type { Salon } from "@/lib/types/database";
 
 type LocationOption = {
-  id: "salon" | "home";
+  id: string;
   name: string;
   description: string;
+  imageUrl: string | null;
+  type: "salon" | "home";
 };
 
 type BarberOption = {
@@ -63,19 +68,25 @@ const TIME_SLOTS = [
 ];
 
 
-const LOCATIONS: LocationOption[] = [
-  {
-    id: "salon",
-    name: "Visit Salon",
-    description: "Visit Salon (14 Rue Mohammed V)",
-  },
-  {
-    id: "home",
-    name: "Come To Me",
-    description: "Home Visit (+30 MAD)",
-  },
-];
+const HOME_LOCATION: LocationOption = {
+  id: "home",
+  name: "Come To Me",
+  description: "Home Visit (+30 MAD)",
+  imageUrl: null,
+  type: "home",
+};
 
+const HomePanelMapView = dynamic(
+  () => import("@/components/map-view").then((mod) => ({ default: mod.MapView })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center rounded-xl bg-[rgb(10_8_0/5%)] text-sm text-[rgb(10_8_0/35%)]" style={{ height: 230 }}>
+        Loading map…
+      </div>
+    ),
+  }
+);
 
 
 const MARQUEE_ITEMS = [
@@ -113,6 +124,7 @@ function buildDateSlots(): DateSlot[] {
 
 export default function Home() {
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
+  const [salons, setSalons] = useState<LocationOption[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -136,10 +148,18 @@ export default function Home() {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
   });
+  const [showHomePanel, setShowHomePanel] = useState(false);
+  const [homePin, setHomePin] = useState<{ lat: number; lng: number } | null>(null);
+  const [homeLocating, setHomeLocating] = useState(false);
+  const [homeGeoError, setHomeGeoError] = useState<string | null>(null);
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
   const availableDateIds = useMemo(() => new Set(dateSlots.map((s) => s.id)), [dateSlots]);
+  const { label: homePinLabel, loading: homePinGeoLoading } = useReverseGeocode(
+    homePin?.lat ?? null,
+    homePin?.lng ?? null
+  );
 
   useEffect(() => {
     getActiveProfessionalsWithServices()
@@ -179,6 +199,21 @@ export default function Home() {
       })
       .catch((err) => {
         console.error("Failed to load services:", err);
+      });
+
+    getActiveSalons()
+      .then((data: Salon[]) => {
+        const mapped: LocationOption[] = data.map((s) => ({
+          id: s.id,
+          name: s.name,
+          description: s.address,
+          imageUrl: s.image_url,
+          type: "salon" as const,
+        }));
+        setSalons(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load salons:", err);
       });
   }, []);
 
@@ -242,6 +277,40 @@ export default function Home() {
       month: prev.month === 11 ? 0 : prev.month + 1,
     }));
   };
+
+  const openHomePanel = useCallback(() => {
+    setHomePin((prev) => prev ?? { lat: 30.4202, lng: -9.5982 });
+    setShowHomePanel(true);
+  }, []);
+
+  const handleHomeMapClick = useCallback((lat: number, lng: number) => {
+    setHomePin({ lat, lng });
+  }, []);
+
+  const handleHomeMarkerDrag = useCallback((lat: number, lng: number) => {
+    setHomePin({ lat, lng });
+  }, []);
+
+  const handleHomeMyLocation = useCallback(() => {
+    setHomeGeoError(null);
+    setHomeLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setHomePin({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setHomeLocating(false);
+      },
+      (err) => {
+        setHomeGeoError(err.message);
+        setHomeLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  const handleConfirmHomeLocation = useCallback(() => {
+    setSelectedLocation(HOME_LOCATION);
+    setShowHomePanel(false);
+  }, []);
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
@@ -326,7 +395,7 @@ export default function Home() {
     };
   }, []);
 
-  const total = selectedServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.id === "home" ? 30 : 0);
+  const total = selectedServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.type === "home" ? 30 : 0);
   const selectedServicesLabel = selectedServices.map((service) => service.name).join(", ");
 
   const canContinue = (() => {
@@ -341,7 +410,10 @@ export default function Home() {
   const formComplete = Boolean(firstName.trim() && lastName.trim() && phone.trim());
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setShowHomePanel(false);
+  };
 
   const resetBooking = () => {
     if (submitTimerRef.current !== null) {
@@ -365,6 +437,10 @@ export default function Home() {
       const now = new Date();
       return { year: now.getFullYear(), month: now.getMonth() };
     });
+    setShowHomePanel(false);
+    setHomePin(null);
+    setHomeLocating(false);
+    setHomeGeoError(null);
   };
 
   const finishBooking = () => {
@@ -509,7 +585,7 @@ export default function Home() {
 
       <section className="relative w-full min-h-svh overflow-hidden bg-brand-black lg:h-svh lg:max-h-svh">
         <div className="relative w-full min-h-svh lg:flex lg:flex-row lg:h-full lg:overflow-visible lg:[clip-path:inset(-200px_0_0_0)]">
-          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[65px] px-5 pb-4 lg:flex-none lg:w-[48%] lg:justify-start lg:pt-[120px] lg:pl-0 lg:pr-[56px] lg:pb-[60px] lg:h-full">
+          <div className="relative z-[5] bg-brand-black w-full flex flex-col justify-center items-center pt-[30px] px-5 pb-4 lg:flex-none lg:w-[48%] lg:justify-start lg:pt-[120px] lg:pl-0 lg:pr-[56px] lg:pb-[60px] lg:h-full">
             <div className="text-center p-0 max-w-full lg:text-left">
               <h1 className="font-playfair text-[clamp(60px,16vw,104px)] lg:text-[clamp(68px,7vw,148px)] font-normal leading-[0.85] tracking-[-0.02em] text-brand-white [animation:fade-up_0.9s_ease-out_0.3s_both]">
                 Sharp <span className="italic text-gold4 tracking-[-0.04em] font-medium">cuts.</span>
@@ -527,10 +603,31 @@ export default function Home() {
                 <span className="text-gold3 opacity-60 text-[8px]">·</span>
                 <span>By Appointment</span>
               </div>
+
+              {/* CTA pair */}
+              <div className="mt-8 lg:mt-10 hidden sm:flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 justify-center lg:justify-start [animation:fade-up_0.9s_ease-out_0.9s_both]">
+                <button
+                  type="button"
+                  onClick={openModal}
+                  className="open-booking group relative inline-flex items-center justify-center gap-2 bg-gold3 text-brand-black text-[12px] font-semibold tracking-[0.2em] uppercase px-7 py-4 rounded-full transition-[transform,box-shadow,background-color] duration-200 hover:bg-gold4 hover:-translate-y-px shadow-[0_10px_30px_-10px_rgb(212_175_112/0.6)] cursor-pointer"
+                >
+                  Reserve Your Chair
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5">
+                    <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <a
+                  href="#services"
+                  className="inline-flex items-center justify-center gap-2 text-[12px] font-medium tracking-[0.2em] uppercase text-brand-white/85 hover:text-brand-white px-5 py-4 border border-[rgb(254_251_243/14%)] hover:border-gold3/60 rounded-full transition-colors"
+                >
+                  View Services
+                </a>
+              </div>
             </div>
-            
+
             <div className="w-full mt-[60px] lg:hidden [animation:fade-up_1s_ease-out_1.5s_both]">
               <MobileVideoCarousel />
+
             </div>
           </div>
 
@@ -941,47 +1038,45 @@ export default function Home() {
                   >
                     {step === 1 && (
                       <>
-                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Where would you like your appointment?</p>
+                        <div className="flex mb-4">
+                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/15%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]">
+                            Nearby
+                            <svg width="10" height="12" viewBox="0 0 10 12" fill="none" className="ml-1.5 opacity-60">
+                              <path d="M5 0C2.79 0 1 1.79 1 4c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" fill="currentColor"/>
+                              <circle cx="5" cy="4" r="1.5" fill="white"/>
+                            </svg>
+                          </button>
+                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/15%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]" onClick={openHomePanel}>
+                            Come to me
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1.5 opacity-60">
+                              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                              <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                          </button>
+                        </div>
                         <div className="grid grid-cols-1 gap-2.5">
-                          {LOCATIONS.map((location) => {
+                          {salons.map((location) => {
                             const isLocationSelected = selectedLocation?.id === location.id;
                             return (
                               <button
                                 key={location.id}
                                 type="button"
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedLocation(location)}
                               >
-                                <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/4%)]"}`}>
-                                  {location.id === "salon" ? (
+                                {location.imageUrl ? (
+                                  <img src={location.imageUrl} alt={location.name} className={`shrink-0 w-[107px] h-[107px] rounded-[10px] object-cover transition-[border-color] duration-200 ${isLocationSelected ? "border-2 border-[rgb(255_255_255/30%)]" : "border-2 border-[rgb(192_154_90/20%)]"}`} />
+                                ) : (
+                                  <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/4%)]"}`}>
                                     <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                                       <polyline points="9 22 9 12 15 12 15 22" />
                                     </svg>
-                                  ) : (
-                                    <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                                      <circle cx="12" cy="10" r="3" />
-                                    </svg>
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-sm font-semibold mb-1 tracking-[-0.01em] leading-snug ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
-                                  <div className={`text-[13px] leading-[1.55] font-normal ${isLocationSelected ? "text-white" : "text-[rgb(10_8_0/55%)]"}`}>
-                                    {location.id === "salon" ? (
-                                      <>
-                                        14 Rue Mohammed V, Agadir, Medina
-                                        <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
-                                        Sat–Thu · 9:00–17:00
-                                      </>
-                                    ) : (
-                                      <>
-                                        We travel to your address in Agadir city
-                                        <div className={`h-1.5 ${isLocationSelected ? "opacity-40" : ""}`} />
-                                        +30 MAD travel fee
-                                      </>
-                                    )}
                                   </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className={`text-[17px] font-semibold leading-snug tracking-[-0.408px] mb-0.5 ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
+                                  <div className={`text-[13px] leading-[18px] tracking-[-0.078px] font-normal ${isLocationSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{location.description}</div>
                                 </div>
                               </button>
                             );
@@ -1215,7 +1310,7 @@ export default function Home() {
                                 </svg>
                                 Location
                               </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedLocation?.description ?? "—"}</span>
+                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedLocation ? `${selectedLocation.name}${selectedLocation.type === "salon" ? ` · ${selectedLocation.description}` : ""}` : "—"}</span>
                             </div>
                             <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
@@ -1367,6 +1462,114 @@ export default function Home() {
                       </div>
                     )}
                   </motion.div>
+                </AnimatePresence>
+
+                {/* Home Location Panel — slides up from bottom within the content area */}
+                <AnimatePresence>
+                  {showHomePanel && (
+                    <motion.div
+                      className="absolute inset-0 bg-[rgb(10_8_0/40%)] [backdrop-filter:blur(3px)] z-[9]"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={() => setShowHomePanel(false)}
+                    />
+                  )}
+                </AnimatePresence>
+                <AnimatePresence>
+                  {showHomePanel && (
+                    <motion.div
+                      className="absolute inset-x-0 bottom-0 h-3/4 bg-[#fafaf8] rounded-t-[20px] z-10 flex flex-col overflow-hidden shadow-[0_-12px_40px_rgb(0_0_0/18%)]"
+                      initial={{ y: "100%" }}
+                      animate={{ y: 0 }}
+                      exit={{ y: "100%" }}
+                      transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                    >
+                      <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/6%)]">
+                        <div>
+                          <h3 className="text-[15px] font-bold text-brand-black tracking-[-0.01em]">Your Location</h3>
+                          <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">Tap the map or drag the pin to your address</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/12%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/20%)]"
+                          onClick={() => setShowHomePanel(false)}
+                          aria-label="Close"
+                        >
+                          <svg viewBox="0 0 10 10" width="10" height="10">
+                            <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">
+                        <button
+                          type="button"
+                          className="self-start flex items-center gap-2 h-8 px-4 rounded-full border border-[rgb(10_8_0/15%)] bg-white text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                          onClick={handleHomeMyLocation}
+                          disabled={homeLocating}
+                        >
+                          {homeLocating ? (
+                            <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              <path d="M3 12a9 9 0 019-9" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="3" />
+                              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                            </svg>
+                          )}
+                          {homeLocating ? "Detecting…" : "Use my location"}
+                        </button>
+
+                        {homeGeoError && (
+                          <div className="text-[11px] text-red-500 px-3 py-2 bg-red-50 rounded-lg">{homeGeoError}</div>
+                        )}
+
+                        <div className="rounded-xl overflow-hidden border border-[rgb(10_8_0/8%)]" style={{ height: 230 }}>
+                          {homePin && (
+                            <HomePanelMapView
+                              lat={homePin.lat}
+                              lng={homePin.lng}
+                              onMapClick={handleHomeMapClick}
+                              onMarkerDrag={handleHomeMarkerDrag}
+                            />
+                          )}
+                        </div>
+
+                        <div className="text-[11px] text-[rgb(10_8_0/45%)] leading-relaxed flex items-start gap-1.5 min-h-[1em]">
+                          <svg className="w-3 h-3 shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                          <span>
+                            {homePinGeoLoading
+                              ? "Resolving address…"
+                              : homePinLabel
+                              ? homePinLabel
+                              : homePin
+                              ? `${homePin.lat.toFixed(5)}, ${homePin.lng.toFixed(5)}`
+                              : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="px-5 pb-5 pt-3 shrink-0 border-t border-[rgb(10_8_0/6%)]">
+                        <button
+                          type="button"
+                          className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)]"
+                          onClick={handleConfirmHomeLocation}
+                        >
+                          Save Location
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </div>
             </motion.div>
