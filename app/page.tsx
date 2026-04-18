@@ -982,7 +982,7 @@ export default function Home() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
-              <div className="relative flex items-center gap-1.5 px-5 pt-[18px] pb-4 bg-white border-b border-[rgb(10_8_0/6%)] shrink-0 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[rgb(10_8_0/4%)] after:to-transparent">
+              <div className="relative flex items-center gap-1.5 px-5 pt-[18px] pb-4 bg-white border-b border-[rgb(10_8_0/11%)] shrink-0 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[rgb(10_8_0/4%)] after:to-transparent">
                 <AnimatePresence>
                   {step > 1 && step < 6 && (
                     <motion.button
@@ -1016,7 +1016,7 @@ export default function Home() {
                     {step === 6 && "Booking Confirmed"}
                   </p>
                 </div>
-                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/12%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/20%)]" onClick={closeModal} aria-label="Close">
+                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/20%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]" onClick={closeModal} aria-label="Close">
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>
@@ -1039,14 +1039,14 @@ export default function Home() {
                     {step === 1 && (
                       <>
                         <div className="flex mb-4">
-                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/15%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]">
+                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/22%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]">
                             Nearby
                             <svg width="10" height="12" viewBox="0 0 10 12" fill="none" className="ml-1.5 opacity-60">
                               <path d="M5 0C2.79 0 1 1.79 1 4c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" fill="currentColor"/>
                               <circle cx="5" cy="4" r="1.5" fill="white"/>
                             </svg>
                           </button>
-                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/15%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]" onClick={openHomePanel}>
+                          <button type="button" className="flex items-center justify-center h-8 px-[19px] mr-3 rounded-full border border-[rgb(10_8_0/22%)] bg-white uppercase text-[11px] font-semibold tracking-[0.05em] text-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]" onClick={openHomePanel}>
                             Come to me
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1.5 opacity-60">
                               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -1061,7 +1061,7 @@ export default function Home() {
                               <button
                                 key={location.id}
                                 type="button"
-                                className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedLocation(location)}
                               >
                                 {location.imageUrl ? (
@@ -1095,7 +1095,7 @@ export default function Home() {
                               <button
                                 key={barber.id}
                                 type="button"
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/7%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedBarber(barber)}
                               >
                                 <div className="relative flex items-center justify-center shrink-0">
@@ -1126,7 +1126,7 @@ export default function Home() {
                               <button
                                 key={service.id}
                                 type="button"
-                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => toggleService(service)}
                               >
                                 <div className="flex flex-col gap-0.5 items-start">
@@ -1173,10 +1173,10 @@ export default function Home() {
                                         isDateSelected
                                           ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_12px_rgb(192_154_90/25%)]"
                                           : day.isPast || day.isFriday
-                                          ? "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
+                                          ? "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
                                           : day.isAvailable
-                                          ? "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)] cursor-pointer"
-                                          : "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
+                                          ? "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)] cursor-pointer"
+                                          : "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
                                       }`}
                                     >
                                       <span className={`text-lg font-bold tracking-[-0.02em] leading-none ${
@@ -1191,7 +1191,7 @@ export default function Home() {
                                 <button
                                   type="button"
                                   onClick={() => setCalendarExpanded(true)}
-                                  className="flex-1 flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-[rgb(10_8_0/10%)] bg-white transition-all duration-250 hover:border-[rgb(10_8_0/18%)] hover:bg-[rgb(10_8_0/2%)] cursor-pointer"
+                                  className="flex-1 flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-[rgb(10_8_0/18%)] bg-white transition-all duration-250 hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/2%)] cursor-pointer"
                                 >
                                   <svg viewBox="0 0 12 6" width="13" height="7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/30%)]">
                                     <path d="M1 1l5 4 5-4" />
@@ -1210,7 +1210,7 @@ export default function Home() {
                                         type="button"
                                         onClick={goPrevMonth}
                                         disabled={!canGoPrevMonth}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoPrevMonth ? "border-[rgb(10_8_0/8%)] text-brand-black hover:border-[rgb(10_8_0/20%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/5%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoPrevMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
                                       >
                                         <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 1L1 8l8 7" /></svg>
                                       </button>
@@ -1218,7 +1218,7 @@ export default function Home() {
                                         type="button"
                                         onClick={goNextMonth}
                                         disabled={!canGoNextMonth}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoNextMonth ? "border-[rgb(10_8_0/8%)] text-brand-black hover:border-[rgb(10_8_0/20%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/5%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoNextMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
                                       >
                                         <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l8 7-8 7" /></svg>
                                       </button>
@@ -1247,9 +1247,9 @@ export default function Home() {
                                             isDateSelected
                                               ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]"
                                               : day.isAvailable
-                                              ? "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
+                                              ? "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
                                               : day.isFriday
-                                              ? "border-[1.5px] border-[rgb(10_8_0/4%)] bg-[rgb(10_8_0/2%)] text-[rgb(10_8_0/20%)] line-through cursor-not-allowed"
+                                              ? "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] text-[rgb(10_8_0/20%)] line-through cursor-not-allowed"
                                               : "text-[rgb(10_8_0/25%)] cursor-not-allowed"
                                           }`}
                                         >
@@ -1262,7 +1262,7 @@ export default function Home() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/6%)]">
+                          <div className="flex flex-col pt-5 border-t border-[rgb(10_8_0/11%)]">
                             <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
                               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
                                 <circle cx="12" cy="12" r="10" />
@@ -1277,7 +1277,7 @@ export default function Home() {
                                   <button
                                     key={slot}
                                     type="button"
-                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/7%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/15%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                    className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                     onClick={() => setSelectedTime(slot)}
                                   >
                                     {slot}
@@ -1301,7 +1301,7 @@ export default function Home() {
                             </svg>
                             Booking Summary
                           </div>
-                          <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/7%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
+                          <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
                             <div className="flex justify-between items-center gap-3 py-2">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
@@ -1312,7 +1312,7 @@ export default function Home() {
                               </span>
                               <span className="text-sm font-semibold tracking-[-0.01em]">{selectedLocation ? `${selectedLocation.name}${selectedLocation.type === "salon" ? ` · ${selectedLocation.description}` : ""}` : "—"}</span>
                             </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
                                   <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
@@ -1322,7 +1322,7 @@ export default function Home() {
                               </span>
                               <span className="text-sm font-semibold tracking-[-0.01em]">{selectedBarber?.name ?? "—"}</span>
                             </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
                                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -1332,7 +1332,7 @@ export default function Home() {
                               </span>
                               <span className="text-sm font-semibold tracking-[-0.01em] text-right">{selectedServicesLabel || "—"}</span>
                             </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/6%)]">
+                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
                                   <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -1344,7 +1344,7 @@ export default function Home() {
                                 {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/10%)]">
+                            <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/16%)]">
                               <span className="text-[rgb(10_8_0/40%)] text-[11px] font-semibold tracking-[0.02em] uppercase">Total</span>
                               <span className="text-[17px] font-bold tracking-[-0.02em] text-gold">{total} MAD</span>
                             </div>
@@ -1369,7 +1369,7 @@ export default function Home() {
                                 autoComplete="given-name"
                                 value={firstName}
                                 onChange={(event) => setFirstName(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1381,7 +1381,7 @@ export default function Home() {
                                 autoComplete="family-name"
                                 value={lastName}
                                 onChange={(event) => setLastName(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
@@ -1393,7 +1393,7 @@ export default function Home() {
                                 autoComplete="tel"
                                 value={phone}
                                 onChange={(event) => setPhone(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
@@ -1407,13 +1407,13 @@ export default function Home() {
                                 autoComplete="email"
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/7%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/15%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                               />
                             </div>
                           </div>
                         </div>
 
-                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/10%)]">
+                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
                             <circle cx="12" cy="12" r="10" />
                             <path d="M12 16v-4M12 8h.01" />
@@ -1434,24 +1434,24 @@ export default function Home() {
                         </div>
                         <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
                         <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
-                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/6%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/11%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
                             <span className="opacity-50 text-xs font-medium">Name</span>
                             <span>{firstName} {lastName}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
                             <span className="opacity-50 text-xs font-medium">Date & Time</span>
                             <span>{selectedDate?.fullDate} · {selectedTime}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
                             <span className="opacity-50 text-xs font-medium">Barber</span>
                             <span>{selectedBarber?.name}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/4%)]">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
                             <span className="opacity-50 text-xs font-medium">Services</span>
                             <span>{selectedServicesLabel}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/8%)]">
+                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/15%)]">
                             <span className="opacity-50 text-xs font-medium">Total</span>
                             <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
                           </div>
@@ -1486,14 +1486,14 @@ export default function Home() {
                       exit={{ y: "100%" }}
                       transition={{ type: "spring", damping: 28, stiffness: 250 }}
                     >
-                      <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/6%)]">
+                      <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/11%)]">
                         <div>
                           <h3 className="text-[15px] font-bold text-brand-black tracking-[-0.01em]">Your Location</h3>
                           <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">Tap the map or drag the pin to your address</p>
                         </div>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/12%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/20%)]"
+                          className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/20%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]"
                           onClick={() => setShowHomePanel(false)}
                           aria-label="Close"
                         >
@@ -1506,7 +1506,7 @@ export default function Home() {
                       <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">
                         <button
                           type="button"
-                          className="self-start flex items-center gap-2 h-8 px-4 rounded-full border border-[rgb(10_8_0/15%)] bg-white text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                          className="self-start flex items-center gap-2 h-8 px-4 rounded-full border border-[rgb(10_8_0/22%)] bg-white text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                           onClick={handleHomeMyLocation}
                           disabled={homeLocating}
                         >
@@ -1528,7 +1528,7 @@ export default function Home() {
                           <div className="text-[11px] text-red-500 px-3 py-2 bg-red-50 rounded-lg">{homeGeoError}</div>
                         )}
 
-                        <div className="rounded-xl overflow-hidden border border-[rgb(10_8_0/8%)]" style={{ height: 230 }}>
+                        <div className="rounded-xl overflow-hidden border border-[rgb(10_8_0/15%)]" style={{ height: 230 }}>
                           {homePin && (
                             <HomePanelMapView
                               lat={homePin.lat}
@@ -1556,7 +1556,7 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="px-5 pb-5 pt-3 shrink-0 border-t border-[rgb(10_8_0/6%)]">
+                      <div className="px-5 pb-5 pt-3 shrink-0 border-t border-[rgb(10_8_0/11%)]">
                         <button
                           type="button"
                           className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)]"
