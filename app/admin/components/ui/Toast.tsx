@@ -39,9 +39,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const colorMap: Record<ToastType, string> = {
-    success: 'bg-emerald-600/95 border-emerald-500/40 text-white',
-    error: 'bg-red-600/95 border-red-500/40 text-white',
-    info: 'bg-gold/95 border-gold/40 text-brand-black',
+    success: 'bg-white text-black border-white/40',
+    error: 'bg-red-600 text-white border-red-500/40',
+    info: 'bg-primary text-primary-foreground border-primary/40',
   };
 
   const iconMap: Record<ToastType, string> = {

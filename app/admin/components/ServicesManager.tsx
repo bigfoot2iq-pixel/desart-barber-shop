@@ -4,6 +4,11 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Service } from '@/lib/types/database';
 import { getAllServices, createService, updateService } from '@/lib/queries';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Modal, ToggleButton, useToast } from './ui';
 
 interface ServicesManagerProps {
@@ -110,15 +115,17 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-cream font-semibold">Services</h2>
-        <button onClick={openAddForm} className="admin-btn-primary">+ Add Service</button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">Services</h2>
+        <Button onClick={openAddForm}>+ Add Service</Button>
       </div>
 
       {services.length === 0 ? (
-        <div className="admin-card p-12 text-center">
-          <p className="text-cream/45 mb-4">No services yet</p>
-          <button onClick={openAddForm} className="admin-btn-primary">Add Service</button>
-        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <p className="text-muted-foreground mb-4">No services yet</p>
+            <Button onClick={openAddForm}>Add Service</Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">
@@ -129,34 +136,37 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="admin-card p-4"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-cream font-medium truncate">{s.name}</h3>
-                      {!s.is_active && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 font-medium">Inactive</span>
-                      )}
+                <Card className="hover:border-primary/30 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="text-foreground font-medium truncate">{s.name}</h3>
+                          {!s.is_active && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 font-medium">Inactive</span>
+                          )}
+                        </div>
+                        {s.description && (
+                          <p className="text-muted-foreground text-sm line-clamp-1">{s.description}</p>
+                        )}
+                      </div>
+                      <div className="hidden sm:flex items-center gap-6 text-sm flex-shrink-0">
+                        <span className="text-muted-foreground">{s.duration_minutes} min</span>
+                        <span className="text-primary font-semibold">{s.price_mad} MAD</span>
+                        <ToggleButton
+                          enabled={s.is_active}
+                          onChange={() => toggleActive(s)}
+                        />
+                        <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>Edit</Button>
+                      </div>
+                      <div className="flex sm:hidden items-center gap-2">
+                        <span className="text-primary font-semibold text-sm">{s.price_mad} MAD</span>
+                        <button onClick={() => openEditForm(s)} className="text-primary text-xs font-medium">Edit</button>
+                      </div>
                     </div>
-                    {s.description && (
-                      <p className="text-cream/55 text-sm line-clamp-1">{s.description}</p>
-                    )}
-                  </div>
-                  <div className="hidden sm:flex items-center gap-6 text-sm flex-shrink-0">
-                    <span className="text-cream/55">{s.duration_minutes} min</span>
-                    <span className="text-gold3 font-semibold">{s.price_mad} MAD</span>
-                    <ToggleButton
-                      enabled={s.is_active}
-                      onChange={() => toggleActive(s)}
-                    />
-                    <button onClick={() => openEditForm(s)} className="admin-btn-outline text-xs">Edit</button>
-                  </div>
-                  <div className="flex sm:hidden items-center gap-2">
-                    <span className="text-gold3 font-semibold text-sm">{s.price_mad} MAD</span>
-                    <button onClick={() => openEditForm(s)} className="text-gold3 text-xs font-medium">Edit</button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -170,46 +180,46 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
       >
         <div className="space-y-4">
           <div>
-            <label className="admin-section-label">Name *</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Name *</Label>
+            <Input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
             />
             {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
           </div>
 
           <div>
-            <label className="admin-section-label">Description</label>
-            <textarea
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Description</Label>
+            <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={3}
-              className="admin-input w-full resize-none"
+              className="mt-1"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="admin-section-label">Duration (minutes) *</label>
-              <input
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Duration (minutes) *</Label>
+              <Input
                 type="number"
                 min={1}
                 value={form.duration_minutes}
                 onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })}
-                className="admin-input w-full"
+                className="mt-1"
               />
               {formErrors.duration_minutes && <p className="text-red-400 text-xs mt-1">{formErrors.duration_minutes}</p>}
             </div>
             <div>
-              <label className="admin-section-label">Price (MAD) *</label>
-              <input
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Price (MAD) *</Label>
+              <Input
                 type="number"
                 min={0}
                 value={form.price_mad}
                 onChange={(e) => setForm({ ...form, price_mad: parseFloat(e.target.value) || 0 })}
-                className="admin-input w-full"
+                className="mt-1"
               />
               {formErrors.price_mad && <p className="text-red-400 text-xs mt-1">{formErrors.price_mad}</p>}
             </div>
@@ -222,10 +232,10 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
           />
 
           <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setFormOpen(false)} className="admin-btn-outline">Cancel</button>
-            <button onClick={handleSubmit} disabled={loading} className="admin-btn-primary disabled:opacity-50">
+            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={loading}>
               {loading ? 'Saving...' : editingService ? 'Update' : 'Create'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

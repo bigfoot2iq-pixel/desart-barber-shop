@@ -5,8 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Professional, Salon, Service, ProfessionalAvailability, AvailabilityOverride } from '@/lib/types/database';
 import { getAllProfessionals, getAllSalons, getAllServices, createProfessional, updateProfessional, getProfessionalServices, setProfessionalServices } from '@/lib/queries';
 import { getWeeklySchedule, setWeeklySchedule as saveWeeklyScheduleToDb, getOverrides, addOverride, deleteOverride } from '@/lib/queries/availability';
-import { createProfile } from '@/lib/queries/appointments';
-import { Modal, Badge, ToggleButton, useToast } from './ui';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker, fmtTime } from '@/components/ui/time-picker';
+import { Modal, AdminBadge, ToggleButton, useToast } from './ui';
 
 type ProfessionalWithSalon = Professional & { salon: Salon | null };
 
@@ -15,6 +20,7 @@ interface ProfessionalsManagerProps {
   initialSalons: Salon[];
 }
 
+const dayOrder = [1, 2, 3, 4, 5, 6, 0];
 const dayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const emptyForm = {
@@ -23,7 +29,6 @@ const emptyForm = {
   years_of_experience: 0,
   profession: 'barber',
   profile_image_url: '',
-  salon_id: '',
   offers_home_visit: false,
   is_active: true,
 };
@@ -77,7 +82,6 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       years_of_experience: p.years_of_experience,
       profession: p.profession,
       profile_image_url: p.profile_image_url || '',
-      salon_id: p.salon_id || '',
       offers_home_visit: p.offers_home_visit,
       is_active: p.is_active,
     });
@@ -105,31 +109,28 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           years_of_experience: form.years_of_experience,
           profession: form.profession,
           profile_image_url: form.profile_image_url || null,
-          salon_id: form.salon_id || undefined,
           offers_home_visit: form.offers_home_visit,
           is_active: form.is_active,
         });
         toast('Professional updated');
       } else {
-        const profile = await createProfile({
-          id: crypto.randomUUID(),
-          role: 'professional',
-          first_name: form.display_name,
-          last_name: '',
-          phone: form.phone,
-          email: null,
+        const res = await fetch('/api/professionals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            display_name: form.display_name,
+            phone: form.phone,
+            years_of_experience: form.years_of_experience,
+            profession: form.profession,
+            profile_image_url: form.profile_image_url || null,
+            offers_home_visit: form.offers_home_visit,
+            is_active: form.is_active,
+          }),
         });
-        await createProfessional({
-          id: profile.id,
-          salon_id: form.salon_id || '',
-          display_name: form.display_name,
-          phone: form.phone,
-          years_of_experience: form.years_of_experience,
-          profession: form.profession,
-          profile_image_url: form.profile_image_url || null,
-          offers_home_visit: form.offers_home_visit,
-          is_active: form.is_active,
-        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to create professional');
+        }
         toast('Professional created');
       }
       setFormOpen(false);
@@ -168,8 +169,8 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       getWeeklySchedule(p.id),
       getOverrides(p.id, new Date().toISOString().split('T')[0], new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0]),
     ]);
-    setWeeklySchedule(schedule);
-    setOverrides(ovs);
+    setWeeklySchedule(schedule.map((s) => ({ ...s, start_time: fmtTime(s.start_time) || s.start_time, end_time: fmtTime(s.end_time) || s.end_time })));
+    setOverrides(ovs.map((o) => ({ ...o, start_time: fmtTime(o.start_time) || o.start_time, end_time: fmtTime(o.end_time) || o.end_time })));
     setAvailabilityOpen(true);
   };
 
@@ -227,15 +228,17 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-cream font-semibold">Professionals</h2>
-        <button onClick={openAddForm} className="admin-btn-primary">+ Add Professional</button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">Professionals</h2>
+        <Button onClick={openAddForm}>+ Add Professional</Button>
       </div>
 
       {professionals.length === 0 ? (
-        <div className="admin-card p-12 text-center">
-          <p className="text-cream/45 mb-4">No professionals yet</p>
-          <button onClick={openAddForm} className="admin-btn-primary">Add Professional</button>
-        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <p className="text-muted-foreground mb-4">No professionals yet</p>
+            <Button onClick={openAddForm}>Add Professional</Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
@@ -246,45 +249,56 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="admin-card p-4"
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gold/15 flex items-center justify-center text-gold3 font-playfair text-sm font-bold flex-shrink-0 ring-1 ring-gold/20">
-                    {p.display_name?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-cream font-medium truncate">{p.display_name}</h3>
-                    <p className="text-cream/55 text-xs">{p.phone}</p>
-                  </div>
-                  <Badge variant={p.is_active ? 'active' : 'inactive'}>
-                    {p.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      {p.profile_image_url ? (
+                        <img
+                          src={p.profile_image_url}
+                          alt={p.display_name}
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-1 ring-primary/20"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-playfair text-sm font-bold flex-shrink-0 ring-1 ring-primary/20">
+                          {p.display_name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-foreground font-medium truncate">{p.display_name}</h3>
+                        <p className="text-muted-foreground text-xs">{p.phone}</p>
+                      </div>
+                      <AdminBadge variant={p.is_active ? 'active' : 'inactive'}>
+                        {p.is_active ? 'Active' : 'Inactive'}
+                      </AdminBadge>
+                    </div>
 
-                <div className="space-y-1 text-xs text-cream/55 mb-3">
-                  <p>{p.years_of_experience} years experience</p>
-                  <p>{p.salon?.name || 'No salon'}</p>
-                  {p.offers_home_visit && <p className="text-emerald-400/80">Offers home visits</p>}
-                </div>
+                    <div className="space-y-1 text-xs text-muted-foreground mb-3">
+                      <p>{p.years_of_experience} years experience</p>
+                      {p.offers_home_visit && <p className="text-neutral-400/80">Offers home visits</p>}
+                    </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => openEditForm(p)} className="admin-btn-outline text-xs px-3 py-1">Edit</button>
-                  <button onClick={() => openServicesPanel(p)} className="admin-btn-outline text-xs px-3 py-1">Services</button>
-                  <button onClick={() => openAvailabilityPanel(p)} className="admin-btn-outline text-xs px-3 py-1">Availability</button>
-                  <button
-                    onClick={async () => {
-                      setActionId(p.id);
-                      await updateProfessional(p.id, { is_active: !p.is_active });
-                      toast(p.is_active ? 'Deactivated' : 'Activated');
-                      refresh();
-                      setActionId(null);
-                    }}
-                    disabled={actionId === p.id}
-                    className="admin-btn-outline text-xs px-3 py-1 disabled:opacity-50"
-                  >
-                    {p.is_active ? 'Deactivate' : 'Activate'}
-                  </button>
-                </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="xs" onClick={() => openEditForm(p)}>Edit</Button>
+                      <Button variant="outline" size="xs" onClick={() => openServicesPanel(p)}>Services</Button>
+                      <Button variant="outline" size="xs" onClick={() => openAvailabilityPanel(p)}>Availability</Button>
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={async () => {
+                          setActionId(p.id);
+                          await updateProfessional(p.id, { is_active: !p.is_active });
+                          toast(p.is_active ? 'Deactivated' : 'Activated');
+                          refresh();
+                          setActionId(null);
+                        }}
+                        disabled={actionId === p.id}
+                      >
+                        {p.is_active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -298,72 +312,58 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       >
         <div className="space-y-4">
           <div>
-            <label className="admin-section-label">Display Name *</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Display Name *</Label>
+            <Input
               type="text"
               value={form.display_name}
               onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
             />
             {formErrors.display_name && <p className="text-red-400 text-xs mt-1">{formErrors.display_name}</p>}
           </div>
 
           <div>
-            <label className="admin-section-label">Phone *</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Phone *</Label>
+            <Input
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
             />
             {formErrors.phone && <p className="text-red-400 text-xs mt-1">{formErrors.phone}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="admin-section-label">Years of Experience</label>
-              <input
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Years of Experience</Label>
+              <Input
                 type="number"
                 min={0}
                 value={form.years_of_experience}
                 onChange={(e) => setForm({ ...form, years_of_experience: parseInt(e.target.value) || 0 })}
-                className="admin-input w-full"
+                className="mt-1"
               />
             </div>
             <div>
-              <label className="admin-section-label">Profession</label>
-              <input
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Profession</Label>
+              <Input
                 type="text"
                 value={form.profession}
                 onChange={(e) => setForm({ ...form, profession: e.target.value })}
-                className="admin-input w-full"
+                className="mt-1"
               />
             </div>
           </div>
 
           <div>
-            <label className="admin-section-label">Profile Image URL</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Profile Image URL</Label>
+            <Input
               type="url"
               value={form.profile_image_url}
               onChange={(e) => setForm({ ...form, profile_image_url: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
               placeholder="https://..."
             />
-          </div>
-
-          <div>
-            <label className="admin-section-label">Salon</label>
-            <select
-              value={form.salon_id}
-              onChange={(e) => setForm({ ...form, salon_id: e.target.value })}
-              className="admin-input w-full"
-            >
-              <option value="">No salon</option>
-              {salons.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
           </div>
 
           <div className="flex items-center gap-6">
@@ -380,10 +380,10 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           </div>
 
           <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setFormOpen(false)} className="admin-btn-outline">Cancel</button>
-            <button onClick={handleSubmit} disabled={loading} className="admin-btn-primary disabled:opacity-50">
+            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={loading}>
               {loading ? 'Saving...' : editingProfessional ? 'Update' : 'Create'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -392,30 +392,30 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
         open={servicesOpen}
         onClose={() => setServicesOpen(false)}
         title={`Services — ${selectedProfessional?.display_name}`}
-        maxWidth="max-w-xl"
+        maxWidth="sm:max-w-xl"
       >
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto admin-scroll">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {allServices.map((s) => (
-            <label key={s.id} className="flex items-center gap-3 p-3 bg-brand-black/40 rounded-lg border border-gold/12 cursor-pointer hover:border-gold/25 transition-colors">
+            <label key={s.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:border-primary/30 transition-colors">
               <input
                 type="checkbox"
                 checked={professionalServiceIds.includes(s.id)}
                 onChange={() => toggleService(s.id)}
-                className="w-4 h-4 rounded border-gold/30 bg-brand-black accent-gold"
+                className="w-4 h-4 rounded border-border accent-primary"
               />
               <div className="flex-1">
-                <p className="text-cream/85 text-sm font-medium">{s.name}</p>
-                <p className="text-cream/50 text-xs">{s.duration_minutes} min</p>
+                <p className="text-foreground/85 text-sm font-medium">{s.name}</p>
+                <p className="text-muted-foreground text-xs">{s.duration_minutes} min</p>
               </div>
-              <span className="text-gold3 text-sm font-semibold">{s.price_mad} MAD</span>
+              <span className="text-primary text-sm font-semibold">{s.price_mad} MAD</span>
             </label>
           ))}
         </div>
         <div className="flex gap-3 justify-end pt-4">
-          <button onClick={() => setServicesOpen(false)} className="admin-btn-outline">Cancel</button>
-          <button onClick={saveServices} disabled={loading} className="admin-btn-primary disabled:opacity-50">
+          <Button variant="outline" onClick={() => setServicesOpen(false)}>Cancel</Button>
+          <Button onClick={saveServices} disabled={loading}>
             {loading ? 'Saving...' : 'Save Services'}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -423,83 +423,84 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
         open={availabilityOpen}
         onClose={() => setAvailabilityOpen(false)}
         title={`Availability — ${selectedProfessional?.display_name}`}
-        maxWidth="max-w-xl"
+        maxWidth="sm:max-w-3xl"
       >
         <div className="space-y-6">
           <div>
-            <h3 className="text-sm text-gold3 font-semibold mb-3">Weekly Schedule</h3>
-            <div className="space-y-2">
-              {dayLabels.map((day, i) => {
-                const entry = weeklySchedule.find((s) => s.day_of_week === i);
-                const isAvailable = entry?.is_available ?? i !== 5;
+            <h3 className="text-sm text-primary font-semibold mb-3">Weekly Schedule</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {dayOrder.map((di) => {
+                const day = dayLabels[di];
+                const entry = weeklySchedule.find((s) => s.day_of_week === di);
+                const isAvailable = entry?.is_available ?? di !== 0;
                 return (
-                  <div key={i} className="flex items-center gap-3 bg-brand-black/40 rounded-lg p-3 border border-gold/12">
-                    <span className={`w-20 text-sm ${i === 5 ? 'text-red-400' : 'text-cream/85'}`}>{day}</span>
-                    <ToggleButton
-                      enabled={isAvailable}
-                      onChange={(v) => {
-                        setWeeklySchedule((prev) => {
-                          const existing = prev.find((s) => s.day_of_week === i);
-                          if (existing) {
-                            return prev.map((s) => s.day_of_week === i ? { ...s, is_available: v } : s);
-                          }
-                          return [...prev, { id: `temp-${i}`, professional_id: selectedProfessional?.id || '', day_of_week: i, start_time: '09:00', end_time: '17:00', is_available: v }];
-                        });
-                      }}
-                    />
+                  <div key={di} className="flex items-center gap-2 rounded-lg p-2.5 border border-border">
+                    <span className={`text-sm font-medium shrink-0 ${di === 0 ? 'text-red-400' : 'text-foreground/85'}`}>{day}</span>
                     {isAvailable && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <input
-                          type="time"
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <TimePicker
                           value={entry?.start_time || '09:00'}
-                          onChange={(e) => {
+                          onChange={(v) => {
                             setWeeklySchedule((prev) => {
-                              const existing = prev.find((s) => s.day_of_week === i);
+                              const existing = prev.find((s) => s.day_of_week === di);
                               if (existing) {
-                                return prev.map((s) => s.day_of_week === i ? { ...s, start_time: e.target.value } : s);
+                                return prev.map((s) => s.day_of_week === di ? { ...s, start_time: v } : s);
                               }
-                              return [...prev, { id: `temp-${i}`, professional_id: selectedProfessional?.id || '', day_of_week: i, start_time: e.target.value, end_time: '17:00', is_available: true }];
+                              return [...prev, { id: `temp-${di}`, professional_id: selectedProfessional?.id || '', day_of_week: di, start_time: v, end_time: '17:00', is_available: true }];
                             });
                           }}
-                          className="admin-input text-xs px-2 py-1"
                         />
-                        <span className="text-cream/45">to</span>
-                        <input
-                          type="time"
+                        <span className="text-muted-foreground">to</span>
+                        <TimePicker
                           value={entry?.end_time || '17:00'}
-                          onChange={(e) => {
+                          onChange={(v) => {
                             setWeeklySchedule((prev) => {
-                              const existing = prev.find((s) => s.day_of_week === i);
+                              const existing = prev.find((s) => s.day_of_week === di);
                               if (existing) {
-                                return prev.map((s) => s.day_of_week === i ? { ...s, end_time: e.target.value } : s);
+                                return prev.map((s) => s.day_of_week === di ? { ...s, end_time: v } : s);
                               }
-                              return [...prev, { id: `temp-${i}`, professional_id: selectedProfessional?.id || '', day_of_week: i, start_time: '09:00', end_time: e.target.value, is_available: true }];
+                              return [...prev, { id: `temp-${di}`, professional_id: selectedProfessional?.id || '', day_of_week: di, start_time: '09:00', end_time: v, is_available: true }];
                             });
                           }}
-                          className="admin-input text-xs px-2 py-1"
                         />
                       </div>
                     )}
+                    <div className="ml-auto shrink-0">
+                      <ToggleButton
+                        enabled={isAvailable}
+                        onChange={(v) => {
+                          setWeeklySchedule((prev) => {
+                            const existing = prev.find((s) => s.day_of_week === di);
+                            if (existing) {
+                              return prev.map((s) => s.day_of_week === di ? { ...s, is_available: v } : s);
+                            }
+                            return [...prev, { id: `temp-${di}`, professional_id: selectedProfessional?.id || '', day_of_week: di, start_time: '09:00', end_time: '17:00', is_available: v }];
+                          });
+                        }}
+                      />
+                    </div>
                   </div>
                 );
               })}
+              <div className="flex items-center justify-center rounded-lg">
+                <Button onClick={saveWeeklySchedule} disabled={loading}>
+                  {loading ? 'Saving...' : 'Save Weekly Schedule'}
+                </Button>
+              </div>
             </div>
-            <button onClick={saveWeeklySchedule} disabled={loading} className="mt-3 admin-btn-primary disabled:opacity-50">
-              {loading ? 'Saving...' : 'Save Weekly Schedule'}
-            </button>
           </div>
 
           <div>
-            <h3 className="text-sm text-gold3 font-semibold mb-3">Date Overrides</h3>
+            <h3 className="text-sm text-primary font-semibold mb-3">Holidays & Time Off</h3>
 
             {overrides.length > 0 && (
               <div className="space-y-2 mb-4">
                 {overrides.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between bg-brand-black/40 rounded-lg p-3 border border-gold/12">
+                  <div key={o.id} className="flex items-center justify-between rounded-lg p-3 border border-border">
                     <div>
-                      <p className="text-cream/85 text-sm">{o.override_date}</p>
-                      <p className="text-xs text-cream/50">
-                        {o.is_available ? `${o.start_time} - ${o.end_time}` : 'Unavailable'}
+                      <p className="text-foreground/85 text-sm">{o.override_date}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.is_available ? `${fmtTime(o.start_time)} - ${fmtTime(o.end_time)}` : 'Unavailable'}
                         {o.reason && ` — ${o.reason}`}
                       </p>
                     </div>
@@ -509,61 +510,64 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               </div>
             )}
 
-            <div className="bg-brand-black/40 rounded-lg p-4 border border-gold/12 space-y-3">
-              <h4 className="text-[11px] text-cream/55 uppercase tracking-wider font-semibold">Add Override</h4>
+            <div className="rounded-lg p-4 border border-border space-y-3">
+              <h4 className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Add Override</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="admin-section-label">Date</label>
-                  <input
-                    type="date"
-                    value={overrideForm.override_date}
-                    onChange={(e) => setOverrideForm({ ...overrideForm, override_date: e.target.value })}
-                    className="admin-input"
-                  />
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Date</Label>
+                  <div className="mt-1">
+                    <DatePicker
+                      value={overrideForm.override_date}
+                      onChange={(v) => setOverrideForm({ ...overrideForm, override_date: v })}
+                      minDate={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="admin-section-label">Available?</label>
-                  <ToggleButton
-                    enabled={overrideForm.is_available}
-                    onChange={(v) => setOverrideForm({ ...overrideForm, is_available: v })}
-                  />
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Available?</Label>
+                  <div className="mt-2">
+                    <ToggleButton
+                      enabled={overrideForm.is_available}
+                      onChange={(v) => setOverrideForm({ ...overrideForm, is_available: v })}
+                    />
+                  </div>
                 </div>
               </div>
               {overrideForm.is_available && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="admin-section-label">Start Time</label>
-                    <input
-                      type="time"
-                      value={overrideForm.start_time}
-                      onChange={(e) => setOverrideForm({ ...overrideForm, start_time: e.target.value })}
-                      className="admin-input"
-                    />
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Start Time</Label>
+                    <div className="mt-1">
+                      <TimePicker
+                        value={overrideForm.start_time}
+                        onChange={(v) => setOverrideForm({ ...overrideForm, start_time: v })}
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="admin-section-label">End Time</label>
-                    <input
-                      type="time"
-                      value={overrideForm.end_time}
-                      onChange={(e) => setOverrideForm({ ...overrideForm, end_time: e.target.value })}
-                      className="admin-input"
-                    />
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">End Time</Label>
+                    <div className="mt-1">
+                      <TimePicker
+                        value={overrideForm.end_time}
+                        onChange={(v) => setOverrideForm({ ...overrideForm, end_time: v })}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
               <div>
-                <label className="admin-section-label">Reason (optional)</label>
-                <input
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Reason (optional)</Label>
+                <Input
                   type="text"
                   value={overrideForm.reason}
                   onChange={(e) => setOverrideForm({ ...overrideForm, reason: e.target.value })}
-                  className="admin-input"
+                  className="mt-1"
                   placeholder="Holiday, sick leave..."
                 />
               </div>
-              <button onClick={handleSaveOverride} disabled={loading || !overrideForm.override_date} className="admin-btn-primary disabled:opacity-50">
+              <Button onClick={handleSaveOverride} disabled={loading || !overrideForm.override_date}>
                 Add Override
-              </button>
+              </Button>
             </div>
           </div>
         </div>

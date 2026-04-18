@@ -4,6 +4,11 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Salon } from '@/lib/types/database';
 import { getAllSalons, createSalon, updateSalon } from '@/lib/queries';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LocationPicker, type LocationValue } from '@/components/location-picker';
 import { Modal, ToggleButton, useToast } from './ui';
 
 interface SalonsManagerProps {
@@ -15,6 +20,7 @@ const emptyForm = {
   address: '',
   latitude: 0,
   longitude: 0,
+  image_url: '',
   is_active: true,
 };
 
@@ -50,6 +56,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
       address: s.address,
       latitude: s.latitude,
       longitude: s.longitude,
+      image_url: s.image_url || '',
       is_active: s.is_active,
     });
     setFormErrors({});
@@ -74,6 +81,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           address: form.address,
           latitude: form.latitude,
           longitude: form.longitude,
+          image_url: form.image_url || null,
           is_active: form.is_active,
         });
         toast('Salon updated');
@@ -83,6 +91,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           address: form.address,
           latitude: form.latitude,
           longitude: form.longitude,
+          image_url: form.image_url || null,
           is_active: form.is_active,
         });
         toast('Salon created');
@@ -109,15 +118,17 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-cream font-semibold">Salons</h2>
-        <button onClick={openAddForm} className="admin-btn-primary">+ Add Salon</button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">Salons</h2>
+        <Button onClick={openAddForm}>+ Add Salon</Button>
       </div>
 
       {salons.length === 0 ? (
-        <div className="admin-card p-12 text-center">
-          <p className="text-cream/45 mb-4">No salons yet</p>
-          <button onClick={openAddForm} className="admin-btn-primary">Add Salon</button>
-        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <p className="text-muted-foreground mb-4">No salons yet</p>
+            <Button onClick={openAddForm}>Add Salon</Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
@@ -128,37 +139,43 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="admin-card overflow-hidden"
               >
-                {s.latitude && s.longitude && (
-                  <div className="w-full h-32 bg-brand-black/40">
-                    <iframe
-                      width="100%"
-                      height="128"
-                      style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.2)' }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${s.longitude - 0.005},${s.latitude - 0.003},${s.longitude + 0.005},${s.latitude + 0.003}&layer=mapnik&marker=${s.latitude},${s.longitude}`}
-                      title={`Map of ${s.name}`}
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-cream font-medium">{s.name}</h3>
-                    <ToggleButton
-                      enabled={s.is_active}
-                      onChange={() => toggleActive(s)}
-                    />
-                  </div>
-                  <p className="text-cream/55 text-sm mb-1">{s.address}</p>
-                  <p className="text-cream/35 text-xs">
-                    {s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => openEditForm(s)} className="admin-btn-outline text-xs">Edit</button>
-                  </div>
-                </div>
+                <Card className={`overflow-hidden${s.image_url || (s.latitude && s.longitude) ? ' pt-0' : ''}`}>
+                  {s.image_url && (
+                    <div className="w-full h-40 bg-muted">
+                      <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  {!s.image_url && s.latitude && s.longitude && (
+                    <div className="w-full h-32 bg-muted">
+                      <iframe
+                        width="100%"
+                        height="128"
+                        style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.2)' }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${s.longitude - 0.005},${s.latitude - 0.003},${s.longitude + 0.005},${s.latitude + 0.003}&layer=mapnik&marker=${s.latitude},${s.longitude}`}
+                        title={`Map of ${s.name}`}
+                      />
+                    </div>
+                  )}
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-foreground font-medium">{s.name}</h3>
+                      <ToggleButton
+                        enabled={s.is_active}
+                        onChange={() => toggleActive(s)}
+                      />
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-1">{s.address}</p>
+                    <p className="text-muted-foreground/50 text-xs">
+                      {s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>Edit</Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -172,46 +189,44 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
       >
         <div className="space-y-4">
           <div>
-            <label className="admin-section-label">Name *</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Name *</Label>
+            <Input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
             />
             {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
           </div>
 
           <div>
-            <label className="admin-section-label">Address *</label>
-            <input
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Address *</Label>
+            <Input
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="admin-input w-full"
+              className="mt-1"
             />
             {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="admin-section-label">Latitude</label>
-              <input
-                type="number"
-                step="any"
-                value={form.latitude}
-                onChange={(e) => setForm({ ...form, latitude: parseFloat(e.target.value) || 0 })}
-                className="admin-input w-full"
-              />
-            </div>
-            <div>
-              <label className="admin-section-label">Longitude</label>
-              <input
-                type="number"
-                step="any"
-                value={form.longitude}
-                onChange={(e) => setForm({ ...form, longitude: parseFloat(e.target.value) || 0 })}
-                className="admin-input w-full"
+          <div>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Image URL</Label>
+            <Input
+              type="url"
+              value={form.image_url}
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+              className="mt-1"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Location</Label>
+            <div className="mt-1">
+              <LocationPicker
+                defaultLocation={form.latitude || form.longitude ? { lat: form.latitude, lng: form.longitude } : undefined}
+                onConfirm={(loc: LocationValue) => setForm({ ...form, latitude: loc.lat, longitude: loc.lng })}
               />
             </div>
           </div>
@@ -223,10 +238,10 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           />
 
           <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setFormOpen(false)} className="admin-btn-outline">Cancel</button>
-            <button onClick={handleSubmit} disabled={loading} className="admin-btn-primary disabled:opacity-50">
+            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={loading}>
               {loading ? 'Saving...' : editingSalon ? 'Update' : 'Create'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

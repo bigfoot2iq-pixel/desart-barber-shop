@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { AppointmentWithDetails, Professional, Salon, Service } from '@/lib/types/database';
 import { getPendingAppointments, getTodayAppointmentsCount, getActiveProfessionalsCount, getActiveServicesCount, getAllAppointments, getAllProfessionals, getAllServices, getAllSalons } from '@/lib/queries';
 import { useAuth } from '@/lib/auth-context';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Sidebar, { type Section } from './Sidebar';
 import StatsCards from './StatsCards';
 import AppointmentsManager from './AppointmentsManager';
@@ -72,10 +74,10 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
     .slice(0, 5);
 
   const stats = [
-    { label: 'Pending', value: pendingCount, icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-amber-500/20 text-amber-300' },
-    { label: "Today's Appointments", value: todayCount, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-sky-500/20 text-sky-300' },
-    { label: 'Active Professionals', value: activeProfsCount, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', color: 'bg-emerald-500/20 text-emerald-300' },
-    { label: 'Active Services', value: activeServicesCount, icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652', color: 'bg-violet-500/20 text-violet-300' },
+    { label: 'Pending', value: pendingCount, icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-white/10 text-white' },
+    { label: "Today's Appointments", value: todayCount, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-neutral-400/15 text-neutral-300' },
+    { label: 'Active Professionals', value: activeProfsCount, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', color: 'bg-neutral-400/15 text-neutral-300' },
+    { label: 'Active Services', value: activeServicesCount, icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652', color: 'bg-neutral-400/15 text-neutral-300' },
   ];
 
   const formatDate = (date: string) => {
@@ -96,51 +98,57 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
             <StatsCards stats={stats} loading={statsLoading} />
 
             <div>
-              <h3 className="font-playfair text-lg text-cream mb-4">Recent Pending Appointments</h3>
+              <h3 className="font-playfair text-lg text-foreground mb-4">Recent Pending Appointments</h3>
               {recentPending.length === 0 ? (
-                <div className="admin-card p-8 text-center">
-                  <p className="text-cream/45">No pending appointments</p>
-                </div>
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground">No pending appointments</p>
+                  </CardContent>
+                </Card>
               ) : (
                 <div className="space-y-3">
                   {recentPending.map((apt) => (
-                    <div
+                    <Card
                       key={apt.id}
-                      className="admin-card p-4 cursor-pointer"
+                      className="cursor-pointer hover:border-primary/30 transition-colors"
                       onClick={() => setActiveSection('appointments')}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-cream font-medium text-sm">
-                            {apt.customer?.first_name} {apt.customer?.last_name}
-                          </p>
-                          <p className="text-cream/55 text-xs mt-0.5">
-                            {formatDate(apt.appointment_date)} at {formatTime(apt.start_time)}
-                          </p>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-foreground font-medium text-sm">
+                              {apt.customer?.first_name} {apt.customer?.last_name}
+                            </p>
+                            <p className="text-muted-foreground text-xs mt-0.5">
+                              {formatDate(apt.appointment_date)} at {formatTime(apt.start_time)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-primary text-sm font-semibold">{apt.total_price_mad} MAD</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                              apt.status === 'pending' ? 'bg-white/10 text-neutral-300 border-white/20' :
+                              apt.status === 'confirmed' ? 'bg-neutral-400/15 text-neutral-300 border-neutral-400/30' :
+                              apt.status === 'completed' ? 'bg-neutral-500/15 text-neutral-400 border-neutral-500/30' :
+                              'bg-red-500/20 text-red-400 border-red-500/40'
+                            }`}>
+                              {apt.status}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-gold3 text-sm font-semibold">{apt.total_price_mad} MAD</span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                            apt.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
-                            apt.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
-                            apt.status === 'completed' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' :
-                            'bg-red-500/20 text-red-300 border-red-500/40'
-                          }`}>
-                            {apt.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               )}
               {pendingCount > 0 && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setActiveSection('appointments')}
-                  className="mt-4 text-gold3 text-sm hover:text-gold4 transition-colors duration-200 font-medium"
+                  className="mt-4 text-primary hover:text-primary/80"
                 >
                   View all appointments &rarr;
-                </button>
+                </Button>
               )}
             </div>
 
@@ -151,17 +159,19 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                 { section: 'services' as Section, label: 'Services', desc: 'Manage catalog', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
                 { section: 'salons' as Section, label: 'Salons', desc: 'Manage locations', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
               ].map(({ section, label, desc, icon }) => (
-                <button
+                <Card
                   key={section}
+                  className="cursor-pointer group hover:border-primary/30 transition-colors"
                   onClick={() => setActiveSection(section)}
-                  className="admin-card p-4 text-left group"
                 >
-                  <svg className="w-5 h-5 text-gold3 mb-2 group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
-                  </svg>
-                  <p className="text-cream font-medium text-sm">{label}</p>
-                  <p className="text-cream/45 text-xs mt-0.5">{desc}</p>
-                </button>
+                  <CardContent className="p-4">
+                    <svg className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
+                    </svg>
+                    <p className="text-foreground font-medium text-sm">{label}</p>
+                    <p className="text-muted-foreground text-xs mt-0.5">{desc}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -179,7 +189,7 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen admin-bg">
+      <div className="flex min-h-screen">
         <Sidebar
           active={activeSection}
           onChange={setActiveSection}
@@ -192,18 +202,18 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
         />
 
         <main className="flex-1 min-w-0">
-          <div className="sticky top-0 z-30 bg-brand-black/85 backdrop-blur-md border-b border-gold/12 px-4 lg:px-8 py-4 flex items-center gap-4">
+          <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border px-4 lg:px-8 py-4 flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden text-cream/70 hover:text-cream transition-colors"
+              className="lg:hidden text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>
-            <h2 className="font-playfair text-lg text-cream capitalize font-semibold">{activeSection}</h2>
+            <h2 className="font-playfair text-lg text-foreground capitalize font-semibold">{activeSection}</h2>
             <div className="ml-auto flex items-center gap-3 lg:hidden">
-              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold3 font-playfair text-sm font-bold ring-1 ring-gold/25">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">
                 {adminName?.charAt(0)?.toUpperCase() || 'A'}
               </div>
             </div>
