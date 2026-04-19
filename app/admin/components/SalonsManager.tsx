@@ -66,7 +66,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
   const validate = () => {
     const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = 'Name is required';
-    if (!form.address.trim()) errors.address = 'Address is required';
+    if (!form.latitude || !form.longitude) errors.address = 'Location is required';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -200,17 +200,6 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Address *</Label>
-            <Input
-              type="text"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="mt-1"
-            />
-            {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
-          </div>
-
-          <div>
             <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Image URL</Label>
             <Input
               type="url"
@@ -222,13 +211,20 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Location</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Location *</Label>
             <div className="mt-1">
               <LocationPicker
                 defaultLocation={form.latitude || form.longitude ? { lat: form.latitude, lng: form.longitude } : undefined}
-                onConfirm={(loc: LocationValue) => setForm({ ...form, latitude: loc.lat, longitude: loc.lng })}
+                onConfirm={(loc: LocationValue) => setForm({ ...form, latitude: loc.lat, longitude: loc.lng, address: loc.label })}
               />
             </div>
+            {form.address && (
+              <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+                {form.address}
+              </p>
+            )}
+            {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
           </div>
 
           <ToggleButton

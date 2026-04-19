@@ -1705,7 +1705,17 @@ export default function Home() {
                                 </svg>
                                 Location
                               </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedLocation ? `${selectedLocation.name}${selectedLocation.type === "salon" ? ` · ${selectedLocation.description}` : ""}` : "—"}</span>
+                              <span className="text-sm font-semibold tracking-[-0.01em] text-right">
+                                {selectedLocation ? (
+                                  selectedLocation.type === "home"
+                                    ? homePinLabel
+                                      ? homePinLabel.length > 35
+                                        ? `${homePinLabel.slice(0, 35)}…`
+                                        : homePinLabel
+                                      : "Come To Me"
+                                    : `${selectedLocation.name}${selectedLocation.description ? ` · ${selectedLocation.description}` : ""}`
+                                ) : "—"}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
                               <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
@@ -1866,7 +1876,7 @@ export default function Home() {
                             <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
                           </div>
                         </div>
-                        <button type="button" className="w-full bg-brand-black text-gold3 text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
+                        <button type="button" className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
                           Close
                         </button>
                       </div>

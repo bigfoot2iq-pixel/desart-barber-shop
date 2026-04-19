@@ -79,5 +79,22 @@ export async function POST(request: Request) {
     );
   }
 
+  const defaultAvailability = [1, 2, 3, 4, 5, 6, 0].map((dayOfWeek) => ({
+    id: crypto.randomUUID(),
+    professional_id: professionalId,
+    day_of_week: dayOfWeek,
+    start_time: '09:00:00',
+    end_time: '17:00:00',
+    is_available: dayOfWeek !== 0,
+  }));
+
+  const { error: availError } = await supabase
+    .from('professional_availability')
+    .insert(defaultAvailability);
+
+  if (availError) {
+    console.error('[professionals] default availability insert failed', availError);
+  }
+
   return NextResponse.json({ professional }, { status: 201 });
 }

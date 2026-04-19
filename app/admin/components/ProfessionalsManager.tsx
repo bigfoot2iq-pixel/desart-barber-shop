@@ -432,7 +432,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               {dayOrder.map((di) => {
                 const day = dayLabels[di];
                 const entry = weeklySchedule.find((s) => s.day_of_week === di);
-                const isAvailable = entry?.is_available ?? di !== 0;
+                const isAvailable = entry?.is_available ?? false;
                 return (
                   <div key={di} className="flex items-center gap-2 rounded-lg p-2.5 border border-border">
                     <span className={`text-sm font-medium shrink-0 ${di === 0 ? 'text-red-400' : 'text-foreground/85'}`}>{day}</span>
