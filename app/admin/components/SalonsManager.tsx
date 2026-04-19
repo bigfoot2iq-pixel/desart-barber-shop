@@ -147,7 +147,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
                     </div>
                   )}
                   {!s.image_url && s.latitude && s.longitude && (
-                    <div className="w-full h-32 bg-muted">
+                    <div className="w-full h-40 bg-muted">
                       <iframe
                         width="100%"
                         height="128"
