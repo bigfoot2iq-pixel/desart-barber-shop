@@ -89,23 +89,15 @@ export function getVideoMeta(src: string) {
   );
 }
 
-export function VideoCell({
-  src,
-  index,
-  featured = false,
-}: {
-  src: string;
-  index: number;
-  featured?: boolean;
-}) {
+export function VideoCell({ src, index }: { src: string; index: number }) {
   const meta = getVideoMeta(src);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-md bg-brand-black shrink-0 h-[700px] border transition-[border-color,transform,box-shadow] duration-350 ease-out ${featured ? "border-gold3 shadow-[0_0_16px_rgb(212_175_55/0.15)]" : "border-transparent"} hover:border-gold3 hover:shadow-[0_0_20px_rgb(212_175_55/0.2)] focus-visible:outline-2 focus-visible:outline-gold3 focus-visible:outline-offset-2`}
-      role="img"
-      aria-label={`${meta.title} - ${meta.style} style`}
-      tabIndex={0}
+      className="group relative overflow-hidden bg-brand-black shrink-0 aspect-[9/14]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <video
         autoPlay
@@ -118,10 +110,10 @@ export function VideoCell({
       >
         <source src={src} type="video/mp4" />
       </video>
-      <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[rgb(0_0_0/0.75)] border border-[rgb(212_175_55/0.5)] text-[#fefbe3] text-[10px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(8px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-gold3 before:shrink-0">
+      <span className="absolute top-2 left-2 lg:top-2.5 lg:left-2.5 inline-flex items-center gap-1 px-2 py-1 lg:px-2.5 lg:py-1 bg-[rgb(0_0_0/0.75)] border border-[rgb(212_175_55/0.5)] text-[#fefbe3] text-[8px] lg:text-[9px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(8px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-1 before:h-1 lg:before:w-1.5 lg:before:h-1.5 before:rounded-full before:bg-gold3 before:shrink-0">
         {meta.style}
       </span>
-      <div className="absolute inset-0 flex flex-col justify-end p-3 bg-gradient-to-b from-[rgb(10_8_0/0)] from-40% to-[rgb(10_8_0/0.85)] opacity-0 transition-opacity duration-350 ease-out pointer-events-none group-hover:opacity-100">
+      <div className={`absolute inset-0 flex flex-col justify-end p-3 bg-gradient-to-b from-[rgb(10_8_0/0)] from-40% to-[rgb(10_8_0/0.85)] transition-opacity duration-350 ease-out pointer-events-none ${isHovered ? "opacity-100" : "opacity-0"}`}>
         <div className="flex justify-start items-end">
           <div className="flex flex-col gap-0.5">
             <span className="text-[13px] font-semibold text-[rgb(254_251_243/0.95)] tracking-[0.02em]">
@@ -160,7 +152,7 @@ export function MobileVideoCarousel() {
   };
 
   return (
-    <>
+    <div className="flex flex-col items-center gap-4 w-full">
       <div
         className="absolute w-0 h-0 overflow-hidden pointer-events-none"
         aria-hidden="true"
@@ -169,46 +161,59 @@ export function MobileVideoCarousel() {
           <video key={src} preload="auto" src={src} muted />
         ))}
       </div>
+
+      {/* Cards */}
       <div
-        className="flex items-center justify-center gap-1.5 w-full [touch-action:pan-y] px-2"
+        className="flex items-center justify-center gap-2 w-full [touch-action:pan-y] px-3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]"
+        <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
+          <video autoPlay muted loop playsInline
+            className="w-full h-full object-cover block"
             src={leftVideo}
           />
         </div>
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[60%] aspect-[9/14]">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="relative z-0 w-full h-full object-cover block"
+
+        <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[58%] aspect-[9/14] transition-[transform] duration-300 scale-100">
+          <video autoPlay muted loop playsInline
+            className="w-full h-full object-cover block"
             src={centerVideo}
           />
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded bg-[rgb(0_0_0/0.7)] border border-[rgb(212_175_55/0.4)] text-[#fefbe3] text-[8px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(6px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:bg-gold3 before:shrink-0">
+          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[rgb(0_0_0/0.7)] border border-[rgb(212_175_55/0.4)] text-[#fefbe3] text-[9px] max-sm:text-[7px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(6px)] z-[2] pointer-events-none before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:bg-gold3 before:shrink-0">
             {getVideoMeta(centerVideo).style}
           </span>
+          {/* Bottom title on center card */}
+          <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-8 bg-gradient-to-t from-[rgb(10_8_0/0.85)] to-transparent pointer-events-none">
+            <span className="text-[11px] font-light text-brand-white/70 leading-snug line-clamp-2">
+              {getVideoMeta(centerVideo).title}
+            </span>
+          </div>
         </div>
-        <div className="relative shrink-0 rounded-[14px] overflow-hidden bg-[#151515] w-[30%] aspect-[9/13]">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="relative z-0 w-full h-full object-cover block [filter:brightness(0.4)_contrast(0.9)_saturate(0.7)]"
+
+        <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
+          <video autoPlay muted loop playsInline
+            className="w-full h-full object-cover block"
             src={rightVideo}
           />
         </div>
       </div>
-    </>
+
+      {/* Dot indicators */}
+      <div className="flex items-center gap-1.5">
+        {videos.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Go to video ${i + 1}`}
+            onClick={() => setActiveIndex(i)}
+            className={`h-1 rounded-full transition-[width,background-color] duration-300 ${
+              i === activeIndex ? "w-5 bg-gold3" : "w-1 bg-brand-white/30"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -243,12 +248,7 @@ export function DesktopVideoGrid() {
             HERO_VIDEOS[0],
             HERO_VIDEOS[2],
           ].map((src, i) => (
-            <VideoCell
-              key={`c2-${i}`}
-              src={src}
-              index={i}
-              featured={i === 0}
-            />
+            <VideoCell key={`c2-${i}`} src={src} index={i} />
           ))}
         </div>
       </div>
