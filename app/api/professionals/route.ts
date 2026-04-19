@@ -3,51 +3,51 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   const supabase = await createServerClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-  console.log('[professionals] auth.getUser:', { userId: user?.id, error: userError?.message });
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  console.log('[professionals] profile lookup:', { profile, error: profileError?.message });
-
-  const role = profile?.role ?? user.app_metadata?.role;
-  console.log('[professionals] resolved role:', role);
-
-  if (role !== 'admin') {
-    console.log('[professionals] 403: not admin, role =', role);
+  // Use JWT-signed app_metadata.role only — profiles.role is user-writable
+  // via RLS and should not be treated as an authorization source.
+  if (user.app_metadata?.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  if (!profile) {
-    console.log('[professionals] creating missing admin profile row');
-    const { error: insertError } = await supabase
-      .from('profiles')
-      .insert({
-        id: user.id,
-        role: 'admin',
-        email: user.email,
-      });
-
-    if (insertError) {
-      console.log('[professionals] failed to create admin profile:', insertError.message);
-    }
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const body = await request.json();
-  const { display_name, phone, years_of_experience, profession, profile_image_url, offers_home_visit, is_active } = body;
+  const {
+    display_name,
+    phone,
+    years_of_experience,
+    profession,
+    profile_image_url,
+    offers_home_visit,
+    is_active,
+    salon_id,
+  } = body as {
+    display_name?: string;
+    phone?: string;
+    years_of_experience?: number;
+    profession?: string;
+    profile_image_url?: string | null;
+    offers_home_visit?: boolean;
+    is_active?: boolean;
+    salon_id?: string;
+  };
 
   const errors: string[] = [];
   if (!display_name?.trim()) errors.push('display_name is required');
   if (!phone?.trim()) errors.push('phone is required');
+  if (typeof years_of_experience === 'number' && years_of_experience < 0) {
+    errors.push('years_of_experience must be >= 0');
+  }
 
   if (errors.length > 0) {
     return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
     .from('professionals')
     .insert({
       id: professionalId,
+      salon_id: salon_id ?? null,
       display_name,
       phone,
       years_of_experience: years_of_experience ?? 0,
@@ -70,9 +71,12 @@ export async function POST(request: Request) {
     .select()
     .single();
 
-  console.log('[professionals] professional insert result:', { data: professional, error: profError?.message });
   if (profError) {
-    return NextResponse.json({ error: profError.message }, { status: 500 });
+    console.error('[professionals] insert failed', profError);
+    return NextResponse.json(
+      { error: 'Failed to create professional' },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ professional }, { status: 201 });

@@ -1,26 +1,27 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+function sanitizeNextPath(raw: string | null): string {
+  if (!raw) return '/dashboard';
+  // Only allow local, non-protocol-relative paths: must start with "/"
+  // and the next character must not be "/" or "\" (which browsers treat
+  // as the start of a host in protocol-relative URLs like //evil.com).
+  if (!/^\/[^/\\]/.test(raw)) return '/dashboard';
+  return raw;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = sanitizeNextPath(searchParams.get('next'));
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalEnv = process.env.NODE_ENV === 'development';
-
-      return NextResponse.redirect(
-        isLocalEnv
-          ? `${origin}${next}`
-          : `https://${forwardedHost}${next}`
-      );
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Return the user to an error page with some instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }
