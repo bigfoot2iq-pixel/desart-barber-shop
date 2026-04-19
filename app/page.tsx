@@ -1471,7 +1471,7 @@ export default function Home() {
 
                     {step === 2 && (
                       <>
-                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Choose your barber — each one brings a unique style.</p>
+                        
                         <div className="flex flex-col gap-2">
                           {barbers.map((barber) => {
                             const isBarberSelected = selectedBarber?.id === barber.id;
@@ -1502,7 +1502,7 @@ export default function Home() {
 
                     {step === 3 && (
                       <>
-                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Select one or more services — cash payment at time of service.</p>
+                        
                         <div className="flex flex-col gap-2">
                           {(selectedBarber?.services ?? []).length === 0 && (
                             <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">This barber has no services listed yet.</p>
@@ -1530,7 +1530,7 @@ export default function Home() {
 
                     {step === 4 && (
                       <>
-                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Pick a date and time that works for you.</p>
+                        
                         <div className="flex flex-col gap-6">
                           <div className="flex flex-col">
                             <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] mb-3 flex items-center gap-1.5">
@@ -1685,162 +1685,164 @@ export default function Home() {
                       </>
                     )}
 
-                    {step === 5 && (
-                      <>
-                        <p className="text-[13px] text-[rgb(10_8_0/55%)] mb-[18px] leading-relaxed font-normal">Almost there — just a few details to wrap up your booking.</p>
+{step === 5 && (
+                      <div className="flex flex-col h-full">
+                        <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5">
 
-                        <div className="flex flex-col gap-4 mb-[22px]">
-                          <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-                              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            Booking Summary
-                          </div>
-                          <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
-                            <div className="flex justify-between items-center gap-3 py-2">
-                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                                  <circle cx="12" cy="10" r="3" />
-                                </svg>
-                                Location
-                              </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em] text-right">
-                                {selectedLocation ? (
-                                  selectedLocation.type === "home"
-                                    ? homePinLabel
-                                      ? homePinLabel.length > 35
-                                        ? `${homePinLabel.slice(0, 35)}…`
-                                        : homePinLabel
-                                      : "Come To Me"
-                                    : `${selectedLocation.name}${selectedLocation.description ? ` · ${selectedLocation.description}` : ""}`
-                                ) : "—"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                  <circle cx="12" cy="7" r="4" />
-                                </svg>
-                                Barber
-                              </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em]">{selectedBarber?.name ?? "—"}</span>
-                            </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                                  <polyline points="14 2 14 8 20 8" />
-                                </svg>
-                                Services
-                              </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em] text-right">{selectedServicesLabel || "—"}</span>
-                            </div>
-                            <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                              <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                                  <path d="M16 2v4M8 2v4M3 10h18" />
-                                </svg>
-                                Date & Time
-                              </span>
-                              <span className="text-sm font-semibold tracking-[-0.01em]">
-                                {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/16%)]">
-                              <span className="text-[rgb(10_8_0/40%)] text-[11px] font-semibold tracking-[0.02em] uppercase">Total</span>
-                              <span className="text-[17px] font-bold tracking-[-0.02em] text-gold">{total} MAD</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                          <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-                              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                            </svg>
-                            Contact Information
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                            <div className="flex flex-col gap-1.5">
-                              <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
-                              <input
-                                id="f-first"
-                                type="text"
-                                placeholder="Mohamed"
-                                autoComplete="given-name"
-                                value={firstName}
-                                onChange={(event) => setFirstName(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                              />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                              <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
-                              <input
-                                id="f-last"
-                                type="text"
-                                placeholder="Alaoui"
-                                autoComplete="family-name"
-                                value={lastName}
-                                onChange={(event) => setLastName(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                              />
-                            </div>
-                            <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                              <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
-                              <input
-                                id="f-phone"
-                                type="tel"
-                                placeholder="+212 6XX XXX XXX"
-                                autoComplete="tel"
-                                value={phone}
-                                onChange={(event) => setPhone(event.target.value)}
-                                className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 16v-4M12 8h.01" />
-                          </svg>
-                          Cash only, due at time of service. Free cancellations — just let us know.
-                        </div>
-
-                        {saveError && (
-                          <div className="mt-4 text-[12px] text-red-500 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">{saveError}</div>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={advanceStep}
-                          disabled={!formComplete || isSubmitting}
-                          className="mt-5 w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow,opacity] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                          <div className="flex flex-col gap-4 mb-[22px]">
+                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
                               </svg>
-                              {user ? "Saving…" : "Redirecting to Google…"}
-                            </>
-                          ) : user ? (
-                            <>Confirm Booking</>
-                          ) : (
-                            <>
-                              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                                <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                              Contact Information
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                              <div className="flex flex-col gap-1.5">
+                                <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
+                                <input
+                                  id="f-first"
+                                  type="text"
+                                  placeholder="Mohamed"
+                                  autoComplete="given-name"
+                                  value={firstName}
+                                  onChange={(event) => setFirstName(event.target.value)}
+                                  className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
+                                <input
+                                  id="f-last"
+                                  type="text"
+                                  placeholder="Alaoui"
+                                  autoComplete="family-name"
+                                  value={lastName}
+                                  onChange={(event) => setLastName(event.target.value)}
+                                  className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
+                                <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
+                                <input
+                                  id="f-phone"
+                                  type="tel"
+                                  placeholder="+212 6XX XXX XXX"
+                                  autoComplete="tel"
+                                  value={phone}
+                                  onChange={(event) => setPhone(event.target.value)}
+                                  className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-4">
+                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
-                              Continue with Google
-                            </>
+                              Booking Summary
+                            </div>
+                            <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
+                              <div className="flex justify-between items-center gap-3 py-2">
+                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                  </svg>
+                                  Location
+                                </span>
+                                <span className="text-sm font-semibold tracking-[-0.01em] text-right">
+                                  {selectedLocation ? (
+                                    selectedLocation.type === "home"
+                                      ? homePinLabel
+                                        ? homePinLabel.length > 35
+                                          ? `${homePinLabel.slice(0, 35)}…`
+                                          : homePinLabel
+                                        : "Come To Me"
+                                      : `${selectedLocation.name}${selectedLocation.description ? ` · ${selectedLocation.description}` : ""}`
+                                  ) : "—"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
+                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                  Barber
+                                </span>
+                                <span className="text-sm font-semibold tracking-[-0.01em]">{selectedBarber?.name ?? "—"}</span>
+                              </div>
+                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
+                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                  </svg>
+                                  Services
+                                </span>
+                                <span className="text-sm font-semibold tracking-[-0.01em] text-right">{selectedServicesLabel || "—"}</span>
+                              </div>
+                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
+                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                    <path d="M16 2v4M8 2v4M3 10h18" />
+                                  </svg>
+                                  Date & Time
+                                </span>
+                                <span className="text-sm font-semibold tracking-[-0.01em]">
+                                  {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/16%)]">
+                                <span className="text-[rgb(10_8_0/40%)] text-[11px] font-semibold tracking-[0.02em] uppercase">Total</span>
+                                <span className="text-[17px] font-bold tracking-[-0.02em] text-gold">{total} MAD</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M12 16v-4M12 8h.01" />
+                            </svg>
+                            Cash only, due at time of service. Free cancellations — just let us know.
+                          </div>
+
+                          {saveError && (
+                            <div className="mt-4 text-[12px] text-red-500 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">{saveError}</div>
                           )}
-                        </button>
-                      </>
+                        </div>
+
+                        <div className="shrink-0 px-5 pb-5">
+                          <button
+                            type="button"
+                            onClick={advanceStep}
+                            disabled={!formComplete || isSubmitting}
+                            className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow,opacity] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                </svg>
+                                {user ? "Saving…" : "Redirecting to Google…"}
+                              </>
+                            ) : user ? (
+                              <>Confirm Booking</>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                </svg>
+                                Continue with Google
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     )}
 
                     {step === 6 && (
