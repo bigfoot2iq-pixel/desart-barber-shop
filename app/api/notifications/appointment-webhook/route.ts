@@ -14,20 +14,22 @@ interface SupabaseWebhookPayload {
   old_record: Record<string, unknown> | null;
 }
 
-function deriveEventType(payload: SupabaseWebhookPayload): NotificationEventType | null {
+function deriveEventTypes(payload: SupabaseWebhookPayload): NotificationEventType[] {
   const { type, record, old_record } = payload;
 
-  if (!record) return null;
+  if (!record) return [];
+
+  const events: NotificationEventType[] = [];
 
   if (type === 'INSERT' && record.status === 'pending') {
-    return 'appointment.created';
+    events.push('appointment.created');
   }
 
   if (type === 'UPDATE' && old_record && record.status !== old_record.status) {
     const newStatus = record.status as string;
-    if (newStatus === 'confirmed') return 'appointment.confirmed';
-    if (newStatus === 'cancelled') return 'appointment.cancelled';
-    if (newStatus === 'completed') return 'appointment.completed';
+    if (newStatus === 'confirmed') events.push('appointment.confirmed');
+    if (newStatus === 'cancelled') events.push('appointment.cancelled');
+    if (newStatus === 'completed') events.push('appointment.completed');
   }
 
   if (
@@ -36,10 +38,10 @@ function deriveEventType(payload: SupabaseWebhookPayload): NotificationEventType
     old_record.professional_id !== record.professional_id &&
     record.professional_id !== null
   ) {
-    return 'appointment.professional_assigned';
+    events.push('appointment.professional_assigned');
   }
 
-  return null;
+  return events;
 }
 
 export async function POST(request: Request) {
@@ -61,8 +63,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  const eventType = deriveEventType(payload);
-  if (!eventType || !payload.record?.id) {
+  const eventTypes = deriveEventTypes(payload);
+  if (eventTypes.length === 0 || !payload.record?.id) {
     return NextResponse.json({ ok: true, reason: 'no_matching_event' }, { status: 200 });
   }
 
@@ -72,10 +74,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, reason: 'appointment_not_found' }, { status: 200 });
     }
 
-    const results = await dispatchEvent(eventType, appointment);
-    const dispatched = results.filter((r) => r.status === 'sent').length;
+    const allResults: Awaited<ReturnType<typeof dispatchEvent>>[] = [];
+    for (const eventType of eventTypes) {
+      const results = await dispatchEvent(eventType, appointment);
+      allResults.push(results);
+    }
 
-    return NextResponse.json({ ok: true, dispatched, results }, { status: 200 });
+    const flatResults = allResults.flat();
+    const dispatched = flatResults.filter((r) => r.status === 'sent').length;
+
+    return NextResponse.json({ ok: true, dispatched, results: flatResults }, { status: 200 });
   } catch (err) {
     console.error('[webhook] dispatch error', err);
     return NextResponse.json({ ok: true, error: 'dispatch_failed' }, { status: 200 });
