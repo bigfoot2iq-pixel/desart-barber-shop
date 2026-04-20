@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
 import {
@@ -61,8 +60,6 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const BOOKING_WINDOW_DAYS = 30;
 const SLOT_STEP_MINUTES = 30;
-const DRAFT_STORAGE_KEY = "desart:booking-draft";
-
 type BookingDraft = {
   locationType: "salon" | "home";
   salonId: string | null;
@@ -234,10 +231,7 @@ export default function Home() {
   const [bookedSlots, setBookedSlots] = useState<{ key: string; slots: { start_time: string; end_time: string }[] } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const { user, loading: authLoading, signInWithGoogle } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const resumeHandledRef = useRef(false);
+  const { user, signInWithGoogleModal, verifyUser } = useAuth();
 
   const submitTimerRef = useRef<number | null>(null);
   const dateSlots = useMemo(() => buildDateSlots(), []);
@@ -706,13 +700,14 @@ export default function Home() {
   }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, firstName, lastName, phone, total, totalDurationMinutes]);
 
   const persistAppointment = useCallback(async (draft: BookingDraft, customerId: string) => {
+    // Profile upsert must succeed — the appointment insert FKs to profiles.id,
+    // so swallowing a failure here just trades a clear error for a confusing
+    // 23503 later.
     await updateProfile({
       id: customerId,
       first_name: draft.firstName,
       last_name: draft.lastName,
       phone: draft.phone,
-    }).catch((err) => {
-      console.error("Failed to update profile:", err);
     });
 
     const startTime = toHHMMSS(draft.time);
@@ -751,20 +746,28 @@ export default function Home() {
       setSaveError(null);
       setIsSubmitting(true);
       try {
-        if (!user) {
-          if (typeof window !== "undefined") {
-            window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-          }
-          await signInWithGoogle("/?resume_booking=1");
-          return;
+        // Revalidate against the server — a cached `user` here may refer to
+        // a JWT whose auth.users row has been deleted. Trusting it would hit
+        // a 23503 FK error when we write the appointment.
+        let customerId: string | null = null;
+        if (user) {
+          const verified = await verifyUser();
+          if (verified) customerId = verified.id;
         }
-        await persistAppointment(draft, user.id);
+        if (!customerId) {
+          const signedInUser = await signInWithGoogleModal();
+          customerId = signedInUser.id;
+        }
+        await persistAppointment(draft, customerId);
         setIsSubmitting(false);
         setDirection("forward");
         setStep(6);
       } catch (err) {
         console.error("Failed to save appointment:", err);
-        setSaveError("Couldn't save your booking. Please try again.");
+        const message = err instanceof Error && err.message
+          ? err.message
+          : "Couldn't save your booking. Please try again.";
+        setSaveError(message);
         setIsSubmitting(false);
       }
       return;
@@ -828,83 +831,6 @@ export default function Home() {
       return () => window.clearTimeout(t);
     }
   }, [selectedDate, effectiveSelectedTime, step]);
-
-  useEffect(() => {
-    if (resumeHandledRef.current) return;
-    if (authLoading) return;
-    if (searchParams?.get("resume_booking") !== "1") return;
-    if (barbers.length === 0 || salons.length === 0) return;
-    if (typeof window === "undefined") return;
-
-    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) {
-      resumeHandledRef.current = true;
-      router.replace("/");
-      return;
-    }
-
-    let draft: BookingDraft;
-    try {
-      draft = JSON.parse(raw) as BookingDraft;
-    } catch {
-      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
-      resumeHandledRef.current = true;
-      router.replace("/");
-      return;
-    }
-
-    if (!user) {
-      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
-      resumeHandledRef.current = true;
-      router.replace("/");
-      return;
-    }
-
-    resumeHandledRef.current = true;
-    const authedUser = user;
-
-    const barber = barbers.find((b) => b.id === draft.barberId) ?? null;
-    const resolvedServices = barber
-      ? barber.services.filter((s) => draft.serviceIds.includes(s.id))
-      : [];
-    const resolvedLocation: LocationOption | null =
-      draft.locationType === "salon"
-        ? salons.find((s) => s.id === draft.salonId) ?? null
-        : { ...HOME_LOCATION };
-    const resolvedDate = dateSlots.find((ds) => ds.id === draft.date) ?? null;
-
-    void (async () => {
-      if (barber) setSelectedBarber(barber);
-      if (resolvedServices.length > 0) setSelectedServices(resolvedServices);
-      if (resolvedLocation) setSelectedLocation(resolvedLocation);
-      if (resolvedDate) setSelectedDate(resolvedDate);
-      setSelectedTime(draft.time);
-      setFirstName(draft.firstName);
-      setLastName(draft.lastName);
-      setPhone(draft.phone);
-      if (draft.homePin) setHomePin(draft.homePin);
-
-      setIsModalOpen(true);
-      setSaveError(null);
-      setIsSubmitting(true);
-
-      try {
-        await persistAppointment(draft, authedUser.id);
-        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
-        setIsSubmitting(false);
-        setDirection("forward");
-        setStep(6);
-        router.replace("/");
-      } catch (err) {
-        console.error("Failed to resume booking:", err);
-        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
-        setSaveError("Couldn't save your booking. Please try again.");
-        setIsSubmitting(false);
-        setStep(5);
-        router.replace("/");
-      }
-    })();
-  }, [authLoading, user, barbers, salons, dateSlots, searchParams, router, persistAppointment]);
 
   const stepVariants = {
     enter: (dir: "forward" | "back") => ({
@@ -1828,7 +1754,7 @@ export default function Home() {
                                 <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                                 </svg>
-                                {user ? "Saving…" : "Redirecting to Google…"}
+                                {user ? "Saving…" : "Waiting for Google…"}
                               </>
                             ) : user ? (
                               <>Confirm Booking</>

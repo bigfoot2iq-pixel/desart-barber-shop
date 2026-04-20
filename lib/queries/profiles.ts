@@ -20,12 +20,15 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 
 export async function updateProfile(profile: Partial<Profile> & { id: string }): Promise<Profile> {
   const supabase = createClient();
-  const { id, ...updates } = profile;
 
+  // Upsert by primary key so a profile that was deleted out from under a
+  // still-valid auth session heals itself instead of throwing PGRST116 and
+  // then cascading into a foreign-key failure when we write the appointment.
+  // RLS (INSERT + UPDATE policies) and the role-enforcement triggers still
+  // gate the write.
   const { data, error } = await supabase
     .from('profiles')
-    .update(updates)
-    .eq('id', id)
+    .upsert(profile, { onConflict: 'id' })
     .select()
     .single();
 
