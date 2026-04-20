@@ -1,23 +1,11 @@
-import type { NotificationEventType, NotificationChannelRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from './types';
+import type { NotificationEventType, NotificationChannelRow, NotificationDeliveryRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from './types';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { AppointmentWithDetails } from '@/lib/types/database';
-import { buildAppointmentCreatedMessage } from './templates/appointment-created';
-import { buildAppointmentConfirmedMessage } from './templates/appointment-confirmed';
-import { buildAppointmentCancelledMessage } from './templates/appointment-cancelled';
-import { buildAppointmentCompletedMessage } from './templates/appointment-completed';
-import { buildAppointmentAssignedMessage } from './templates/appointment-assigned';
+import { TEMPLATE_MAP } from './templates';
 import { sendTelegram } from './channels/telegram-bot';
 import { sendEmail } from './channels/email-resend';
 import { sendWhatsAppCallMeBot } from './channels/whatsapp-callmebot';
 import { sendWhatsAppCloud } from './channels/whatsapp-cloud';
-
-const TEMPLATE_MAP: Partial<Record<NotificationEventType, (apt: AppointmentWithDetails) => RenderedMessage>> = {
-  'appointment.created': buildAppointmentCreatedMessage,
-  'appointment.confirmed': buildAppointmentConfirmedMessage,
-  'appointment.cancelled': buildAppointmentCancelledMessage,
-  'appointment.completed': buildAppointmentCompletedMessage,
-  'appointment.professional_assigned': buildAppointmentAssignedMessage,
-};
 
 export async function dispatchEvent(
   eventType: NotificationEventType,
@@ -55,7 +43,7 @@ export async function dispatchEvent(
           appointment_id: appointment.id,
           event_type: eventType,
           channel_id: channel.id,
-          status: 'pending',
+          status: 'pending' as const,
           attempt_count: 0,
           dedup_key: dedupKey,
         } as never);
@@ -75,10 +63,7 @@ export async function dispatchEvent(
       }
 
       try {
-        const message = TEMPLATE_MAP[eventType]?.(appointment);
-        if (!message) {
-          throw new Error(`No template for event type: ${eventType}`);
-        }
+        const message = TEMPLATE_MAP[eventType](appointment);
 
         if (channel.provider === 'telegram_bot') {
           await sendTelegram(channel.config as unknown as TelegramConfig, message);
@@ -92,10 +77,7 @@ export async function dispatchEvent(
 
         await supabase
           .from('notification_deliveries')
-          .update({
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-          } as never)
+          .update({ status: 'sent' as const, sent_at: new Date().toISOString() } as never)
           .eq('dedup_key', dedupKey);
 
         results.push({
@@ -109,11 +91,7 @@ export async function dispatchEvent(
 
         await supabase
           .from('notification_deliveries')
-          .update({
-            status: 'failed',
-            last_error: errorMessage,
-            attempt_count: 1,
-          } as never)
+          .update({ status: 'failed' as const, last_error: errorMessage, attempt_count: 1 } as never)
           .eq('dedup_key', dedupKey);
 
         results.push({

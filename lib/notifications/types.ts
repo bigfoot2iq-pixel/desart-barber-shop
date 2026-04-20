@@ -87,3 +87,16 @@ export function maskSecret(value: string, visibleChars = 4): string {
   if (value.length <= visibleChars) return '****';
   return value.slice(0, visibleChars) + '…' + '*'.repeat(Math.min(value.length - visibleChars, 8));
 }
+
+export interface NotificationDeliveryRow {
+  id: string;
+  appointment_id: string | null;
+  event_type: string;
+  channel_id: string | null;
+  status: 'pending' | 'sent' | 'failed';
+  attempt_count: number;
+  last_error: string | null;
+  dedup_key: string;
+  created_at: string;
+  sent_at: string | null;
+}

@@ -2,40 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from '@/lib/notifications/types';
+import { TEMPLATE_MAP } from '@/lib/notifications/templates';
+import { getAppointmentWithDetailsService } from '@/lib/notifications/queries';
 import { sendTelegram } from '@/lib/notifications/channels/telegram-bot';
 import { sendEmail } from '@/lib/notifications/channels/email-resend';
 import { sendWhatsAppCallMeBot } from '@/lib/notifications/channels/whatsapp-callmebot';
 import { sendWhatsAppCloud } from '@/lib/notifications/channels/whatsapp-cloud';
-import { getAppointmentWithDetailsService } from '@/lib/queries/notifications';
-
-async function loadTemplateBuilder(eventType: string, appointment: Awaited<ReturnType<typeof getAppointmentWithDetailsService>>) {
-  if (!appointment) throw new Error('Appointment not found');
-
-  switch (eventType) {
-    case 'appointment.created': {
-      const { buildAppointmentCreatedMessage } = await import('@/lib/notifications/templates/appointment-created');
-      return buildAppointmentCreatedMessage(appointment);
-    }
-    case 'appointment.confirmed': {
-      const { buildAppointmentConfirmedMessage } = await import('@/lib/notifications/templates/appointment-confirmed');
-      return buildAppointmentConfirmedMessage(appointment);
-    }
-    case 'appointment.cancelled': {
-      const { buildAppointmentCancelledMessage } = await import('@/lib/notifications/templates/appointment-cancelled');
-      return buildAppointmentCancelledMessage(appointment);
-    }
-    case 'appointment.completed': {
-      const { buildAppointmentCompletedMessage } = await import('@/lib/notifications/templates/appointment-completed');
-      return buildAppointmentCompletedMessage(appointment);
-    }
-    case 'appointment.professional_assigned': {
-      const { buildAppointmentAssignedMessage } = await import('@/lib/notifications/templates/appointment-assigned');
-      return buildAppointmentAssignedMessage(appointment);
-    }
-    default:
-      throw new Error(`Unknown event type: ${eventType}`);
-  }
-}
 
 export async function POST(
   _request: Request,
@@ -72,7 +44,12 @@ export async function POST(
 
   try {
     const appointment = await getAppointmentWithDetailsService(delivery.appointment_id as string);
-    const message = await loadTemplateBuilder(delivery.event_type as string, appointment);
+    if (!appointment) {
+      throw new Error('Appointment not found');
+    }
+
+    const eventType = delivery.event_type as import('@/lib/notifications/types').NotificationEventType;
+    const message = TEMPLATE_MAP[eventType](appointment);
 
     switch (channel.provider) {
       case 'telegram_bot':
@@ -94,7 +71,7 @@ export async function POST(
     await serviceSupabase
       .from('notification_deliveries')
       .update({
-        status: 'sent',
+        status: 'sent' as const,
         sent_at: new Date().toISOString(),
         attempt_count: (delivery.attempt_count as number) + 1,
         last_error: null,

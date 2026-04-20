@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dispatchEvent } from '@/lib/notifications';
-import { getAppointmentWithDetailsService } from '@/lib/queries/notifications';
+import { getAppointmentWithDetailsService } from '@/lib/notifications/queries';
 import type { NotificationEventType } from '@/lib/notifications/types';
 
 export const runtime = 'nodejs';
