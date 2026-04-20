@@ -1,4 +1,4 @@
-import type { NotificationEventType, NotificationChannelRow, NotificationDeliveryRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from './types';
+import type { NotificationEventType, NotificationChannelRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from './types';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { AppointmentWithDetails } from '@/lib/types/database';
 import { TEMPLATE_MAP } from './templates';

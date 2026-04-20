@@ -74,8 +74,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, reason: 'appointment_not_found' }, { status: 200 });
     }
 
+    if (payload.type === 'UPDATE' && !payload.record.updated_at) {
+      return NextResponse.json({ ok: true, reason: 'missing_updated_at' }, { status: 200 });
+    }
+    if (payload.type === 'INSERT' && !payload.record.created_at && !payload.record.updated_at) {
+      return NextResponse.json({ ok: true, reason: 'missing_timestamp' }, { status: 200 });
+    }
+
     const allResults: Awaited<ReturnType<typeof dispatchEvent>>[] = [];
-    const updatedAt = String(payload.record.updated_at ?? new Date().toISOString());
+    const updatedAt = String(payload.record.updated_at);
     for (const eventType of eventTypes) {
       const results = await dispatchEvent(eventType, appointment, updatedAt);
       allResults.push(results);

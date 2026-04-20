@@ -39,34 +39,31 @@ export async function POST(request: Request) {
 
   const { data: channel, error: fetchError } = await serviceSupabase
     .from('notification_channels')
-    .select('*')
+    .select('provider, config')
     .eq('id', channel_id)
     .eq('admin_id', user.id)
-    .single()
-    .returns<Array<{ provider: string; config: Record<string, unknown> }>>();
+    .single<{ provider: string; config: Record<string, unknown> }>();
 
   if (fetchError || !channel) {
     return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
   }
 
-  const ch = channel as unknown as { provider: string; config: Record<string, unknown> };
-
   try {
-    switch (ch.provider) {
+    switch (channel.provider) {
       case 'telegram_bot':
-        await sendTelegram(ch.config as unknown as TelegramConfig, TEST_MESSAGE);
+        await sendTelegram(channel.config as unknown as TelegramConfig, TEST_MESSAGE);
         break;
       case 'resend':
-        await sendEmail(ch.config as unknown as ResendConfig, TEST_MESSAGE);
+        await sendEmail(channel.config as unknown as ResendConfig, TEST_MESSAGE);
         break;
       case 'callmebot':
-        await sendWhatsAppCallMeBot(ch.config as unknown as CallMeBotConfig, TEST_MESSAGE);
+        await sendWhatsAppCallMeBot(channel.config as unknown as CallMeBotConfig, TEST_MESSAGE);
         break;
       case 'whatsapp_cloud':
-        await sendWhatsAppCloud(ch.config as unknown as WhatsAppCloudConfig, TEST_MESSAGE);
+        await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, TEST_MESSAGE);
         break;
       default:
-        return NextResponse.json({ error: `Unsupported provider: ${ch.provider}` }, { status: 400 });
+        return NextResponse.json({ error: `Unsupported provider: ${channel.provider}` }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true, message: 'Test sent successfully' }, { status: 200 });
