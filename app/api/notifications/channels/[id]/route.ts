@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sanitizeChannelConfig } from '@/lib/notifications/sanitize';
 
 const REQUIRED_FIELDS: Record<string, string[]> = {
   resend: ['api_key', 'from', 'to'],
   telegram_bot: ['bot_token', 'chat_id'],
   callmebot: ['phone', 'api_key'],
   whatsapp_cloud: ['access_token', 'phone_number_id', 'to', 'template_name', 'template_lang'],
-};
-
-const SECRET_FIELDS: Record<string, string[]> = {
-  resend: ['api_key'],
-  telegram_bot: ['bot_token'],
-  callmebot: ['api_key'],
-  whatsapp_cloud: ['access_token'],
 };
 
 export async function PATCH(
@@ -94,7 +88,7 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ channel: data }, { status: 200 });
+  return NextResponse.json({ channel: sanitizeChannelConfig(data) }, { status: 200 });
 }
 
 export async function DELETE(
