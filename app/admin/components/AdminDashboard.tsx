@@ -13,6 +13,7 @@ import AppointmentsManager from './AppointmentsManager';
 import ProfessionalsManager from './ProfessionalsManager';
 import ServicesManager from './ServicesManager';
 import SalonsManager from './SalonsManager';
+import NotificationsManager from './NotificationsManager';
 import { ToastProvider } from './ui';
 
 interface AdminDashboardProps {
@@ -158,6 +159,7 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                 { section: 'professionals' as Section, label: 'Professionals', desc: 'Manage barbers', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
                 { section: 'services' as Section, label: 'Services', desc: 'Manage catalog', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
                 { section: 'salons' as Section, label: 'Salons', desc: 'Manage locations', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+                { section: 'notifications' as Section, label: 'Notifications', desc: 'Alerts & channels', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
               ].map(({ section, label, desc, icon }) => (
                 <Card
                   key={section}
@@ -184,6 +186,8 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
         return <ServicesManager initialServices={services} />;
       case 'salons':
         return <SalonsManager initialSalons={salons} />;
+      case 'notifications':
+        return <NotificationsManager />;
     }
   };
 
