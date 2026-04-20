@@ -18,6 +18,8 @@ import {
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
 import type { Salon, ProfessionalAvailability, AvailabilityOverride } from "@/lib/types/database";
 import { useAuth } from "@/lib/auth-context";
+import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
+import { UserPanel } from "@/components/user-panel/user-panel";
 
 type LocationOption = {
   id: string;
@@ -230,6 +232,9 @@ export default function Home() {
   const [barberOverrides, setBarberOverrides] = useState<AvailabilityOverride[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ key: string; slots: { start_time: string; end_time: string }[] } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [showUserPanel, setShowUserPanel] = useState(false);
+  const [toast, setToast] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   const { user, signInWithGoogleModal, verifyUser } = useAuth();
 
@@ -599,13 +604,17 @@ export default function Home() {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (showUserPanel) {
+          setShowUserPanel(false);
+          return;
+        }
         setIsModalOpen(false);
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isModalOpen]);
+  }, [isModalOpen, showUserPanel]);
 
   useEffect(() => {
     return () => {
@@ -614,6 +623,12 @@ export default function Home() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 2800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   const total = effectiveSelectedServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.type === "home" ? 30 : 0);
   const selectedServicesLabel = effectiveSelectedServices.map((service) => service.name).join(", ");
@@ -1073,7 +1088,7 @@ export default function Home() {
                     ) : (
                       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_40%,rgb(192_154_90/7%),transparent_70%)]" />
                     )}
-                    
+
                   </div>
                   <div className="p-7">
                     <div className="font-playfair text-[26px] font-normal text-brand-white mb-0.5">{barber.name}</div>
@@ -1268,7 +1283,7 @@ export default function Home() {
             transition={{ duration: 0.2 }}
           >
             <motion.div
-              className="w-[375px] h-[727px] bg-[#fafaf8] rounded-l-[20px] flex flex-col overflow-hidden shadow-[-12px_0_60px_rgb(0_0_0/12%),-4px_0_20px_rgb(0_0_0/6%)] pointer-events-auto font-dm-sans max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:shadow-none [&_*]:font-[inherit] [&_.font-playfair]:font-playfair"
+              className="relative w-[375px] h-[727px] bg-[#fafaf8] rounded-l-[20px] flex flex-col overflow-hidden shadow-[-12px_0_60px_rgb(0_0_0/12%),-4px_0_20px_rgb(0_0_0/6%)] pointer-events-auto font-dm-sans max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:shadow-none [&_*]:font-[inherit] [&_.font-playfair]:font-playfair"
               role="dialog"
               aria-modal="true"
               initial={{ x: "100%" }}
@@ -1276,6 +1291,26 @@ export default function Home() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
+              <AnimatePresence>
+                {toast && (
+                  <motion.div
+                    className="absolute top-3 left-3 right-3 z-[30]"
+                    initial={{ y: -40, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -40, opacity: 0 }}
+                    transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                  >
+                    <div className={`rounded-xl px-4 py-3 text-sm font-medium shadow-[0_4px_16px_rgb(0_0_0/12%)] ${
+                      toast.kind === "success"
+                        ? "bg-[#c09a5a] text-white"
+                        : "bg-red-600 text-white"
+                    }`}>
+                      {toast.text}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="relative flex items-center gap-1.5 px-5 pt-[18px] pb-4 bg-white border-b border-[rgb(10_8_0/11%)] shrink-0 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[rgb(10_8_0/4%)] after:to-transparent">
                 <AnimatePresence>
                   {step > 1 && step < 6 && (
@@ -1310,6 +1345,7 @@ export default function Home() {
                     {step === 6 && "Booking Confirmed"}
                   </p>
                 </div>
+                <MenuAvatarButton onClick={() => setShowUserPanel(true)} />
                 <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/20%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]" onClick={closeModal} aria-label="Close">
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
@@ -1810,6 +1846,12 @@ export default function Home() {
                       </div>
                     )}
                   </motion.div>
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {showUserPanel && (
+                    <UserPanel onClose={() => setShowUserPanel(false)} showToast={(kind, text) => setToast({ kind, text })} />
+                  )}
                 </AnimatePresence>
 
                 {/* Home Location Panel — slides up from bottom within the content area */}

@@ -108,3 +108,13 @@ export type AppointmentWithDetails = Appointment & {
   salon: Salon | null;
   services: Service[];
 };
+
+export interface AppointmentReview {
+  id: string;
+  appointment_id: string;
+  customer_id: string;
+  professional_id: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}

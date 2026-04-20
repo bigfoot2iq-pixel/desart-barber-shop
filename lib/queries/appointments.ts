@@ -277,6 +277,10 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
   return data as Appointment;
 }
 
+export async function cancelAppointment(id: string): Promise<Appointment> {
+  return updateAppointmentStatus(id, 'cancelled');
+}
+
 export async function getAllAppointments(status?: Appointment['status']): Promise<AppointmentWithDetails[]> {
   const supabase = createClient();
   let query = supabase
