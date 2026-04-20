@@ -8,6 +8,13 @@ const REQUIRED_FIELDS: Record<string, string[]> = {
   whatsapp_cloud: ['access_token', 'phone_number_id', 'to', 'template_name', 'template_lang'],
 };
 
+const SECRET_FIELDS: Record<string, string[]> = {
+  resend: ['api_key'],
+  telegram_bot: ['bot_token'],
+  callmebot: ['api_key'],
+  whatsapp_cloud: ['access_token'],
+};
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,25 +41,45 @@ export async function PATCH(
     events?: string[];
   };
 
-  const provider = body.provider as string | undefined;
-  if (config && provider) {
-    const required = REQUIRED_FIELDS[provider];
-    if (required) {
-      const errors: string[] = [];
-      for (const field of required) {
-        if (!config[field] || (typeof config[field] === 'string' && !(config[field] as string).trim())) {
-          errors.push(`${provider} requires "${field}"`);
-        }
+  const { data: existing, error: fetchError } = await supabase
+    .from('notification_channels')
+    .select('*')
+    .eq('id', id)
+    .eq('admin_id', user.id)
+    .single();
+
+  if (fetchError || !existing) {
+    return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
+  }
+
+  let mergedConfig = existing.config as Record<string, unknown>;
+  if (config) {
+    mergedConfig = { ...mergedConfig };
+    for (const [key, value] of Object.entries(config)) {
+      if (value === '__set__') continue;
+      if (typeof value === 'string' && !value.trim()) continue;
+      mergedConfig[key] = value;
+    }
+  }
+
+  const provider = existing.provider as string;
+  const required = REQUIRED_FIELDS[provider];
+  if (required) {
+    const errors: string[] = [];
+    for (const field of required) {
+      const val = mergedConfig[field];
+      if (!val || (typeof val === 'string' && !val.trim())) {
+        errors.push(`${provider} requires "${field}"`);
       }
-      if (errors.length > 0) {
-        return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
-      }
+    }
+    if (errors.length > 0) {
+      return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
   }
 
   const updateData: Record<string, unknown> = {};
   if (is_enabled !== undefined) updateData.is_enabled = is_enabled;
-  if (config !== undefined) updateData.config = config;
+  if (config !== undefined) updateData.config = mergedConfig;
   if (events !== undefined) updateData.events = events;
 
   const { data, error } = await supabase

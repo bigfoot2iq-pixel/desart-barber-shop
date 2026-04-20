@@ -54,11 +54,6 @@ const PROVIDER_LABELS: Record<string, string> = {
   whatsapp_cloud: 'WhatsApp Cloud',
 };
 
-function maskValue(value: string): string {
-  if (!value || value.length <= 4) return '****';
-  return value.slice(0, 4) + '…' + '*'.repeat(Math.min(value.length - 4, 6));
-}
-
 export default function NotificationsManager() {
   const [channels, setChannels] = useState<ChannelRow[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
@@ -109,7 +104,9 @@ export default function NotificationsManager() {
     setCreatingChannel(null);
     setFormConfig(
       Object.fromEntries(
-        Object.entries(channel.config).map(([k, v]) => [k, String(v)])
+        Object.entries(channel.config)
+          .filter(([, v]) => v !== '__set__')
+          .map(([k, v]) => [k, String(v)])
       )
     );
     setFormEvents([...channel.events]);
@@ -121,20 +118,35 @@ export default function NotificationsManager() {
     const channel = creatingChannel ?? editingChannel?.channel;
     if (!channel) return;
 
+    const sanitizedConfig = { ...formConfig };
+    if (editingChannel) {
+      for (const [key, value] of Object.entries(sanitizedConfig)) {
+        if (typeof value === 'string' && !value.trim()) {
+          delete sanitizedConfig[key];
+        }
+      }
+    }
+
     const body: Record<string, unknown> = {
       channel,
       provider: formProvider,
-      config: formConfig,
+      config: sanitizedConfig,
       events: formEvents,
     };
 
     try {
       let res: Response;
       if (editingChannel) {
+        const sanitizedPatchConfig = { ...formConfig };
+        for (const [key, value] of Object.entries(sanitizedPatchConfig)) {
+          if (typeof value === 'string' && !value.trim()) {
+            delete sanitizedPatchConfig[key];
+          }
+        }
         res = await fetch(`/api/notifications/channels/${editingChannel.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ config: formConfig, events: formEvents }),
+          body: JSON.stringify({ config: sanitizedPatchConfig, events: formEvents }),
         });
       } else {
         res = await fetch('/api/notifications/channels', {
@@ -286,23 +298,30 @@ export default function NotificationsManager() {
           </div>
         )}
 
-        {(fields[channel] ?? []).map((field) => (
-          <div key={field.key}>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{field.label}</Label>
-            <Input
-              type={field.type ?? 'text'}
-              value={formConfig[field.key] ?? ''}
-              onChange={(e) =>
-                setFormConfig((prev) => ({
-                  ...prev,
-                  [field.key]: e.target.value,
-                }))
-              }
-              placeholder={field.placeholder}
-              className="mt-1"
-            />
-          </div>
-        ))}
+        {(fields[channel] ?? []).map((field) => {
+          const isSecret = ['api_key', 'bot_token', 'access_token'].includes(field.key);
+          const alreadySet = editingChannel && isSecret && (editingChannel.config as Record<string, unknown>)[field.key] === '__set__';
+          return (
+            <div key={field.key}>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                {field.label}
+                {alreadySet && <span className="text-green-400 ml-2 font-normal">(already set)</span>}
+              </Label>
+              <Input
+                type={field.type ?? 'text'}
+                value={formConfig[field.key] ?? ''}
+                onChange={(e) =>
+                  setFormConfig((prev) => ({
+                    ...prev,
+                    [field.key]: e.target.value,
+                  }))
+                }
+                placeholder={alreadySet ? 'Leave blank to keep current value' : field.placeholder}
+                className="mt-1"
+              />
+            </div>
+          );
+        })}
 
         <div>
           <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-2 block">
@@ -446,11 +465,13 @@ export default function NotificationsManager() {
                     <p className="text-xs text-muted-foreground">
                       Provider: {PROVIDER_LABELS[existing.provider] ?? existing.provider}
                     </p>
-                    {Object.entries(existing.config).map(([k, v]) => (
-                      <p key={k} className="text-xs text-muted-foreground">
-                        {k}: {maskValue(String(v))}
-                      </p>
-                    ))}
+                    {Object.entries(existing.config)
+                      .filter(([, v]) => v !== '__set__')
+                      .map(([k, v]) => (
+                        <p key={k} className="text-xs text-muted-foreground">
+                          {k}: {String(v)}
+                        </p>
+                      ))}
                     <div className="flex gap-2 mt-3">
                       <Button size="sm" onClick={() => openEditModal(existing)}>Edit</Button>
                       <Button

@@ -8,6 +8,29 @@ const REQUIRED_FIELDS: Record<string, string[]> = {
   whatsapp_cloud: ['access_token', 'phone_number_id', 'to', 'template_name', 'template_lang'],
 };
 
+const SECRET_FIELDS: Record<string, string[]> = {
+  resend: ['api_key'],
+  telegram_bot: ['bot_token'],
+  callmebot: ['api_key'],
+  whatsapp_cloud: ['access_token'],
+};
+
+function sanitizeConfig(channel: Record<string, unknown>): Record<string, unknown> {
+  const provider = channel.provider as string;
+  const config = channel.config as Record<string, unknown> | undefined;
+  if (!config || !provider) return channel;
+
+  const secrets = SECRET_FIELDS[provider] ?? [];
+  const sanitized = { ...channel };
+  sanitized.config = { ...config };
+  for (const field of secrets) {
+    if (field in (sanitized.config as Record<string, unknown>)) {
+      (sanitized.config as Record<string, unknown>)[field] = '__set__';
+    }
+  }
+  return sanitized;
+}
+
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,7 +48,8 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ channels: data }, { status: 200 });
+  const sanitized = (data ?? []).map(sanitizeConfig);
+  return NextResponse.json({ channels: sanitized }, { status: 200 });
 }
 
 export async function POST(request: Request) {
