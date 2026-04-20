@@ -23,6 +23,8 @@ export async function dispatchEvent(
   eventType: NotificationEventType,
   appointment: AppointmentWithDetails
 ): Promise<DispatchResult[]> {
+  // intentional: notify every admin of every appointment event.
+  // No per-admin scoping — all configured channels receive all events.
   const supabase = createServiceClient();
 
   const { data: channels, error: channelsError } = await supabase
