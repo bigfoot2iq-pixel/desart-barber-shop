@@ -145,6 +145,51 @@ export async function getAvailabilityOverrides(professionalId: string, startDate
   return data as AvailabilityOverride[];
 }
 
+export async function getAllProfessionalsAvailability(professionalIds: string[]): Promise<ProfessionalAvailability[]> {
+  if (professionalIds.length === 0) return [];
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('professional_availability')
+    .select('*')
+    .in('professional_id', professionalIds);
+
+  if (error) throw error;
+  return data as ProfessionalAvailability[];
+}
+
+export async function getAllAvailabilityOverrides(professionalIds: string[], startDate: string, endDate: string): Promise<AvailabilityOverride[]> {
+  if (professionalIds.length === 0) return [];
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('availability_overrides')
+    .select('*')
+    .in('professional_id', professionalIds)
+    .gte('override_date', startDate)
+    .lte('override_date', endDate);
+
+  if (error) throw error;
+  return data as AvailabilityOverride[];
+}
+
+export async function getBookedSlotsInRange(
+  professionalIds: string[],
+  startDate: string,
+  endDate: string,
+): Promise<Pick<Appointment, 'professional_id' | 'appointment_date' | 'start_time' | 'end_time'>[]> {
+  if (professionalIds.length === 0) return [];
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('professional_id, appointment_date, start_time, end_time')
+    .in('professional_id', professionalIds)
+    .gte('appointment_date', startDate)
+    .lte('appointment_date', endDate)
+    .in('status', ['pending', 'confirmed']);
+
+  if (error) throw error;
+  return data as Pick<Appointment, 'professional_id' | 'appointment_date' | 'start_time' | 'end_time'>[];
+}
+
 export async function getBookedSlots(professionalId: string, date: string): Promise<Pick<Appointment, 'start_time' | 'end_time'>[]> {
   const supabase = createClient();
   const { data, error } = await supabase

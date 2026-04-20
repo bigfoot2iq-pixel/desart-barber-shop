@@ -9,9 +9,10 @@ import {
   getActiveProfessionalsWithServices,
   getActiveServices,
   getActiveSalons,
-  getProfessionalAvailability,
-  getAvailabilityOverrides,
+  getAllProfessionalsAvailability,
+  getAllAvailabilityOverrides,
   getBookedSlots,
+  getBookedSlotsInRange,
   createAppointment,
   updateProfile,
 } from "@/lib/queries";
@@ -230,6 +231,7 @@ export default function Home() {
   const [salonDistances, setSalonDistances] = useState<Record<string, number>>({});
   const [barberWeekly, setBarberWeekly] = useState<ProfessionalAvailability[]>([]);
   const [barberOverrides, setBarberOverrides] = useState<AvailabilityOverride[]>([]);
+  const [bookingsInRange, setBookingsInRange] = useState<{ professional_id: string | null; appointment_date: string; start_time: string; end_time: string }[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ key: string; slots: { start_time: string; end_time: string }[] } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -257,15 +259,29 @@ export default function Home() {
     () => (selectedBarber ? barberOverrides.filter((o) => o.professional_id === selectedBarber.id) : []),
     [barberOverrides, selectedBarber]
   );
+  const bookingsByBarberDate = useMemo(() => {
+    const map = new Map<string, { start_time: string; end_time: string }[]>();
+    for (const b of bookingsInRange) {
+      if (!b.professional_id) continue;
+      const key = `${b.professional_id}:${b.appointment_date}`;
+      const list = map.get(key) ?? [];
+      list.push({ start_time: b.start_time, end_time: b.end_time });
+      map.set(key, list);
+    }
+    return map;
+  }, [bookingsInRange]);
   const availableDateIds = useMemo(() => {
     if (!selectedBarber || weeklyForBarber.length === 0) return new Set<string>();
     const set = new Set<string>();
+    const durationToCheck = totalDurationMinutes > 0 ? totalDurationMinutes : SLOT_STEP_MINUTES;
     for (const slot of dateSlots) {
       const hours = getWorkingHoursForDate(slot.id, weeklyForBarber, overridesForBarber);
-      if (hours && hours.end - hours.start >= totalDurationMinutes) set.add(slot.id);
+      if (!hours) continue;
+      const booked = bookingsByBarberDate.get(`${selectedBarber.id}:${slot.id}`) ?? [];
+      if (buildTimeSlots(hours, durationToCheck, booked).length > 0) set.add(slot.id);
     }
     return set;
-  }, [dateSlots, selectedBarber, weeklyForBarber, overridesForBarber, totalDurationMinutes]);
+  }, [dateSlots, selectedBarber, weeklyForBarber, overridesForBarber, totalDurationMinutes, bookingsByBarberDate]);
   const availableTimeSlots = useMemo(() => {
     if (!selectedBarber || !selectedDate || weeklyForBarber.length === 0) return [];
     const expectedKey = `${selectedBarber.id}:${selectedDate.id}`;
@@ -277,6 +293,26 @@ export default function Home() {
     () => (selectedTime && availableTimeSlots.includes(selectedTime) ? selectedTime : null),
     [selectedTime, availableTimeSlots]
   );
+  const nextAvailableByBarber = useMemo(() => {
+    const map = new Map<string, DateSlot | null>();
+    for (const barber of barbers) {
+      const weekly = barberWeekly.filter((w) => w.professional_id === barber.id);
+      const overrides = barberOverrides.filter((o) => o.professional_id === barber.id);
+      if (weekly.length === 0) {
+        map.set(barber.id, null);
+        continue;
+      }
+      const found = dateSlots.find((slot) => {
+        const hours = getWorkingHoursForDate(slot.id, weekly, overrides);
+        if (!hours) return false;
+        const booked = bookingsByBarberDate.get(`${barber.id}:${slot.id}`) ?? [];
+        return buildTimeSlots(hours, SLOT_STEP_MINUTES, booked).length > 0;
+      }) ?? null;
+      map.set(barber.id, found);
+    }
+    return map;
+  }, [barbers, barberWeekly, barberOverrides, dateSlots, bookingsByBarberDate]);
+
   const { label: homePinLabel, loading: homePinGeoLoading } = useReverseGeocode(
     homePin?.lat ?? null,
     homePin?.lng ?? null
@@ -347,7 +383,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!selectedBarber) return;
+    if (barbers.length === 0) return;
+    const ids = barbers.map((b) => b.id);
     const today = new Date();
     const end = new Date(today);
     end.setDate(today.getDate() + BOOKING_WINDOW_DAYS);
@@ -356,13 +393,15 @@ export default function Home() {
 
     let cancelled = false;
     Promise.all([
-      getProfessionalAvailability(selectedBarber.id),
-      getAvailabilityOverrides(selectedBarber.id, fmt(today), fmt(end)),
+      getAllProfessionalsAvailability(ids),
+      getAllAvailabilityOverrides(ids, fmt(today), fmt(end)),
+      getBookedSlotsInRange(ids, fmt(today), fmt(end)),
     ])
-      .then(([weekly, overrides]) => {
+      .then(([weekly, overrides, bookings]) => {
         if (cancelled) return;
         setBarberWeekly(weekly);
         setBarberOverrides(overrides);
+        setBookingsInRange(bookings);
       })
       .catch((err) => {
         console.error("Failed to load barber availability:", err);
@@ -370,7 +409,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [selectedBarber]);
+  }, [barbers]);
 
   useEffect(() => {
     if (!selectedBarber || !selectedDate) return;
@@ -1405,10 +1444,23 @@ export default function Home() {
                                 {location.imageUrl ? (
                                   <img src={location.imageUrl} alt={location.name} className={`shrink-0 w-[107px] h-[107px] rounded-[10px] object-cover transition-[border-color] duration-200 ${isLocationSelected ? "border-2 border-[rgb(255_255_255/30%)]" : "border-2 border-[rgb(192_154_90/20%)]"}`} />
                                 ) : (
-                                  <div className={`relative flex items-center justify-center shrink-0 w-[38px] h-[38px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/4%)]"}`}>
-                                    <svg className={`w-5 h-5 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                      <polyline points="9 22 9 12 15 12 15 22" />
+                                  <div className={`relative flex items-center justify-center shrink-0 w-[107px] h-[107px] rounded-[10px] ${isLocationSelected ? "bg-[rgb(255_255_255/25%)]" : "bg-[rgb(10_8_0/4%)]"}`}>
+                                    <svg className={`w-12 h-12 transition-[opacity,color] duration-200 ${isLocationSelected ? "opacity-100 text-white" : "opacity-70 text-brand-black"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M5 2.5l2-1.5h10l2 1.5" />
+                                      <rect x="2" y="2.5" width="20" height="2.5" />
+                                      <rect x="1" y="5" width="22" height="3" />
+                                      <text x="12" y="7.2" textAnchor="middle" fontSize="4" fontWeight="bold" fill="currentColor" stroke="none">SALON</text>
+                                      <circle cx="14.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+                                      <line x1="1.5" y1="6" x2="3" y2="6" />
+                                      <line x1="1.5" y1="7" x2="3" y2="7" />
+                                      <line x1="21" y1="6" x2="22.5" y2="6" />
+                                      <line x1="21" y1="7" x2="22.5" y2="7" />
+                                      <rect x="2" y="8" width="20" height="13.5" rx="1" />
+                                      <rect x="5" y="10" width="5" height="11.5" rx="0.5" />
+                                      <circle cx="7.5" cy="16" r="0.4" fill="currentColor" stroke="none" />
+                                      <rect x="13" y="10" width="7" height="11.5" rx="0.5" />
+                                      <line x1="13" y1="15.5" x2="20" y2="15.5" />
+                                      <path d="M2 21.5h20" />
                                     </svg>
                                   </div>
                                 )}
@@ -1418,9 +1470,12 @@ export default function Home() {
                                   {nearbyActive && salonDistances[location.id] != null && (
                                     <div className="mt-2">
                                       <div className="w-[30px] border-t border-[rgb(199_199_204)] mb-1" />
-                                      <p data-testid="text:distance" className={`text-[15px] leading-[18px] tracking-[-0.24px] ${isLocationSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/55%)]"}`}>
-                                        {salonDistances[location.id].toFixed(2)} Km
-                                      </p>
+                                       <p data-testid="text:distance" className={`text-[15px] leading-[18px] tracking-[-0.24px] ${isLocationSelected ? "text-[rgb(255_255_255/80%)]" : "text-[rgb(10_8_0/55%)]"}`}>
+                                         {salonDistances[location.id] < 1
+                                           ? `${(salonDistances[location.id] * 1000).toFixed(0)} m`
+                                           : `${salonDistances[location.id].toFixed(2)} Km`
+                                         }
+                                       </p>
                                     </div>
                                   )}
                                 </div>
@@ -1437,6 +1492,8 @@ export default function Home() {
                         <div className="flex flex-col gap-2">
                           {barbers.map((barber) => {
                             const isBarberSelected = selectedBarber?.id === barber.id;
+                            const nextAvailable = nextAvailableByBarber.get(barber.id);
+                            const hasAvailabilityData = barberWeekly.some((w) => w.professional_id === barber.id);
                             return (
                               <button
                                 key={barber.id}
@@ -1455,6 +1512,18 @@ export default function Home() {
                                   <div className={`text-sm font-semibold mb-px tracking-[-0.01em] leading-snug ${isBarberSelected ? "text-white" : "text-brand-black"}`}>{barber.name.split(" ")[0]}</div>
                                   <div className={`text-[11px] font-medium tracking-[0.02em] uppercase ${isBarberSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{barber.role}</div>
                                 </div>
+                                {hasAvailabilityData && (
+                                  <div className="flex flex-col items-end shrink-0 pl-2">
+                                    <span className={`text-[9px] font-semibold tracking-[0.12em] uppercase ${isBarberSelected ? "text-[rgb(255_255_255/60%)]" : "text-[rgb(10_8_0/40%)]"}`}>Next</span>
+                                    {nextAvailable ? (
+                                      <span className={`text-[12px] font-semibold tracking-[-0.01em] leading-tight ${isBarberSelected ? "text-white" : "text-brand-black"}`}>
+                                        {nextAvailable.shortDay} {nextAvailable.displayDate}
+                                      </span>
+                                    ) : (
+                                      <span className={`text-[11px] font-medium ${isBarberSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/45%)]"}`}>Unavailable</span>
+                                    )}
+                                  </div>
+                                )}
                               </button>
                             );
                           })}
