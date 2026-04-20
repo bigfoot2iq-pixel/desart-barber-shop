@@ -87,10 +87,20 @@ function buildTelegramHtml(apt: AppointmentWithDetails): string {
 export function buildAppointmentAssignedMessage(apt: AppointmentWithDetails): RenderedMessage {
   const customerName = `${apt.customer?.first_name ?? ''} ${apt.customer?.last_name ?? ''}`.trim();
   const professionalName = apt.professional?.display_name ?? 'N/A';
+  const services = apt.services.map((s) => s.name).join(', ');
+  const locationType = apt.location_type === 'home' ? 'Come to Home' : 'Salon';
   return {
     subject: `Professional assigned — ${professionalName} → ${customerName}`,
     plainText: buildPlainText(apt),
     html: buildHtml(apt),
     telegramHtml: buildTelegramHtml(apt),
+    whatsAppCloudParams: [
+      `${customerName} → ${professionalName}`,
+      formatDate(apt.appointment_date),
+      `${formatTime(apt.start_time)} – ${formatTime(apt.end_time)}`,
+      services,
+      locationType,
+      `${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD`,
+    ],
   };
 }

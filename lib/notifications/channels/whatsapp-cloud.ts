@@ -1,5 +1,21 @@
 import type { WhatsAppCloudConfig, RenderedMessage } from '../types';
 
+// Expected Meta template variable order (must match approved template):
+// {{1}} Customer name
+// {{2}} Date
+// {{3}} Time
+// {{4}} Services
+// {{5}} Location type (Salon / Come to Home)
+// {{6}} Payment info
+//
+// When approving the template in Meta, use:
+// {{1}}
+// {{2}}
+// {{3}}
+// {{4}}
+// {{5}}
+// {{6}}
+
 export async function sendWhatsAppCloud(config: WhatsAppCloudConfig, message: RenderedMessage): Promise<void> {
   const url = `https://graph.facebook.com/v17.0/${config.phone_number_id}/messages`;
 
@@ -19,9 +35,9 @@ export async function sendWhatsAppCloud(config: WhatsAppCloudConfig, message: Re
         components: [
           {
             type: 'body',
-            parameters: message.plainText.split('\n').map((line) => ({
+            parameters: message.whatsAppCloudParams.map((text) => ({
               type: 'text',
-              text: line,
+              text,
             })),
           },
         ],

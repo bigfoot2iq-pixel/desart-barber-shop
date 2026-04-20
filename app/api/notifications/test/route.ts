@@ -12,6 +12,7 @@ const TEST_MESSAGE: RenderedMessage = {
   plainText: 'This is a test message from DesArt Barber Shop. If you received this, your notification channel is configured correctly.',
   html: '<div style="font-family: sans-serif; padding: 24px;"><h2>DesArt Notification Test</h2><p>If you received this, your notification channel is configured correctly.</p></div>',
   telegramHtml: '<b>DesArt Notification Test</b>\nIf you received this, your notification channel is configured correctly.',
+  whatsAppCloudParams: ['Test Customer', 'Today', '10:00 AM – 10:30 AM', 'Test Service', 'Salon', 'Cash • 50 MAD'],
 };
 
 export async function POST(request: Request) {

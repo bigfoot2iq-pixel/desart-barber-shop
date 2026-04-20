@@ -16,6 +16,7 @@ export interface RenderedMessage {
   plainText: string;
   html: string;
   telegramHtml: string;
+  whatsAppCloudParams: string[];
 }
 
 export interface DispatchResult {
