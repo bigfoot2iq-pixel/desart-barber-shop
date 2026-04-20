@@ -1,0 +1,16 @@
+-- ============================================================
+-- Dedup key format change for notification_deliveries.
+--
+-- Old format: ${event_type}:${appointment_id}:${channel_id}
+-- New format: ${event_type}:${appointment_id}:${channel_id}:${updated_at_iso}
+--
+-- The UNIQUE constraint on dedup_key remains the same — only the
+-- application-level key generation changes. Including updated_at
+-- allows re-notification when the appointment state genuinely
+-- changes (e.g. pending → confirmed → cancelled → confirmed),
+-- while still preventing duplicate deliveries on webhook retries
+-- (same updated_at = same dedup key = unique violation = skip).
+--
+-- No schema change required. Existing rows remain valid; new rows
+-- use the longer key format.
+-- ============================================================

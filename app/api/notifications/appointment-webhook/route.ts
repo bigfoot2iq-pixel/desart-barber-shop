@@ -75,8 +75,9 @@ export async function POST(request: Request) {
     }
 
     const allResults: Awaited<ReturnType<typeof dispatchEvent>>[] = [];
+    const updatedAt = String(payload.record.updated_at ?? new Date().toISOString());
     for (const eventType of eventTypes) {
-      const results = await dispatchEvent(eventType, appointment);
+      const results = await dispatchEvent(eventType, appointment, updatedAt);
       allResults.push(results);
     }
 

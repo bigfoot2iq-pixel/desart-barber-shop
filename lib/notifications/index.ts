@@ -21,7 +21,8 @@ const TEMPLATE_MAP: Partial<Record<NotificationEventType, (apt: AppointmentWithD
 
 export async function dispatchEvent(
   eventType: NotificationEventType,
-  appointment: AppointmentWithDetails
+  appointment: AppointmentWithDetails,
+  updatedAt: string
 ): Promise<DispatchResult[]> {
   // intentional: notify every admin of every appointment event.
   // No per-admin scoping — all configured channels receive all events.
@@ -46,7 +47,7 @@ export async function dispatchEvent(
 
   await Promise.allSettled(
     eligible.map(async (channel) => {
-      const dedupKey = `${eventType}:${appointment.id}:${channel.id}`;
+      const dedupKey = `${eventType}:${appointment.id}:${channel.id}:${updatedAt}`;
 
       const { error: insertError } = await supabase
         .from('notification_deliveries')
