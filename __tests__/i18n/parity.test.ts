@@ -1,4 +1,3 @@
-import { describe, it, expect } from '@jest/globals';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -45,7 +44,7 @@ describe('i18n parity', () => {
   for (const ns of namespaces) {
     describe(`${ns} namespace`, () => {
       for (const locale of locales) {
-        it(`${locale}/${ns}.json exists`, () => {
+        test(`${locale}/${ns}.json exists`, () => {
           const filePath = path.join(dictionariesPath, locale, `${ns}.json`);
           expect(fs.existsSync(filePath)).toBe(true);
         });
@@ -61,12 +60,12 @@ describe('i18n parity', () => {
         const enKeys = new Set(getKeys(enData));
         const frKeys = new Set(getKeys(frData));
 
-        it(`${ns}: FR has all EN keys`, () => {
+        test(`${ns}: FR has all EN keys`, () => {
           const missing = [...enKeys].filter(k => !frKeys.has(k));
           expect(missing).toHaveLength(0);
         });
 
-        it(`${ns}: EN has all FR keys`, () => {
+        test(`${ns}: EN has all FR keys`, () => {
           const extra = [...frKeys].filter(k => !enKeys.has(k));
           expect(extra).toHaveLength(0);
         });
@@ -77,14 +76,14 @@ describe('i18n parity', () => {
         const allArrayKeys = new Set([...Object.keys(enArrayLengths), ...Object.keys(frArrayLengths)]);
 
         for (const arrayKey of allArrayKeys) {
-          it(`${ns}: array length match for ${arrayKey}`, () => {
+          test(`${ns}: array length match for ${arrayKey}`, () => {
             const enLen = enArrayLengths[arrayKey] ?? 0;
             const frLen = frArrayLengths[arrayKey] ?? 0;
             expect(enLen).toBe(frLen);
           });
         }
 
-        it(`${ns}: both files are valid JSON`, () => {
+        test(`${ns}: both files are valid JSON`, () => {
           expect(() => JSON.parse(fs.readFileSync(enFilePath, 'utf-8'))).not.toThrow();
           expect(() => JSON.parse(fs.readFileSync(frFilePath, 'utf-8'))).not.toThrow();
         });
