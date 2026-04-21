@@ -67,42 +67,47 @@ async function getSessionTokens(email: string, password: string): Promise<{ acce
 }
 
 /**
- * Inject Supabase auth session into a Playwright browser context via localStorage.
- * Uses addInitScript so the session is queued on every new document before page scripts,
- * with access to localStorage on the real origin.
+ * Inject Supabase auth session into a Playwright browser context via cookies.
+ * @supabase/ssr createBrowserClient reads auth from cookies, not localStorage.
+ * The cookie value is base64url-encoded with a 'base64-' prefix.
  */
 async function injectAuthSession(context: BrowserContext, userId: string, accessToken: string, refreshToken: string): Promise<void> {
   const storageKey = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
+  const data = {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    user: {
+      id: userId,
+      aud: 'authenticated',
+      role: 'authenticated',
+      email: '',
+      email_confirmed_at: new Date().toISOString(),
+      phone: '',
+      confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      app_metadata: { provider: 'email', providers: ['email'], role: 'customer' },
+      user_metadata: {},
+      identities: [],
+      created_at: new Date().toISOString(),
+    },
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+  };
+  const json = JSON.stringify(data);
+  // base64url encode (Node-style base64url: replace + with -, / with _, remove =)
+  const base64 = Buffer.from(json).toString('base64url');
+  const cookieValue = `base64-${base64}`;
+
   await context.addInitScript(
-    ({ storageKey, userId, accessToken, refreshToken }) => {
-      const data = {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        user: {
-          id: userId,
-          aud: 'authenticated',
-          role: 'authenticated',
-          email: '',
-          email_confirmed_at: new Date().toISOString(),
-          phone: '',
-          confirmed_at: new Date().toISOString(),
-          last_sign_in_at: new Date().toISOString(),
-          app_metadata: { provider: 'email', providers: ['email'], role: 'customer' },
-          user_metadata: {},
-          identities: [],
-          created_at: new Date().toISOString(),
-        },
-        token_type: 'bearer',
-        expires_in: 3600,
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-      };
+    ({ storageKey, cookieValue }) => {
       try {
-        window.localStorage.setItem(storageKey, JSON.stringify(data));
+        document.cookie = `${storageKey}=${encodeURIComponent(cookieValue)}; path=/`;
       } catch {
-        // about:blank / opaque origin — ignore, real pages will take
+        // ignore
       }
     },
-    { storageKey, userId, accessToken, refreshToken }
+    { storageKey, cookieValue }
   );
 }
 

@@ -56,6 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogleModal = async (): Promise<User> => {
+    // E2E tests stub this path by setting window.__e2e_stubbedUserId
+    const stubbedUserId = (window as any).__e2e_stubbedUserId as string | undefined;
+    if (stubbedUserId) {
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) return userData.user;
+      throw new Error('E2E stubbed user session not found.');
+    }
+
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/auth/popup-callback')}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

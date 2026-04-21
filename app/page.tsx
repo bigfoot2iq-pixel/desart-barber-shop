@@ -18,7 +18,7 @@ import {
 } from "@/lib/queries";
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
 import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMethod } from "@/lib/types/database";
-import { getPublicPaymentSettings } from "@/lib/queries/payment-settings";
+import { getPublicPaymentConfig } from "@/lib/queries/payment-settings";
 import { useAuth } from "@/lib/auth-context";
 import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
 import { UserPanel } from "@/components/user-panel/user-panel";
@@ -114,6 +114,10 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function formatRib(rib: string): string {
+  return rib.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+}
+
 export default function Home() {
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
   const [salons, setSalons] = useState<LocationOption[]>([]);
@@ -132,10 +136,10 @@ export default function Home() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
-  const [paymentSettings, setPaymentSettings] = useState<Awaited<
-    ReturnType<typeof getPublicPaymentSettings>
+  const [paymentConfig, setPaymentConfig] = useState<Awaited<
+    ReturnType<typeof getPublicPaymentConfig>
   > | null>(null);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<{ accountId: string; field: 'rib' | 'iban' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [expandedTeamMember, setExpandedTeamMember] = useState<string | null>(null);
@@ -652,7 +656,7 @@ export default function Home() {
     setLastName("");
     setPhone("");
     setPaymentMethod("cash");
-    setPaymentSettings(null);
+    setPaymentConfig(null);
     setCopiedField(null);
     setIsSubmitting(false);
     setCalendarExpanded(false);
@@ -768,7 +772,10 @@ export default function Home() {
         return;
       }
 
-      if (paymentMethod === "bank_transfer" && !paymentSettings?.bank_transfer_enabled) {
+      if (
+        paymentMethod === "bank_transfer" &&
+        (!paymentConfig?.bank_transfer_enabled || paymentConfig.accounts.length === 0)
+      ) {
         setToast({ kind: "error", text: "Bank transfer isn't available right now. Please choose cash." });
         return;
       }
@@ -818,10 +825,21 @@ export default function Home() {
 
   useEffect(() => {
     if (!isModalOpen) return;
-    getPublicPaymentSettings()
-      .then((settings) => setPaymentSettings(settings))
-      .catch(() => setPaymentSettings(null));
+    getPublicPaymentConfig()
+      .then((config) => setPaymentConfig(config))
+      .catch(() => setPaymentConfig(null));
   }, [isModalOpen]);
+
+  // Empty-state collapse: if admin disables bank transfer mid-session, silently revert to cash.
+  useEffect(() => {
+    if (
+      paymentMethod === "bank_transfer" &&
+      paymentConfig !== null &&
+      (!paymentConfig.bank_transfer_enabled || paymentConfig.accounts.length === 0)
+    ) {
+      setPaymentMethod("cash");
+    }
+  }, [paymentConfig, paymentMethod]);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -1902,7 +1920,7 @@ export default function Home() {
                               Payment Method
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                            <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                               <button
                                 type="button"
                                 role="radio"
@@ -1930,111 +1948,152 @@ export default function Home() {
                                 </div>
                               </button>
 
-                              {paymentSettings?.bank_transfer_enabled && (
-                                <button
-                                  type="button"
-                                  role="radio"
-                                  aria-checked={paymentMethod === "bank_transfer"}
-                                  data-testid="btn:payment-bank-transfer"
-                                  onClick={() => {
-                                    setPaymentMethod("bank_transfer");
-                                    const el = document.getElementById("payment-bank-details");
-                                    if (el) el.scrollIntoView({ block: "nearest" });
-                                  }}
-                                  className={`text-left rounded-xl border-2 px-4 py-3 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
-                                    paymentMethod === "bank_transfer"
-                                      ? "border-gold bg-[rgb(192_154_90/6%)]"
-                                      : "border-[rgb(10_8_0/12%)] bg-white hover:border-[rgb(10_8_0/22%)]"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                                      paymentMethod === "bank_transfer" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
-                                    }`}>
-                                      {paymentMethod === "bank_transfer" && (
-                                        <div className="w-2 h-2 rounded-full bg-gold" />
-                                      )}
+                              {paymentConfig === null ? (
+                                <div className="rounded-xl border-2 border-[rgb(10_8_0/8%)] bg-[rgb(10_8_0/4%)] px-4 py-3 animate-pulse h-[62px]" aria-hidden="true" />
+                              ) : (
+                                paymentConfig.bank_transfer_enabled && paymentConfig.accounts.length > 0 && (
+                                  <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={paymentMethod === "bank_transfer"}
+                                    data-testid="btn:payment-bank-transfer"
+                                    onClick={() => {
+                                      setPaymentMethod("bank_transfer");
+                                      const el = document.getElementById("payment-bank-details");
+                                      if (el) el.scrollIntoView({ block: "nearest" });
+                                      // Focus first copy button or details heading
+                                      window.setTimeout(() => {
+                                        const firstCopy = el?.querySelector('[data-copy-btn="true"]') as HTMLElement | null;
+                                        if (firstCopy) firstCopy.focus();
+                                      }, 50);
+                                    }}
+                                    className={`text-left rounded-xl border-2 px-4 py-3 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+                                      paymentMethod === "bank_transfer"
+                                        ? "border-gold bg-[rgb(192_154_90/6%)]"
+                                        : "border-[rgb(10_8_0/12%)] bg-white hover:border-[rgb(10_8_0/22%)]"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                        paymentMethod === "bank_transfer" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
+                                      }`}>
+                                        {paymentMethod === "bank_transfer" && (
+                                          <div className="w-2 h-2 rounded-full bg-gold" />
+                                        )}
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-semibold text-brand-black">Bank transfer</div>
+                                        <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay in advance</div>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <div className="text-sm font-semibold text-brand-black">Bank transfer</div>
-                                      <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay in advance</div>
-                                    </div>
-                                  </div>
-                                </button>
+                                  </button>
+                                )
                               )}
                             </div>
 
-                            {paymentMethod === "bank_transfer" && paymentSettings?.bank_transfer_enabled && (
+                            {paymentMethod === "bank_transfer" && paymentConfig && paymentConfig.bank_transfer_enabled && paymentConfig.accounts.length > 0 && (
                               <div
                                 id="payment-bank-details"
                                 className="bg-white rounded-xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden"
                               >
-                                <div className="px-4 py-3 space-y-2 text-sm">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Account holder:</span>
-                                    <span className="text-brand-black font-medium text-right">{paymentSettings.account_holder}</span>
-                                  </div>
-                                  <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Bank:</span>
-                                    <span className="text-brand-black font-medium text-right">{paymentSettings.bank_name}</span>
-                                  </div>
-                                  {paymentSettings.rib && (
-                                    <div className="flex items-start justify-between gap-2">
-                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">RIB:</span>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-brand-black font-mono text-xs">{paymentSettings.rib}</span>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            if (typeof navigator !== "undefined" && navigator.clipboard) {
-                                              navigator.clipboard.writeText(paymentSettings.rib!).then(() => {
-                                                setCopiedField("rib");
-                                                setTimeout(() => setCopiedField(null), 1500);
-                                              });
-                                            }
-                                          }}
-                                          className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
-                                        >
-                                          {copiedField === "rib" ? "Copied" : "Copy"}
-                                        </button>
+                                <div className="px-4 py-3 space-y-3 text-sm">
+                                  {paymentConfig.accounts.map((acct, idx) => (
+                                    <div key={acct.id}>
+                                      {idx > 0 && <div className="border-t border-[rgb(10_8_0/8%)] my-3" />}
+                                      {paymentConfig.accounts.length > 1 && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <span className="text-brand-black font-semibold">{acct.bank_name}</span>
+                                          {acct.label && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[rgb(192_154_90/12%)] text-[rgb(192_154_90/90%)] font-medium">
+                                              {acct.label}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                      <div className="space-y-2">
+                                        <div className="flex items-start justify-between gap-2">
+                                          <span className="text-[rgb(10_8_0/50%)] shrink-0">Account holder:</span>
+                                          <span className="text-brand-black font-medium text-right">{acct.account_holder}</span>
+                                        </div>
+                                        {paymentConfig.accounts.length === 1 && (
+                                          <div className="flex items-start justify-between gap-2">
+                                            <span className="text-[rgb(10_8_0/50%)] shrink-0">Bank:</span>
+                                            <span className="text-brand-black font-medium text-right">{acct.bank_name}</span>
+                                          </div>
+                                        )}
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
+                                          <span className="text-[rgb(10_8_0/50%)] shrink-0">RIB:</span>
+                                          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                            <span className="text-brand-black font-mono text-xs">{formatRib(acct.rib)}</span>
+                                            <button
+                                              type="button"
+                                              data-copy-btn="true"
+                                              onClick={() => {
+                                                if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                                  const markCopied = () => {
+                                                    setCopiedField({ accountId: acct.id, field: "rib" });
+                                                    setTimeout(() => setCopiedField(null), 1500);
+                                                  };
+                                                  navigator.clipboard.writeText(acct.rib).then(markCopied).catch(markCopied);
+                                                } else {
+                                                  setCopiedField({ accountId: acct.id, field: "rib" });
+                                                  setTimeout(() => setCopiedField(null), 1500);
+                                                }
+                                              }}
+                                              aria-live="polite"
+                                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0 font-mono"
+                                            >
+                                              {copiedField?.accountId === acct.id && copiedField?.field === "rib" ? "Copied \u2713" : "Copy"}
+                                            </button>
+                                          </div>
+                                        </div>
+                                        {acct.iban && (
+                                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
+                                            <span className="text-[rgb(10_8_0/50%)] shrink-0">IBAN:</span>
+                                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                              <span className="text-brand-black font-mono text-xs">{acct.iban}</span>
+                                              <button
+                                                type="button"
+                                                data-copy-btn="true"
+                                                onClick={() => {
+                                                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                                    const markCopied = () => {
+                                                      setCopiedField({ accountId: acct.id, field: "iban" });
+                                                      setTimeout(() => setCopiedField(null), 1500);
+                                                    };
+                                                    navigator.clipboard.writeText(acct.iban!).then(markCopied).catch(markCopied);
+                                                  } else {
+                                                    setCopiedField({ accountId: acct.id, field: "iban" });
+                                                    setTimeout(() => setCopiedField(null), 1500);
+                                                  }
+                                                }}
+                                                aria-live="polite"
+                                                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0 font-mono"
+                                              >
+                                                {copiedField?.accountId === acct.id && copiedField?.field === "iban" ? "Copied \u2713" : "Copy"}
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
-                                  )}
-                                  {paymentSettings.iban && (
-                                    <div className="flex items-start justify-between gap-2">
-                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">IBAN:</span>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-brand-black font-mono text-xs">{paymentSettings.iban}</span>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            if (typeof navigator !== "undefined" && navigator.clipboard) {
-                                              navigator.clipboard.writeText(paymentSettings.iban!).then(() => {
-                                                setCopiedField("iban");
-                                                setTimeout(() => setCopiedField(null), 1500);
-                                              });
-                                            }
-                                          }}
-                                          className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
-                                        >
-                                          {copiedField === "iban" ? "Copied" : "Copy"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Reference:</span>
-                                    <span className="text-brand-black font-medium text-right">{firstName.trim()} {lastName.trim()}</span>
-                                  </div>
+                                  ))}
+
                                   <div className="border-t border-[rgb(10_8_0/8%)] my-2" />
-                                  <p className="text-xs text-[rgb(10_8_0/55%)] leading-relaxed">
-                                    After you transfer, send the receipt to WhatsApp{" "}
-                                    <span className="font-semibold text-brand-black">{paymentSettings.payment_phone ?? "the shop"}</span>.
-                                    Your booking stays pending until we confirm the payment.
-                                  </p>
-                                  {paymentSettings.instructions && (
-                                    <p className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed">{paymentSettings.instructions}</p>
-                                  )}
+                                  <div className="space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">Reference:</span>
+                                      <span className="text-brand-black font-medium text-right">{firstName.trim()} {lastName.trim()}</span>
+                                    </div>
+                                    <p className="text-xs text-[rgb(10_8_0/55%)] leading-relaxed">
+                                      After you transfer, send the receipt to WhatsApp{" "}
+                                      <span className="font-semibold text-brand-black">{paymentConfig.payment_phone ?? "the shop"}</span>.
+                                      Your booking stays pending until we confirm the payment.
+                                    </p>
+                                    {paymentConfig.instructions && (
+                                      <p className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed">{paymentConfig.instructions}</p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -2126,9 +2185,9 @@ export default function Home() {
                             Your appointment has been received. We&apos;ll reach out to confirm within a few hours.
                           </p>
 
-                          {paymentMethod === "bank_transfer" && paymentSettings?.payment_phone && (
+                          {paymentMethod === "bank_transfer" && paymentConfig?.payment_phone && (
                             <p className="text-[12px] text-[rgb(192_154_90/80%)] leading-[1.6] max-w-[320px] mx-auto mb-4 font-medium">
-                              Don&apos;t forget to send your transfer receipt to WhatsApp {paymentSettings.payment_phone}.
+                              Don&apos;t forget to send your transfer receipt to WhatsApp {paymentConfig.payment_phone}.
                             </p>
                           )}
 

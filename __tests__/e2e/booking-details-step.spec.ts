@@ -67,7 +67,7 @@ async function seedWeeklyAvailabilityForBarber(barberId: string): Promise<void> 
       is_available: true,
     });
   }
-  const { error } = await admin.from('professional_availability').insert(rows);
+  const { error } = await admin.from('professional_availability').upsert(rows, { onConflict: 'professional_id,day_of_week', ignoreDuplicates: false });
   if (error) throw new Error(`seedWeeklyAvailability failed: ${error.message}`);
 }
 
@@ -291,6 +291,15 @@ test.describe('Booking Payment Method Selection', () => {
     testCustomer,
   }) => {
     const page = authenticatedPage;
+    const admin = adminClient();
+
+    // Ensure no active bank accounts and bank transfer is disabled
+    await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await admin
+      .from('payment_settings')
+      .update({ bank_transfer_enabled: false, payment_phone: null, instructions: null })
+      .eq('singleton', true);
+
     await page.goto('/');
 
     await navigateToDetailsStep(page, barberId, serviceId, testDate);
@@ -304,14 +313,14 @@ test.describe('Booking Payment Method Selection', () => {
     await expect(cashBtn).toBeVisible({ timeout: 10000 });
     await expect(cashBtn).toHaveAttribute('aria-checked', 'true');
 
-    // Bank transfer tile may or may not be visible depending on admin settings
-    // (we don't seed it for this test)
+    // Bank transfer tile should not be visible
+    const bankBtn = page.getByTestId('btn:payment-bank-transfer');
+    await expect(bankBtn).toHaveCount(0);
 
     await page.getByTestId('btn:confirm-booking').click();
     await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
 
     // Verify the appointment was saved with cash
-    const admin = adminClient();
     const { data } = await admin
       .from('appointments')
       .select('payment_method')
@@ -325,21 +334,29 @@ test.describe('Booking Payment Method Selection', () => {
     await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
   });
 
-  test('bank transfer path — RIB visible, copy works, booking saves bank_transfer', async ({
+  test('bank transfer path — one account, RIB visible, copy works, booking saves bank_transfer', async ({
     authenticatedPage,
     testCustomer,
   }) => {
     const page = authenticatedPage;
     const admin = adminClient();
 
-    // Seed payment settings with bank transfer enabled
+    // Seed one active bank account and enable bank transfer
+    await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await admin
+      .from('payment_bank_accounts')
+      .insert({
+        account_holder: 'Test Account Holder',
+        bank_name: 'Test Bank',
+        rib: '123456789012345678901234',
+        iban: 'MA640123456789012345678901234',
+        is_active: true,
+        sort_order: 0,
+      });
     await admin
       .from('payment_settings')
       .update({
         bank_transfer_enabled: true,
-        account_holder: 'Test Account Holder',
-        bank_name: 'Test Bank',
-        rib: '123456789012345678901234',
         payment_phone: '+212600000099',
         instructions: 'Test instructions',
       })
@@ -361,13 +378,13 @@ test.describe('Booking Payment Method Selection', () => {
       await bankBtn.click();
       await page.waitForTimeout(500);
 
-      // RIB should be visible
-      await expect(page.getByText('123456789012345678901234')).toBeVisible();
+      // RIB should be visible (formatted with spaces)
+      await expect(page.getByText('1234 5678 9012 3456 7890 1234')).toBeVisible();
 
       // Copy button should work
       await page.getByRole('button', { name: 'Copy' }).first().click();
       await page.waitForTimeout(200);
-      await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Copied ✓' })).toBeVisible();
 
       // Complete booking
       await page.getByTestId('btn:confirm-booking').click();
@@ -386,17 +403,11 @@ test.describe('Booking Payment Method Selection', () => {
       expect(data && data.length > 0).toBe(true);
       expect((data![0] as { payment_method: string }).payment_method).toBe('bank_transfer');
     } finally {
-      // Reset payment settings
+      // Reset
+      await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await admin
         .from('payment_settings')
-        .update({
-          bank_transfer_enabled: false,
-          account_holder: null,
-          bank_name: null,
-          rib: null,
-          payment_phone: null,
-          instructions: null,
-        })
+        .update({ bank_transfer_enabled: false, payment_phone: null, instructions: null })
         .eq('singleton', true);
 
       // Cleanup
@@ -404,22 +415,18 @@ test.describe('Booking Payment Method Selection', () => {
     }
   });
 
-  test('disabled bank transfer — only cash tile renders', async ({
+  test('zero accounts + toggle on — bank transfer tile is not rendered', async ({
     authenticatedPage,
     testCustomer,
   }) => {
     const page = authenticatedPage;
     const admin = adminClient();
 
-    // Ensure bank transfer is disabled
+    // Enable bank transfer but delete all accounts
+    await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await admin
       .from('payment_settings')
-      .update({
-        bank_transfer_enabled: false,
-        account_holder: null,
-        bank_name: null,
-        rib: null,
-      })
+      .update({ bank_transfer_enabled: true, payment_phone: null, instructions: null })
       .eq('singleton', true);
 
     try {
@@ -441,6 +448,95 @@ test.describe('Booking Payment Method Selection', () => {
       await page.getByTestId('btn:confirm-booking').click();
       await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
     } finally {
+      // Reset
+      await admin
+        .from('payment_settings')
+        .update({ bank_transfer_enabled: false })
+        .eq('singleton', true);
+
+      // Cleanup
+      await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
+    }
+  });
+
+  test('two accounts — both names render and each Copy works independently', async ({
+    authenticatedPage,
+    testCustomer,
+  }) => {
+    const page = authenticatedPage;
+    const admin = adminClient();
+
+    // Seed two active bank accounts
+    await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await admin
+      .from('payment_bank_accounts')
+      .insert([
+        {
+          account_holder: 'Holder A',
+          bank_name: 'Bank A',
+          rib: '111111111111111111111111',
+          is_active: true,
+          sort_order: 0,
+        },
+        {
+          account_holder: 'Holder B',
+          bank_name: 'Bank B',
+          rib: '222222222222222222222222',
+          is_active: true,
+          sort_order: 1,
+        },
+      ]);
+    await admin
+      .from('payment_settings')
+      .update({
+        bank_transfer_enabled: true,
+        payment_phone: '+212600000099',
+        instructions: null,
+      })
+      .eq('singleton', true);
+
+    try {
+      await page.goto('/');
+      await navigateToDetailsStep(page, barberId, serviceId, testDate);
+
+      await page.fill('#f-first', testCustomer.email.split('@')[0]);
+      await page.fill('#f-last', 'Test');
+      await page.fill('#f-phone', '+212600000009');
+
+      // Click bank transfer
+      const bankBtn = page.getByTestId('btn:payment-bank-transfer');
+      await expect(bankBtn).toBeVisible({ timeout: 10000 });
+      await bankBtn.click();
+      await page.waitForTimeout(500);
+
+      // Both bank names should be visible
+      await expect(page.getByText('Bank A')).toBeVisible();
+      await expect(page.getByText('Bank B')).toBeVisible();
+
+      // Both RIBs should be visible (formatted)
+      await expect(page.getByText('1111 1111 1111 1111 1111 1111')).toBeVisible();
+      await expect(page.getByText('2222 2222 2222 2222 2222 2222')).toBeVisible();
+
+      // Click the second account's Copy button
+      const copyButtons = page.locator('[data-copy-btn="true"]');
+      await expect(copyButtons).toHaveCount(2);
+      await copyButtons.nth(1).click();
+      await page.waitForTimeout(200);
+
+      // Second button shows Copied
+      await expect(copyButtons.nth(1)).toHaveText('Copied ✓');
+
+      // Complete booking
+      await page.getByTestId('btn:confirm-booking').click();
+      await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+    } finally {
+      // Reset
+      await admin.from('payment_bank_accounts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await admin
+        .from('payment_settings')
+        .update({ bank_transfer_enabled: false, payment_phone: null })
+        .eq('singleton', true);
+
       // Cleanup
       await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
     }
