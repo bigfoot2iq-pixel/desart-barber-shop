@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { sendEmail } from '@/lib/notifications/channels/email-resend';
+import type { CustomerNotificationSettings } from '@/lib/notifications/types';
 
 export async function POST(request: Request) {
   const supabase = await createServerClient();
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
   const { data: settings, error } = await serviceSupabase
     .from('customer_notification_settings')
     .select('*')
+    .returns<CustomerNotificationSettings[]>()
     .limit(1)
     .maybeSingle();
 

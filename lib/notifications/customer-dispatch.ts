@@ -14,6 +14,7 @@ export async function dispatchCustomerEvent(
   const { data: settings, error: settingsError } = await supabase
     .from('customer_notification_settings')
     .select('*')
+    .returns<CustomerNotificationSettings[]>()
     .limit(1)
     .maybeSingle();
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import type { CustomerNotificationSettings } from '@/lib/notifications/types';
 
 export async function GET() {
   const supabase = await createServerClient();
@@ -19,6 +20,7 @@ export async function GET() {
   const { data: settings, error } = await serviceSupabase
     .from('customer_notification_settings')
     .select('*')
+    .returns<CustomerNotificationSettings[]>()
     .limit(1)
     .maybeSingle();
 
@@ -95,6 +97,7 @@ export async function PUT(request: Request) {
   const { data: existing } = await serviceSupabase
     .from('customer_notification_settings')
     .select('id, resend_api_key')
+    .returns<CustomerNotificationSettings[]>()
     .limit(1)
     .maybeSingle();
 
@@ -111,7 +114,7 @@ export async function PUT(request: Request) {
   if (existing) {
     const { error: updateError } = await serviceSupabase
       .from('customer_notification_settings')
-      .update(updates)
+      .update(updates as never)
       .eq('id', existing.id);
 
     if (updateError) {
@@ -124,7 +127,7 @@ export async function PUT(request: Request) {
     }
     const { error: insertError } = await serviceSupabase
       .from('customer_notification_settings')
-      .insert(updates);
+      .insert(updates as never);
 
     if (insertError) {
       console.error('[customer-settings] insert error', insertError);
