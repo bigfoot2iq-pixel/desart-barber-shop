@@ -7,7 +7,7 @@
 # Test info
 
 - Name: booking-state-consistency.spec.ts >> Booking State Consistency — Section 17 >> 17.1 — reopened modal reflects just-created booking
-- Location: __tests__\e2e\booking-state-consistency.spec.ts:154:7
+- Location: __tests__\e2e\booking-state-consistency.spec.ts:156:7
 
 # Error details
 
@@ -28,8 +28,6 @@ Call log:
 # Test source
 
 ```ts
-  32  | async function getActiveBarberId(): Promise<string> {
-  33  |   const admin = adminClient();
   34  |   const { data, error } = await admin
   35  |     .from('professionals')
   36  |     .select('id')
@@ -104,130 +102,132 @@ Call log:
   105 |   const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
   106 |   await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
   107 |   await serviceBtn.click();
-  108 |   await page.waitForTimeout(800);
-  109 | 
-  110 |   const dateBtn = page.getByTestId(`btn:date-${testDate}`);
-  111 |   await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
-  112 |   await dateBtn.scrollIntoViewIfNeeded();
-  113 |   await dateBtn.click({ force: true });
-  114 |   await page.waitForTimeout(800);
-  115 | 
-  116 |   const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  117 |   await timeSlots.first().waitFor({ state: 'visible', timeout: 10000 });
-  118 |   await timeSlots.first().click();
-  119 |   await page.waitForTimeout(800);
-  120 | 
-  121 |   await expect(page.locator('#panel-title')).toContainText('Your Details');
-  122 | }
-  123 | 
-  124 | async function submitBooking(
-  125 |   page: import('@playwright/test').Page,
-  126 |   testCustomer: { email: string }
-  127 | ): Promise<void> {
-  128 |   await page.fill('#f-first', testCustomer.email.split('@')[0]);
-  129 |   await page.fill('#f-last', 'Test');
-  130 |   await page.fill('#f-phone', `+2126${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`);
-  131 |   await page.getByTestId('btn:confirm-booking').click();
-> 132 |   await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+  108 |   await page.waitForTimeout(500);
+  109 |   await page.getByTestId('btn:services-continue').click();
+  110 |   await page.waitForTimeout(800);
+  111 | 
+  112 |   const dateBtn = page.getByTestId(`btn:date-${testDate}`);
+  113 |   await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
+  114 |   await dateBtn.scrollIntoViewIfNeeded();
+  115 |   await dateBtn.click({ force: true });
+  116 |   await page.waitForTimeout(800);
+  117 | 
+  118 |   const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
+  119 |   await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
+  120 |   await firstTimeSlot.click();
+  121 |   await page.waitForTimeout(800);
+  122 | 
+  123 |   await expect(page.locator('#panel-title')).toContainText('Your Details');
+  124 | }
+  125 | 
+  126 | async function submitBooking(
+  127 |   page: import('@playwright/test').Page,
+  128 |   testCustomer: { email: string }
+  129 | ): Promise<void> {
+  130 |   await page.fill('#f-first', testCustomer.email.split('@')[0]);
+  131 |   await page.fill('#f-last', 'Test');
+  132 |   await page.fill('#f-phone', `+2126${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`);
+  133 |   await page.getByTestId('btn:confirm-booking').click();
+> 134 |   await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
       |                                                            ^ Error: expect(locator).toBeVisible() failed
-  133 | }
-  134 | 
-  135 | test.describe('Booking State Consistency — Section 17', () => {
-  136 |   let barberId: string;
-  137 |   let serviceId: string;
-  138 |   let salonId: string;
-  139 |   let testDate: string;
-  140 | 
-  141 |   test.beforeAll(async () => {
-  142 |     salonId = await getActiveSalonId();
-  143 |     barberId = await getActiveBarberId();
-  144 |     testDate = tomorrowStr();
-  145 |     serviceId = await getServiceIdForBarber(barberId);
-  146 |     await seedWeeklyAvailabilityForBarber(barberId);
-  147 |   });
-  148 | 
-  149 |   test.afterAll(async () => {
-  150 |     await clearWeeklyAvailability(barberId);
-  151 |   });
-  152 | 
-  153 |   // 17.1 After success, modal closes → reopen → bookingsInRange reflects the just-created row
-  154 |   test('17.1 — reopened modal reflects just-created booking', async ({
-  155 |     authenticatedPage,
-  156 |     testCustomer,
-  157 |   }) => {
-  158 |     const page = authenticatedPage;
-  159 |     await page.goto('/');
-  160 | 
-  161 |     // Complete a booking
-  162 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
-  163 |     await submitBooking(page, testCustomer);
-  164 | 
-  165 |     // Close the modal
-  166 |     const closeBtn = page.getByRole('button', { name: /close/i });
-  167 |     await closeBtn.click();
-  168 |     await page.waitForTimeout(500);
-  169 | 
-  170 |     // Reopen the modal
-  171 |     await page.getByTestId('btn:open-booking').first().click();
-  172 |     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
-  173 | 
-  174 |     // Navigate to time step
-  175 |     await page.waitForTimeout(500);
-  176 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
-  177 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
-  178 |     await locationBtns.first().click();
-  179 |     await page.waitForTimeout(800);
-  180 | 
-  181 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
-  182 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
-  183 |     await barberBtn.click();
-  184 |     await page.waitForTimeout(800);
-  185 | 
-  186 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
-  187 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
-  188 |     await serviceBtn.click();
-  189 |     await page.waitForTimeout(800);
-  190 | 
-  191 |     // Select the same date
-  192 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
-  193 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
-  194 |     await dateBtn.scrollIntoViewIfNeeded();
-  195 |     await dateBtn.click({ force: true });
-  196 |     await page.waitForTimeout(1500);
-  197 | 
-  198 |     // The time slot we booked should NOT be available anymore
-  199 |     // (it was taken by our own booking)
-  200 |     const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  201 |     const count = await timeSlots.count();
-  202 | 
-  203 |     // Verify the date is still selectable (there should be other slots)
-  204 |     // or if fully booked, show empty state
-  205 |     const hasSlots = count > 0;
-  206 |     const hasEmptyState = await page.getByText('No slots available on this day').isVisible({ timeout: 3000 }).catch(() => false);
-  207 | 
-  208 |     // Either there are fewer slots than before, or empty state
-  209 |     expect(hasSlots || hasEmptyState).toBe(true);
-  210 |   });
-  211 | 
-  212 |   // 17.2 Booking the same slot a second time without closing the modal
-  213 |   //       → second attempt blocked by constraint + friendly error
-  214 |   // This is hard to test because after success the modal goes to step 6
-  215 |   // (confirmed), and the user would need to navigate back. The UI doesn't
-  216 |   // allow going back from step 6 to re-submit.
-  217 |   test('17.2 — booking same slot twice without closing modal is blocked (plan item 17.2 — UI goes to step 6 after success, no back path to re-submit)', () => {
-  218 |     test.skip(true, 'todo: not yet implemented');
-  219 |   });
-  220 | 
-  221 |   // 17.3 Browser tab left open an hour, another user books the same slot
-  222 |   //       → current user's submit hits SLOT_TAKEN, UI recovers
-  223 |   // This requires simulating a concurrent booking by another user between
-  224 |   // the time selection and the submit.
-  225 |   test('17.3 — concurrent booking by another user triggers SLOT_TAKEN recovery', async ({
-  226 |     authenticatedPage,
-  227 |     testCustomer,
-  228 |   }) => {
-  229 |     const page = authenticatedPage;
-  230 |     const admin = adminClient();
-  231 | 
-  232 |     // Create another customer who will book the same slot
+  135 | }
+  136 | 
+  137 | test.describe('Booking State Consistency — Section 17', () => {
+  138 |   let barberId: string;
+  139 |   let serviceId: string;
+  140 |   let salonId: string;
+  141 |   let testDate: string;
+  142 | 
+  143 |   test.beforeAll(async () => {
+  144 |     salonId = await getActiveSalonId();
+  145 |     barberId = await getActiveBarberId();
+  146 |     testDate = tomorrowStr();
+  147 |     serviceId = await getServiceIdForBarber(barberId);
+  148 |     await seedWeeklyAvailabilityForBarber(barberId);
+  149 |   });
+  150 | 
+  151 |   test.afterAll(async () => {
+  152 |     await clearWeeklyAvailability(barberId);
+  153 |   });
+  154 | 
+  155 |   // 17.1 After success, modal closes → reopen → bookingsInRange reflects the just-created row
+  156 |   test('17.1 — reopened modal reflects just-created booking', async ({
+  157 |     authenticatedPage,
+  158 |     testCustomer,
+  159 |   }) => {
+  160 |     const page = authenticatedPage;
+  161 |     await page.goto('/');
+  162 | 
+  163 |     // Complete a booking
+  164 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
+  165 |     await submitBooking(page, testCustomer);
+  166 | 
+  167 |     // Close the modal
+  168 |     const closeBtn = page.getByRole('button', { name: /close/i });
+  169 |     await closeBtn.click();
+  170 |     await page.waitForTimeout(500);
+  171 | 
+  172 |     // Reopen the modal
+  173 |     await page.getByTestId('btn:open-booking').first().click();
+  174 |     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
+  175 | 
+  176 |     // Navigate to time step
+  177 |     await page.waitForTimeout(500);
+  178 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
+  179 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
+  180 |     await locationBtns.first().click();
+  181 |     await page.waitForTimeout(800);
+  182 | 
+  183 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
+  184 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
+  185 |     await barberBtn.click();
+  186 |     await page.waitForTimeout(800);
+  187 | 
+  188 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
+  189 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
+  190 |     await serviceBtn.click();
+  191 |     await page.waitForTimeout(800);
+  192 | 
+  193 |     // Select the same date
+  194 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
+  195 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
+  196 |     await dateBtn.scrollIntoViewIfNeeded();
+  197 |     await dateBtn.click({ force: true });
+  198 |     await page.waitForTimeout(1500);
+  199 | 
+  200 |     // The time slot we booked should NOT be available anymore
+  201 |     // (it was taken by our own booking)
+  202 |     const timeSlots = page.locator('[data-testid^="btn:time-"]');
+  203 |     const count = await timeSlots.count();
+  204 | 
+  205 |     // Verify the date is still selectable (there should be other slots)
+  206 |     // or if fully booked, show empty state
+  207 |     const hasSlots = count > 0;
+  208 |     const hasEmptyState = await page.getByText('No slots available on this day').isVisible({ timeout: 3000 }).catch(() => false);
+  209 | 
+  210 |     // Either there are fewer slots than before, or empty state
+  211 |     expect(hasSlots || hasEmptyState).toBe(true);
+  212 |   });
+  213 | 
+  214 |   // 17.2 Booking the same slot a second time without closing the modal
+  215 |   //       → second attempt blocked by constraint + friendly error
+  216 |   // This is hard to test because after success the modal goes to step 6
+  217 |   // (confirmed), and the user would need to navigate back. The UI doesn't
+  218 |   // allow going back from step 6 to re-submit.
+  219 |   test('17.2 — booking same slot twice without closing modal is blocked (plan item 17.2 — UI goes to step 6 after success, no back path to re-submit)', () => {
+  220 |     test.skip(true, 'todo: not yet implemented');
+  221 |   });
+  222 | 
+  223 |   // 17.3 Browser tab left open an hour, another user books the same slot
+  224 |   //       → current user's submit hits SLOT_TAKEN, UI recovers
+  225 |   // This requires simulating a concurrent booking by another user between
+  226 |   // the time selection and the submit.
+  227 |   test('17.3 — concurrent booking by another user triggers SLOT_TAKEN recovery', async ({
+  228 |     authenticatedPage,
+  229 |     testCustomer,
+  230 |   }) => {
+  231 |     const page = authenticatedPage;
+  232 |     const admin = adminClient();
+  233 | 
+  234 |     // Create another customer who will book the same slot
 ```

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
@@ -140,20 +140,27 @@ export default function Home() {
   const [showHomePanel, setShowHomePanel] = useState(false);
   const [homePin, setHomePin] = useState<{ lat: number; lng: number } | null>(null);
   const [homeLocating, setHomeLocating] = useState(false);
-  const [homeGeoError, setHomeGeoError] = useState<string | null>(null);
   const [nearbyActive, setNearbyActive] = useState(false);
   const [nearbyLocating, setNearbyLocating] = useState(false);
-  const [nearbyGeoError, setNearbyGeoError] = useState<string | null>(null);
   const [rawSalons, setRawSalons] = useState<Salon[]>([]);
   const [salonDistances, setSalonDistances] = useState<Record<string, number>>({});
   const [barberWeekly, setBarberWeekly] = useState<ProfessionalAvailability[]>([]);
   const [barberOverrides, setBarberOverrides] = useState<AvailabilityOverride[]>([]);
   const [bookingsInRange, setBookingsInRange] = useState<{ professional_id: string | null; appointment_date: string; start_time: string; end_time: string }[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ key: string; slots: { start_time: string; end_time: string }[] } | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [showUserPanel, setShowUserPanel] = useState(false);
-  const [toast, setToast] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [toast, setToast] = useState<{
+    kind: "success" | "error";
+    text: string;
+    testid?: string;
+  } | null>(null);
+
+  const [isLoadingBarbers, setIsLoadingBarbers] = useState(true);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
+  const [isLoadingSalons, setIsLoadingSalons] = useState(true);
+
+  const prefersReducedMotion = useReducedMotion();
 
   const { user, signInWithGoogleModal, verifyUser } = useAuth();
 
@@ -240,6 +247,7 @@ export default function Home() {
   );
 
   useEffect(() => {
+    setIsLoadingBarbers(true);
     getActiveProfessionalsWithServices()
       .then((data: ProfessionalWithServices[]) => {
         const mapped: BarberOption[] = data.map((p) => ({
@@ -265,11 +273,14 @@ export default function Home() {
           })),
         }));
         setBarbers(mapped);
+        setIsLoadingBarbers(false);
       })
       .catch((err) => {
         console.error("Failed to load professionals:", err);
+        setIsLoadingBarbers(false);
       });
 
+    setIsLoadingServices(true);
     getActiveServices()
       .then((data) => {
         setServices(
@@ -281,11 +292,14 @@ export default function Home() {
             duration: s.duration_minutes,
           }))
         );
+        setIsLoadingServices(false);
       })
       .catch((err) => {
         console.error("Failed to load services:", err);
+        setIsLoadingServices(false);
       });
 
+    setIsLoadingSalons(true);
     getActiveSalons()
       .then((data: Salon[]) => {
         setRawSalons(data);
@@ -297,9 +311,11 @@ export default function Home() {
           type: "salon" as const,
         }));
         setSalons(mapped);
+        setIsLoadingSalons(false);
       })
       .catch((err) => {
         console.error("Failed to load salons:", err);
+        setIsLoadingSalons(false);
       });
   }, []);
 
@@ -410,7 +426,6 @@ export default function Home() {
   };
 
   const handleNearby = useCallback(() => {
-    setNearbyGeoError(null);
     if (nearbyActive) {
       setNearbyActive(false);
       setSalonDistances({});
@@ -456,12 +471,12 @@ export default function Home() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setNearbyGeoError("Location access denied. Please enable location in your browser settings.");
+        setToast({ kind: "error", text: "Location access denied. Please enable location in your browser settings." });
         setNearbyLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, [nearbyActive, rawSalons]);
+  }, [nearbyActive, rawSalons, setToast]);
 
   const openHomePanel = useCallback(() => {
     setHomePin((prev) => prev ?? { lat: 30.4202, lng: -9.5982 });
@@ -477,7 +492,6 @@ export default function Home() {
   }, []);
 
   const handleHomeMyLocation = useCallback(() => {
-    setHomeGeoError(null);
     setHomeLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -485,12 +499,12 @@ export default function Home() {
         setHomeLocating(false);
       },
       (err) => {
-        setHomeGeoError(err.message);
+        setToast({ kind: "error", text: err.message });
         setHomeLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, []);
+  }, [setToast]);
 
   const handleConfirmHomeLocation = useCallback(() => {
     setSelectedLocation(HOME_LOCATION);
@@ -564,6 +578,10 @@ export default function Home() {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (showHomePanel) {
+          setShowHomePanel(false);
+          return;
+        }
         if (showUserPanel) {
           setShowUserPanel(false);
           return;
@@ -574,7 +592,7 @@ export default function Home() {
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isModalOpen, showUserPanel]);
+  }, [isModalOpen, showHomePanel, showUserPanel]);
 
   useEffect(() => {
     return () => {
@@ -586,7 +604,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 2800);
+    const ms = toast.kind === "error" ? 5000 : 2800;
+    const timer = window.setTimeout(() => setToast(null), ms);
     return () => window.clearTimeout(timer);
   }, [toast]);
 
@@ -634,7 +653,6 @@ export default function Home() {
     setShowHomePanel(false);
     setHomePin(null);
     setHomeLocating(false);
-    setHomeGeoError(null);
   };
 
   const finishBooking = () => {
@@ -732,7 +750,13 @@ export default function Home() {
       if (!formComplete) return;
       const draft = buildDraft();
       if (!draft) return;
-      setSaveError(null);
+
+      const phoneRegex = /^(?:\+?212|0)\s?[5-7](?:[\s-]?\d){8}$/;
+      if (!phoneRegex.test(phone.trim())) {
+        setToast({ kind: "error", text: "Please enter a valid Moroccan phone number." });
+        return;
+      }
+
       setIsSubmitting(true);
       try {
         // Revalidate against the server — a cached `user` here may refer to
@@ -754,7 +778,7 @@ export default function Home() {
       } catch (err) {
         console.error("Failed to save appointment:", err);
         if (err instanceof Error && err.message === 'SLOT_TAKEN') {
-          setSaveError("That time was just booked. Please pick another slot.");
+          setToast({ kind: "error", text: "That time was just booked. Please pick another slot.", testid: "text:booking-error" });
           setBookedSlots(null);
           if (selectedBarber && selectedDate) {
             const refreshed = await getBookedSlots(selectedBarber.id, selectedDate.id);
@@ -765,7 +789,7 @@ export default function Home() {
           const message = err instanceof Error && err.message
             ? err.message
             : "Couldn't save your booking. Please try again.";
-          setSaveError(message);
+          setToast({ kind: "error", text: message, testid: "text:booking-error" });
         }
         setIsSubmitting(false);
       }
@@ -775,6 +799,20 @@ export default function Home() {
     setDirection("forward");
     setStep((current) => Math.min(current + 1, 5));
   };
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && canContinue && step <= 5) {
+        const target = event.target as HTMLElement;
+        if (target.tagName === "TEXTAREA") return;
+        if (step === 5 && target.tagName === "INPUT" && !formComplete) return;
+        advanceStep();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen, canContinue, step, formComplete, advanceStep]);
 
   const prevStep = () => {
     if (step <= 1 || isSubmitting) return;
@@ -812,14 +850,10 @@ export default function Home() {
   }, [selectedBarber, step]);
 
   useEffect(() => {
-    if (step === 3 && effectiveSelectedServices.length > 0) {
-      const t = window.setTimeout(() => {
-        setDirection("forward");
-        setStep((current) => Math.min(current + 1, 5));
-      }, 500);
-      return () => window.clearTimeout(t);
+    if (step === 4 && selectedDate && timeSlotStatuses.length === 0) {
+      setCalendarExpanded(true);
     }
-  }, [effectiveSelectedServices, step]);
+  }, [step, selectedDate, timeSlotStatuses]);
 
   useEffect(() => {
     if (step === 4 && selectedDate && effectiveSelectedTime) {
@@ -830,6 +864,18 @@ export default function Home() {
       return () => window.clearTimeout(t);
     }
   }, [selectedDate, effectiveSelectedTime, step]);
+
+  useEffect(() => {
+    if (step !== 5) return;
+    if (document.activeElement && (document.activeElement as HTMLElement).tagName === "INPUT") return;
+    if (!firstName) {
+      document.getElementById("f-first")?.focus();
+    } else if (!lastName) {
+      document.getElementById("f-last")?.focus();
+    } else if (!phone) {
+      document.getElementById("f-phone")?.focus();
+    }
+  }, [step, firstName, lastName, phone]);
 
   const stepVariants = {
     enter: (dir: "forward" | "back") => ({
@@ -846,12 +892,14 @@ export default function Home() {
     }),
   };
 
-  const stepTransition = {
-    type: "spring" as const,
-    stiffness: 300,
-    damping: 30,
-    mass: 0.8,
-  };
+  const stepTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8,
+      };
 
   return (
     <>
@@ -1257,8 +1305,9 @@ export default function Home() {
         {isModalOpen && (
           <motion.div
             className="fixed inset-0 z-[500] flex items-end justify-end p-5 pointer-events-none bg-[rgb(10_8_0/35%)] [backdrop-filter:blur(4px)] max-sm:p-0 max-sm:bg-[#fafaf8] max-sm:[backdrop-filter:none] max-sm:items-stretch max-sm:justify-stretch"
-            onClick={(event) => {
+              onClick={(event) => {
               if (event.target === event.currentTarget) {
+                if (step >= 5) return;
                 closeModal();
               }
             }}
@@ -1274,7 +1323,7 @@ export default function Home() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 25, stiffness: 200 }}
             >
               <AnimatePresence>
                 {toast && (
@@ -1283,13 +1332,18 @@ export default function Home() {
                     initial={{ y: -40, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -40, opacity: 0 }}
-                    transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                    transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 28, stiffness: 250 }}
                   >
-                    <div className={`rounded-xl px-4 py-3 text-sm font-medium shadow-[0_4px_16px_rgb(0_0_0/12%)] ${
-                      toast.kind === "success"
-                        ? "bg-[#c09a5a] text-white"
-                        : "bg-red-600 text-white"
-                    }`}>
+                    <div
+                      data-testid={toast.testid}
+                      role={toast.kind === "error" ? "alert" : "status"}
+                      aria-live={toast.kind === "error" ? "assertive" : "polite"}
+                      className={`rounded-xl px-4 py-3 text-sm font-medium shadow-[0_4px_16px_rgb(0_0_0/12%)] ${
+                        toast.kind === "success"
+                          ? "bg-[#c09a5a] text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                    >
                       {toast.text}
                     </div>
                   </motion.div>
@@ -1306,7 +1360,7 @@ export default function Home() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -12, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } }}
                       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                      className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)]"
+                      className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                       onClick={prevStep}
                       aria-label="Go back"
                     >
@@ -1317,21 +1371,32 @@ export default function Home() {
                   )}
                 </AnimatePresence>
                 <div className="flex-1 flex flex-col items-start gap-1 min-w-0">
-                  <p
-                    key={`header-${step}`}
-                    className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em]"
-                    id="panel-title"
-                  >
-                    {step === 1 && "Choose a Location"}
-                    {step === 2 && "Choose a Berber"}
-                    {step === 3 && "Choose a Service"}
-                    {step === 4 && "Choose a Time"}
-                    {step === 5 && "Your Details"}
-                    {step === 6 && "Booking Confirmed"}
-                  </p>
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={step}
+                      className="text-[15px] font-bold text-brand-black m-0 text-left tracking-[-0.01em]"
+                      id="panel-title"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      {step === 1 && "Choose a Location"}
+                      {step === 2 && "Choose a Berber"}
+                      {step === 3 && "Choose a Service"}
+                      {step === 4 && "Choose a Time"}
+                      {step === 5 && "Your Details"}
+                      {step === 6 && "Booking Confirmed"}
+                    </motion.p>
+                  </AnimatePresence>
                 </div>
                 <MenuAvatarButton onClick={() => setShowUserPanel(true)} />
-                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/20%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]" onClick={closeModal} aria-label="Close">
+                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/20%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2" onClick={() => {
+                  if (step === 5 && (firstName.trim() || lastName.trim() || phone.trim())) {
+                    if (!window.confirm("Discard your booking details?")) return;
+                  }
+                  closeModal();
+                }} aria-label="Close">
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>
@@ -1353,7 +1418,7 @@ export default function Home() {
                     {step === 1 && (
                       <>
                         <div className="flex mb-4">
-                          <button type="button" onClick={handleNearby} disabled={nearbyLocating} className={`flex items-center justify-center h-8 px-3 mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${nearbyActive ? "border-gold bg-gold text-white" : nearbyLocating ? "border-[rgb(10_8_0/22%)] bg-white text-black cursor-wait" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"}`}>
+                          <button type="button" onClick={handleNearby} disabled={nearbyLocating} className={`flex items-center justify-center h-8 px-3 mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${nearbyActive ? "border-gold bg-gold text-white" : nearbyLocating ? "border-[rgb(10_8_0/22%)] bg-white text-black cursor-wait" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}>
                             {nearbyLocating ? (
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="mr-1.5 animate-spin opacity-60" stroke="currentColor" strokeWidth="2.5">
                                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/>
@@ -1366,7 +1431,7 @@ export default function Home() {
                             )}
                             Nearby
                           </button>
-                          <button type="button" className={`flex items-center justify-center h-8 px-3 mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${showHomePanel ? "border-gold bg-gold text-white" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"}`} onClick={openHomePanel}>
+                          <button type="button" className={`flex items-center justify-center h-8 px-3 mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${showHomePanel ? "border-gold bg-gold text-white" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`} onClick={openHomePanel}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5 opacity-60">
                               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                               <polyline points="9 22 9 12 15 12 15 22" />
@@ -1374,8 +1439,18 @@ export default function Home() {
                             Come to me
                           </button>
                         </div>
-                        {nearbyGeoError && (
-                          <p className="text-[11px] text-red-500 mb-3 -mt-1">{nearbyGeoError}</p>
+                        {isLoadingSalons && salons.length === 0 && (
+                          <div className="grid grid-cols-1 gap-2.5 mb-4">
+                            {[1,2,3].map((i) => (
+                              <div key={i} className="flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 border-[1.5px] border-[rgb(10_8_0/8%)] bg-[rgb(10_8_0/3%)] animate-pulse">
+                                <div className="shrink-0 w-[107px] h-[107px] rounded-[10px] bg-[rgb(10_8_0/8%)]" />
+                                <div className="flex-1 flex flex-col gap-2 mt-2">
+                                  <div className="h-4 bg-[rgb(10_8_0/8%)] rounded w-3/4" />
+                                  <div className="h-3 bg-[rgb(10_8_0/6%)] rounded w-1/2" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                         <div className={`grid grid-cols-1 gap-2.5 transition-opacity ${nearbyLocating ? "animate-pulse pointer-events-none" : ""}`}>
                           {salons.map((location) => {
@@ -1385,7 +1460,7 @@ export default function Home() {
                                 key={location.id}
                                 type="button"
                                 data-testid={`btn:location-${location.id}`}
-                                className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                 onClick={() => setSelectedLocation(location)}
                               >
                                 {location.imageUrl ? (
@@ -1437,6 +1512,19 @@ export default function Home() {
                       <>
                         
                         <div className="flex flex-col gap-2">
+                          {isLoadingBarbers && barbers.length === 0 && (
+                            <div className="flex flex-col gap-2">
+                              {[1,2,3].map((i) => (
+                                <div key={i} className="flex items-center gap-3.5 rounded-2xl px-[18px] py-4 border-[1.5px] border-[rgb(10_8_0/8%)] bg-[rgb(10_8_0/3%)] animate-pulse">
+                                  <div className="w-10 h-10 rounded-full bg-[rgb(10_8_0/8%)] shrink-0" />
+                                  <div className="flex-1 flex flex-col gap-1.5">
+                                    <div className="h-3.5 bg-[rgb(10_8_0/8%)] rounded w-1/3" />
+                                    <div className="h-2.5 bg-[rgb(10_8_0/6%)] rounded w-1/4" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {barbers.map((barber) => {
                             const isBarberSelected = selectedBarber?.id === barber.id;
                             const nextAvailable = nextAvailableByBarber.get(barber.id);
@@ -1446,7 +1534,7 @@ export default function Home() {
                                 key={barber.id}
                                 type="button"
                                 data-testid={`btn:barber-${barber.id}`}
-                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
+                                className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                 onClick={() => setSelectedBarber(barber)}
                               >
                                 <div className="relative flex items-center justify-center shrink-0">
@@ -1480,32 +1568,82 @@ export default function Home() {
                     )}
 
                     {step === 3 && (
-                      <>
-                        
-                        <div className="flex flex-col gap-2">
-                          {(selectedBarber?.services ?? []).length === 0 && (
-                            <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">This barber has no services listed yet.</p>
-                          )}
-                          {(selectedBarber?.services ?? []).map((service) => {
-                            const isServiceSelected = selectedServices.some((s) => s.id === service.id);
-                            return (
-                              <button
-                                key={service.id}
-                                type="button"
-                                data-testid={`btn:service-${service.id}`}
-                                className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
-                                onClick={() => toggleService(service)}
-                              >
-                                <div className="flex flex-col gap-0.5 items-start">
-                                    <div className={`text-sm font-semibold tracking-[-0.01em] text-left ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.name}</div>
-                                    <div className={`text-[11px] font-medium text-left ${isServiceSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/40%)]"}`}>{service.duration} min</div>
+                      <div className="flex flex-col h-full">
+                        <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5">
+                          <div className="flex flex-col gap-2 pb-24">
+                            {(selectedBarber?.services ?? []).length === 0 && !isLoadingServices && (
+                              <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">This barber has no services listed yet.</p>
+                            )}
+                            {isLoadingServices && (selectedBarber?.services ?? []).length === 0 && (
+                              <div className="flex flex-col gap-2">
+                                {[1,2,3].map((i) => (
+                                  <div key={i} className="flex items-center justify-between rounded-xl px-4 py-3.5 border-[1.5px] border-[rgb(10_8_0/8%)] bg-[rgb(10_8_0/3%)] animate-pulse">
+                                    <div className="flex flex-col gap-1.5 w-2/3">
+                                      <div className="h-4 bg-[rgb(10_8_0/8%)] rounded w-3/4" />
+                                      <div className="h-3 bg-[rgb(10_8_0/6%)] rounded w-1/3" />
+                                    </div>
+                                    <div className="h-4 bg-[rgb(10_8_0/8%)] rounded w-16" />
                                   </div>
-                                <span className={`text-[15px] font-bold tracking-[-0.02em] ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.price} MAD</span>
-                              </button>
-                            );
-                          })}
+                                ))}
+                              </div>
+                            )}
+                            {(selectedBarber?.services ?? []).map((service) => {
+                              const isServiceSelected = selectedServices.some((s) => s.id === service.id);
+                              return (
+                                <button
+                                  key={service.id}
+                                  type="button"
+                                  data-testid={`btn:service-${service.id}`}
+                                  className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
+                                  onClick={() => step === 3 && toggleService(service)}
+                                >
+                                  <div className="flex flex-col gap-0.5 items-start">
+                                      <div className={`text-sm font-semibold tracking-[-0.01em] text-left ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.name}</div>
+                                      <div className={`text-[11px] font-medium text-left ${isServiceSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/40%)]"}`}>{service.duration} min</div>
+                                    </div>
+                                  <span className={`text-[15px] font-bold tracking-[-0.02em] ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.price} MAD</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {effectiveSelectedServices.length === 0 && (selectedBarber?.services ?? []).length > 1 && !isLoadingServices && (
+                            <p className="text-[11px] text-[rgb(10_8_0/45%)] text-center py-3">
+                              Pick one or more services, then tap Continue.
+                            </p>
+                          )}
                         </div>
-                      </>
+
+                        <AnimatePresence>
+                          {effectiveSelectedServices.length > 0 && (
+                            <motion.div
+                              key="service-cta"
+                              initial={{ y: 80, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: 80, opacity: 0 }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 26, stiffness: 260 }}
+                              className="shrink-0 px-5 pt-3 pb-5 bg-[#fafaf8] border-t border-[rgb(10_8_0/8%)]"
+                            >
+                              <button
+                                type="button"
+                                data-testid="btn:services-continue"
+                                onClick={advanceStep}
+                                className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                              >
+                                <span>
+                                  Continue
+                                  <span className="opacity-60 normal-case tracking-normal ml-2 font-medium">
+                                    {effectiveSelectedServices.length} service{effectiveSelectedServices.length > 1 ? "s" : ""}
+                                  </span>
+                                </span>
+                                <span className="font-bold tracking-[-0.01em]">
+                                  {effectiveSelectedServices.reduce((s, x) => s + x.price, 0)} MAD
+                                </span>
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     )}
 
                     {step === 4 && (
@@ -1545,7 +1683,7 @@ export default function Home() {
                                           : day.isAvailable
                                           ? "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)] cursor-pointer"
                                           : "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] cursor-not-allowed"
-                                      }`}
+                                      } focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                     >
                                       <span className={`text-lg font-bold tracking-[-0.02em] leading-none ${
                                         isDateSelected ? "text-white" : day.isPast || day.isFriday || !day.isAvailable ? "text-[rgb(10_8_0/18%)] line-through" : "text-brand-black"
@@ -1559,7 +1697,7 @@ export default function Home() {
                                 <button
                                   type="button"
                                   onClick={() => setCalendarExpanded(true)}
-                                  className="flex-1 flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-[rgb(10_8_0/18%)] bg-white transition-all duration-250 hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/2%)] cursor-pointer"
+                                  className="flex-1 flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-[rgb(10_8_0/18%)] bg-white transition-all duration-250 hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/2%)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                                 >
                                   <svg viewBox="0 0 12 6" width="13" height="7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/30%)]">
                                     <path d="M1 1l5 4 5-4" />
@@ -1578,7 +1716,7 @@ export default function Home() {
                                         type="button"
                                         onClick={goPrevMonth}
                                         disabled={!canGoPrevMonth}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoPrevMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoPrevMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                       >
                                         <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 1L1 8l8 7" /></svg>
                                       </button>
@@ -1586,7 +1724,7 @@ export default function Home() {
                                         type="button"
                                         onClick={goNextMonth}
                                         disabled={!canGoNextMonth}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoNextMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"}`}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200 ${canGoNextMonth ? "border-[rgb(10_8_0/15%)] text-brand-black hover:border-[rgb(10_8_0/28%)] hover:bg-[rgb(10_8_0/4%)] cursor-pointer" : "border-[rgb(10_8_0/10%)] text-[rgb(10_8_0/20%)] cursor-not-allowed"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                       >
                                         <svg viewBox="0 0 10 16" width="8" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l8 7-8 7" /></svg>
                                       </button>
@@ -1619,7 +1757,7 @@ export default function Home() {
                                               : day.isFriday
                                               ? "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] text-[rgb(10_8_0/20%)] line-through cursor-not-allowed"
                                               : "text-[rgb(10_8_0/25%)] cursor-not-allowed"
-                                          }`}
+                                          } focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                         >
                                           {day.date}
                                         </button>
@@ -1657,7 +1795,7 @@ export default function Home() {
                                         disabled={!available}
                                         aria-disabled={!available}
                                         title={!available ? "This time is already booked" : undefined}
-                                        className={`${baseClass} ${stateClass}`}
+                                        className={`${baseClass} ${stateClass} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                         onClick={() => available && setSelectedTime(slot)}
                                       >
                                         {slot}
@@ -1678,7 +1816,7 @@ export default function Home() {
 
 {step === 5 && (
                       <div className="flex flex-col h-full">
-                        <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5">
+                        <div className={`flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5${formComplete && !isSubmitting ? "" : " pb-6"}`}>
 
                           <div className="flex flex-col gap-4 mb-[22px]">
                             <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
@@ -1698,6 +1836,7 @@ export default function Home() {
                                   autoComplete="given-name"
                                   value={firstName}
                                   onChange={(event) => setFirstName(event.target.value)}
+                                  onBlur={() => setFirstName(firstName.trim())}
                                   className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                                 />
                               </div>
@@ -1710,6 +1849,7 @@ export default function Home() {
                                   autoComplete="family-name"
                                   value={lastName}
                                   onChange={(event) => setLastName(event.target.value)}
+                                  onBlur={() => setLastName(lastName.trim())}
                                   className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                                 />
                               </div>
@@ -1722,157 +1862,135 @@ export default function Home() {
                                   autoComplete="tel"
                                   value={phone}
                                   onChange={(event) => setPhone(event.target.value)}
+                                  onBlur={() => setPhone(phone.trim())}
                                   className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                                 />
+                                <p className="text-[10px] text-[rgb(10_8_0/40%)] mt-0.5">Format: +212 6XX XXX XXX or 06XX XXX XXX</p>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex flex-col gap-4">
-                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                              </svg>
-                              Booking Summary
-                            </div>
-                            <div className="bg-white rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] px-[18px] py-4 flex flex-col gap-0 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
-                              <div className="flex justify-between items-center gap-3 py-2">
-                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-                                    <circle cx="12" cy="10" r="3" />
-                                  </svg>
-                                  Location
-                                </span>
-                                <span className="text-sm font-semibold tracking-[-0.01em] text-right">
-                                  {selectedLocation ? (
-                                    selectedLocation.type === "home"
-                                      ? homePinLabel
-                                        ? homePinLabel.length > 35
-                                          ? `${homePinLabel.slice(0, 35)}…`
-                                          : homePinLabel
-                                        : "Come To Me"
-                                      : `${selectedLocation.name}${selectedLocation.description ? ` · ${selectedLocation.description}` : ""}`
-                                  ) : "—"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                  </svg>
-                                  Barber
-                                </span>
-                                <span className="text-sm font-semibold tracking-[-0.01em]">{selectedBarber?.name ?? "—"}</span>
-                              </div>
-                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                  </svg>
-                                  Services
-                                </span>
-                                <span className="text-sm font-semibold tracking-[-0.01em] text-right">{selectedServicesLabel || "—"}</span>
-                              </div>
-                              <div className="flex justify-between items-center gap-3 py-2 border-t border-[rgb(10_8_0/11%)]">
-                                <span className="text-[rgb(10_8_0/40%)] flex items-center gap-[5px] text-[11px] font-medium">
-                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgb(10_8_0/40%)] shrink-0">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                                    <path d="M16 2v4M8 2v4M3 10h18" />
-                                  </svg>
-                                  Date & Time
-                                </span>
-                                <span className="text-sm font-semibold tracking-[-0.01em]">
-                                  {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center gap-3 pt-3 mt-1 border-t-2 border-[rgb(10_8_0/16%)]">
-                                <span className="text-[rgb(10_8_0/40%)] text-[11px] font-semibold tracking-[0.02em] uppercase">Total</span>
-                                <span className="text-[17px] font-bold tracking-[-0.02em] text-gold">{total} MAD</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed mt-5 flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
+                          <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)] mb-4">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
                               <circle cx="12" cy="12" r="10" />
                               <path d="M12 16v-4M12 8h.01" />
                             </svg>
-                            Cash only, due at time of service. Free cancellations — just let us know.
+                            Cash only — pay at your appointment. Cancellations are free; let us know in advance.
                           </div>
 
-                          {saveError && (
-                            <div data-testid="text:booking-error" className="mt-4 text-[12px] text-red-500 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">{saveError}</div>
-                          )}
+                          <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden">
+                            <div className="px-4 py-3 flex items-center justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[13px] font-semibold text-brand-black tracking-[-0.01em] truncate">
+                                  {selectedBarber?.name ?? "—"}
+                                  <span className="text-[rgb(10_8_0/35%)] font-normal"> · </span>
+                                  <span className="text-[rgb(10_8_0/60%)] font-medium">{selectedServicesLabel || "—"}</span>
+                                </div>
+                                <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
+                                  {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
+                                  {selectedLocation ? ` · ${selectedLocation.type === "home" ? "Come to me" : selectedLocation.name}` : ""}
+                                </div>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">Total</div>
+                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{total} MAD</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="shrink-0 px-5 pb-5">
-                          <button
-                            type="button"
-                            onClick={advanceStep}
-                            disabled={!formComplete || isSubmitting}
-                            data-testid="btn:confirm-booking"
-                            className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow,opacity] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                                </svg>
-                                {user ? "Saving…" : "Waiting for Google…"}
-                              </>
-                            ) : user ? (
-                              <>Confirm Booking</>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                </svg>
-                                Continue with Google
-                              </>
-                            )}
-                          </button>
-                        </div>
+                        <AnimatePresence>
+                          {formComplete && !isSubmitting && (
+                            <motion.div
+                              key="details-cta"
+                              initial={{ y: 80, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: 80, opacity: 0 }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 26, stiffness: 260 }}
+                              className="shrink-0 px-5 pt-3 pb-5 bg-[#fafaf8] border-t border-[rgb(10_8_0/8%)]"
+                            >
+                              <button
+                                type="button"
+                                data-testid="btn:confirm-booking"
+                                onClick={advanceStep}
+                                className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                              >
+                                <span className="flex items-center gap-2">
+                                  {!user && (
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
+                                  )}
+                                  {user ? "Confirm Booking" : "Continue with Google"}
+                                </span>
+                                <span className="font-bold tracking-[-0.01em]">{total} MAD</span>
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {isSubmitting && (
+                          <div className="shrink-0 px-5 pt-3 pb-5 bg-[#fafaf8] border-t border-[rgb(10_8_0/8%)]">
+                            <button type="button" disabled data-testid="btn:confirm-booking"
+                              className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed">
+                              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                              {user ? "Saving…" : "Waiting for Google…"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {step === 6 && (
-                      <div className="text-center pt-5 pb-2" data-testid="step:booking-confirmed">
-                        <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
-                          <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
-                            <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                      <div className="flex flex-col h-full" data-testid="step:booking-confirmed">
+                        <div className="flex-1 overflow-y-auto px-1 pt-5 pb-6 text-center">
+                          <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
+                            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+                              <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </div>
+                          </div>
+                          <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
+                          <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">
+                            Your appointment has been received. We&apos;ll reach out to confirm within a few hours.
+                          </p>
+
+                          <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] text-left px-4 py-3 mx-1">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[13px] font-semibold text-brand-black tracking-[-0.01em] truncate">
+                                  {firstName} {lastName}
+                                </div>
+                                <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
+                                  {selectedDate?.fullDate}{selectedTime ? ` · ${selectedTime}` : ""} · {selectedBarber?.name}
+                                </div>
+                                <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">{selectedServicesLabel}</div>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">Total</div>
+                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{total} MAD</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
-                        <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">Your appointment has been received. We&apos;ll reach out to confirm within a few hours.</p>
-                        <div className="bg-white rounded-2xl border border-[rgb(10_8_0/11%)] px-[18px] py-4 text-left flex flex-col gap-0 shadow-[0_1px_3px_rgb(0_0_0/4%)] mb-6">
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
-                            <span className="opacity-50 text-xs font-medium">Name</span>
-                            <span>{firstName} {lastName}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
-                            <span className="opacity-50 text-xs font-medium">Date & Time</span>
-                            <span>{selectedDate?.fullDate} · {selectedTime}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
-                            <span className="opacity-50 text-xs font-medium">Barber</span>
-                            <span>{selectedBarber?.name}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 py-2 border-t border-[rgb(10_8_0/9%)]">
-                            <span className="opacity-50 text-xs font-medium">Services</span>
-                            <span>{selectedServicesLabel}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[13px] text-brand-black gap-3 pt-3 mt-1 border-t border-[rgb(10_8_0/15%)]">
-                            <span className="opacity-50 text-xs font-medium">Total</span>
-                            <span className="text-[17px] font-bold text-gold tracking-[-0.02em]">{total} MAD</span>
-                          </div>
-                        </div>
-                        <button type="button" className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] active:translate-y-0" onClick={finishBooking}>
-                          Close
-                        </button>
+
+                        <AnimatePresence>
+                          <motion.div
+                            key="confirm-cta"
+                            initial={{ y: 80, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 80, opacity: 0 }}
+                            transition={{ type: "spring", damping: 26, stiffness: 260, delay: 0.35 }}
+                            className="shrink-0 px-5 pt-3 pb-5 bg-[#fafaf8] border-t border-[rgb(10_8_0/8%)]"
+                          >
+                            <button
+                              type="button"
+                              onClick={finishBooking}
+                              className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                            >
+                              Close
+                            </button>
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
                     )}
                   </motion.div>
@@ -1904,7 +2022,7 @@ export default function Home() {
                       initial={{ y: "100%" }}
                       animate={{ y: 0 }}
                       exit={{ y: "100%" }}
-                      transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 28, stiffness: 250 }}
                     >
                       <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/11%)]">
                         <div>
@@ -1913,7 +2031,7 @@ export default function Home() {
                         </div>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/20%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]"
+                          className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/20%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                           onClick={() => setShowHomePanel(false)}
                           aria-label="Close"
                         >
@@ -1926,7 +2044,7 @@ export default function Home() {
                       <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">
                         <button
                           type="button"
-                          className="self-start flex items-center gap-2 h-8 px-4 rounded-full border border-[rgb(10_8_0/22%)] bg-white text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                          className="self-start flex items-center gap-2 h-8 px-4 rounded-full border border-[rgb(10_8_0/22%)] bg-white text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-black transition-all duration-200 hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                           onClick={handleHomeMyLocation}
                           disabled={homeLocating}
                         >
@@ -1943,10 +2061,6 @@ export default function Home() {
                           )}
                           {homeLocating ? "Detecting…" : "Use my location"}
                         </button>
-
-                        {homeGeoError && (
-                          <div className="text-[11px] text-red-500 px-3 py-2 bg-red-50 rounded-lg">{homeGeoError}</div>
-                        )}
 
                         <div className="rounded-xl overflow-hidden border border-[rgb(10_8_0/15%)]" style={{ height: 230 }}>
                           {homePin && (
@@ -1979,7 +2093,7 @@ export default function Home() {
                       <div className="px-5 pb-5 pt-3 shrink-0 border-t border-[rgb(10_8_0/11%)]">
                         <button
                           type="button"
-                          className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)]"
+                          className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                           onClick={handleConfirmHomeLocation}
                         >
                           Save Location

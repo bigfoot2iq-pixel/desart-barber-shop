@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm exec *)",
       "Bash(pnpm jest *)",
-      "Bash(pnpm tsc *)"
+      "Bash(pnpm tsc *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

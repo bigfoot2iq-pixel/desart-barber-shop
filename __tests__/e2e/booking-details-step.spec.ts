@@ -108,6 +108,8 @@ async function navigateToDetailsStep(
   const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
   await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
   await serviceBtn.click();
+  await page.waitForTimeout(500);
+  await page.getByTestId('btn:services-continue').click();
   await page.waitForTimeout(800);
 
   // Step 4: Choose a date
@@ -118,9 +120,9 @@ async function navigateToDetailsStep(
   await page.waitForTimeout(800);
 
   // Step 4: Choose a time
-  const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  await timeSlots.first().waitFor({ state: 'visible', timeout: 10000 });
-  await timeSlots.first().click();
+  const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
+  await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
+  await firstTimeSlot.click();
   await page.waitForTimeout(800);
 
   // Verify we're on step 5 (details)
@@ -159,9 +161,9 @@ test.describe('Booking Details Step — Section 16', () => {
     await page.fill('#f-last', '');
     await page.fill('#f-phone', '');
 
-    // Confirm button should be disabled
+    // Confirm button should not be visible (AnimatePresence-gated)
     const confirmBtn = page.getByTestId('btn:confirm-booking');
-    await expect(confirmBtn).toBeDisabled({ timeout: 10000 });
+    await expect(confirmBtn).toHaveCount(0, { timeout: 10000 });
   });
 
   // 16.2 Phone format: test local Moroccan + international

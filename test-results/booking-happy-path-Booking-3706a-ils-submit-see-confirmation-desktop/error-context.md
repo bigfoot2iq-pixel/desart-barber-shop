@@ -7,7 +7,7 @@
 # Test info
 
 - Name: booking-happy-path.spec.ts >> Booking Happy Path — Section 11 >> 11.6 — fill details, submit, see confirmation
-- Location: __tests__\e2e\booking-happy-path.spec.ts:337:7
+- Location: __tests__\e2e\booking-happy-path.spec.ts:342:7
 
 # Error details
 
@@ -28,150 +28,150 @@ Call log:
 # Test source
 
 ```ts
-  255 |     await page.getByTestId('btn:open-booking').first().click();
-  256 |     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
-  257 | 
-  258 |     // Navigate to step 4 (location → barber → service)
-  259 |     await page.waitForTimeout(500);
-  260 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
-  261 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
-  262 |     await locationBtns.first().click();
-  263 |     await page.waitForTimeout(800);
-  264 | 
-  265 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
-  266 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
-  267 |     await barberBtn.click();
-  268 |     await page.waitForTimeout(800);
-  269 | 
-  270 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
-  271 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
-  272 |     await serviceBtn.click();
-  273 |     await page.waitForTimeout(800);
-  274 | 
-  275 |     // Verify we're on step 4
-  276 |     await expect(page.locator('#panel-title')).toContainText('Choose a Time');
+  260 |     await page.waitForTimeout(500);
+  261 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
+  262 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
+  263 |     await locationBtns.first().click();
+  264 |     await page.waitForTimeout(800);
+  265 | 
+  266 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
+  267 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
+  268 |     await barberBtn.click();
+  269 |     await page.waitForTimeout(800);
+  270 | 
+  271 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
+  272 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
+  273 |     await serviceBtn.click();
+  274 |     await page.waitForTimeout(500);
+  275 |     await page.getByTestId('btn:services-continue').click();
+  276 |     await page.waitForTimeout(800);
   277 | 
-  278 |     // Select date
-  279 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
-  280 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
-  281 |     await dateBtn.scrollIntoViewIfNeeded();
-  282 |     await dateBtn.click({ force: true });
-  283 |     await page.waitForTimeout(800);
-  284 | 
-  285 |     // Time picker should show slots
-  286 |     const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  287 |     await expect(timeSlots.first()).toBeVisible({ timeout: 10000 });
-  288 |     const count = await timeSlots.count();
-  289 |     expect(count).toBeGreaterThan(0);
-  290 |   });
-  291 | 
-  292 |   // 11.5 Select time → step 5
-  293 |   test('11.5 — select time, auto-advance to details step', async ({
-  294 |     authenticatedPage,
-  295 |   }) => {
-  296 |     const page = authenticatedPage;
-  297 |     await page.goto('/');
-  298 | 
-  299 |     await page.getByTestId('btn:open-booking').first().click();
-  300 |     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
+  278 |     // Verify we're on step 4
+  279 |     await expect(page.locator('#panel-title')).toContainText('Choose a Time');
+  280 | 
+  281 |     // Select date
+  282 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
+  283 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
+  284 |     await dateBtn.scrollIntoViewIfNeeded();
+  285 |     await dateBtn.click({ force: true });
+  286 |     await page.waitForTimeout(800);
+  287 | 
+  288 |     // Time picker should show slots
+  289 |     const timeSlots = page.locator('[data-testid^="btn:time-"]');
+  290 |     await expect(timeSlots.first()).toBeVisible({ timeout: 10000 });
+  291 |     const count = await timeSlots.count();
+  292 |     expect(count).toBeGreaterThan(0);
+  293 |   });
+  294 | 
+  295 |   // 11.5 Select time → step 5
+  296 |   test('11.5 — select time, auto-advance to details step', async ({
+  297 |     authenticatedPage,
+  298 |   }) => {
+  299 |     const page = authenticatedPage;
+  300 |     await page.goto('/');
   301 | 
-  302 |     // Navigate to step 4
-  303 |     await page.waitForTimeout(500);
-  304 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
-  305 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
-  306 |     await locationBtns.first().click();
-  307 |     await page.waitForTimeout(800);
-  308 | 
-  309 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
-  310 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
-  311 |     await barberBtn.click();
-  312 |     await page.waitForTimeout(800);
-  313 | 
-  314 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
-  315 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
-  316 |     await serviceBtn.click();
-  317 |     await page.waitForTimeout(800);
-  318 | 
-  319 |     // Select date
-  320 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
-  321 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
-  322 |     await dateBtn.scrollIntoViewIfNeeded();
-  323 |     await dateBtn.click({ force: true });
-  324 |     await page.waitForTimeout(800);
-  325 | 
-  326 |     // Select first time slot
-  327 |     const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  328 |     await timeSlots.first().waitFor({ state: 'visible', timeout: 10000 });
-  329 |     await timeSlots.first().click();
+  302 |     await page.getByTestId('btn:open-booking').first().click();
+  303 |     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
+  304 | 
+  305 |     // Navigate to step 4
+  306 |     await page.waitForTimeout(500);
+  307 |     const locationBtns = page.locator('[data-testid^="btn:location-"]');
+  308 |     await locationBtns.first().waitFor({ state: 'visible', timeout: 10000 });
+  309 |     await locationBtns.first().click();
+  310 |     await page.waitForTimeout(800);
+  311 | 
+  312 |     const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
+  313 |     await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
+  314 |     await barberBtn.click();
+  315 |     await page.waitForTimeout(800);
+  316 | 
+  317 |     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
+  318 |     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
+  319 |     await serviceBtn.click();
+  320 |     await page.waitForTimeout(500);
+  321 |     await page.getByTestId('btn:services-continue').click();
+  322 |     await page.waitForTimeout(800);
+  323 | 
+  324 |     // Select date
+  325 |     const dateBtn = page.getByTestId(`btn:date-${testDate}`);
+  326 |     await dateBtn.waitFor({ state: 'visible', timeout: 10000 });
+  327 |     await dateBtn.scrollIntoViewIfNeeded();
+  328 |     await dateBtn.click({ force: true });
+  329 |     await page.waitForTimeout(800);
   330 | 
-  331 |     // Auto-advance to step 5
-  332 |     await page.waitForTimeout(1000);
-  333 |     await expect(page.locator('#panel-title')).toContainText('Your Details');
-  334 |   });
+  331 |     // Select first available time slot
+  332 |     const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
+  333 |     await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
+  334 |     await firstTimeSlot.click();
   335 | 
-  336 |   // 11.6 Fill name/phone → submit → step 6 confirmation
-  337 |   test('11.6 — fill details, submit, see confirmation', async ({
-  338 |     authenticatedPage,
-  339 |     testCustomer,
-  340 |   }) => {
-  341 |     const page = authenticatedPage;
-  342 |     await page.goto('/');
-  343 | 
-  344 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
-  345 | 
-  346 |     // Fill in the contact form
-  347 |     await page.fill('#f-first', testCustomer.email.split('@')[0]);
-  348 |     await page.fill('#f-last', 'Test');
-  349 |     await page.fill('#f-phone', '+212600000001');
+  336 |     // Auto-advance to step 5
+  337 |     await page.waitForTimeout(1000);
+  338 |     await expect(page.locator('#panel-title')).toContainText('Your Details');
+  339 |   });
+  340 | 
+  341 |   // 11.6 Fill name/phone → submit → step 6 confirmation
+  342 |   test('11.6 — fill details, submit, see confirmation', async ({
+  343 |     authenticatedPage,
+  344 |     testCustomer,
+  345 |   }) => {
+  346 |     const page = authenticatedPage;
+  347 |     await page.goto('/');
+  348 | 
+  349 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
   350 | 
-  351 |     // Click confirm booking
-  352 |     await page.getByTestId('btn:confirm-booking').click();
-  353 | 
-  354 |     // Wait for booking confirmation
-> 355 |     await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+  351 |     // Fill in the contact form
+  352 |     await page.fill('#f-first', testCustomer.email.split('@')[0]);
+  353 |     await page.fill('#f-last', 'Test');
+  354 |     await page.fill('#f-phone', '+212600000001');
+  355 | 
+  356 |     // Click confirm booking
+  357 |     await page.getByTestId('btn:confirm-booking').click();
+  358 | 
+  359 |     // Wait for booking confirmation
+> 360 |     await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
       |                                                              ^ Error: expect(locator).toBeVisible() failed
-  356 |   });
-  357 | 
-  358 |   // 11.7 appointments row exists in DB with correct fields
-  359 |   test('11.7 — DB row created with status=pending, preferred_professional_id set', async ({
-  360 |     authenticatedPage,
-  361 |     testCustomer,
-  362 |   }) => {
-  363 |     const page = authenticatedPage;
-  364 |     await page.goto('/');
-  365 | 
-  366 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
-  367 | 
-  368 |     // Fill in the contact form
-  369 |     await page.fill('#f-first', testCustomer.email.split('@')[0]);
-  370 |     await page.fill('#f-last', 'Test');
-  371 |     await page.fill('#f-phone', '+212600000002');
+  361 |   });
+  362 | 
+  363 |   // 11.7 appointments row exists in DB with correct fields
+  364 |   test('11.7 — DB row created with status=pending, preferred_professional_id set', async ({
+  365 |     authenticatedPage,
+  366 |     testCustomer,
+  367 |   }) => {
+  368 |     const page = authenticatedPage;
+  369 |     await page.goto('/');
+  370 | 
+  371 |     await navigateToDetailsStep(page, barberId, serviceId, testDate);
   372 | 
-  373 |     // Click confirm booking
-  374 |     await page.getByTestId('btn:confirm-booking').click();
-  375 | 
-  376 |     // Wait for booking confirmation
-  377 |     await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
-  378 | 
-  379 |     // Verify DB state
-  380 |     const count = await countAppointmentsForCustomer(testCustomer.id, testDate);
-  381 |     expect(count).toBe(1);
-  382 | 
-  383 |     // Verify the appointment has the right fields
-  384 |     const admin = adminClient();
-  385 |     const { data } = await admin
-  386 |       .from('appointments')
-  387 |       .select('status, preferred_professional_id, professional_id, appointment_date')
-  388 |       .eq('customer_id', testCustomer.id)
-  389 |       .eq('appointment_date', testDate)
-  390 |       .eq('status', 'pending')
-  391 |       .single();
-  392 | 
-  393 |     expect(data).toBeTruthy();
-  394 |     expect((data as any).status).toBe('pending');
-  395 |     expect((data as any).preferred_professional_id).toBe(barberId);
-  396 |     expect((data as any).professional_id).toBeNull();
-  397 |   });
-  398 | });
-  399 | 
+  373 |     // Fill in the contact form
+  374 |     await page.fill('#f-first', testCustomer.email.split('@')[0]);
+  375 |     await page.fill('#f-last', 'Test');
+  376 |     await page.fill('#f-phone', '+212600000002');
+  377 | 
+  378 |     // Click confirm booking
+  379 |     await page.getByTestId('btn:confirm-booking').click();
+  380 | 
+  381 |     // Wait for booking confirmation
+  382 |     await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+  383 | 
+  384 |     // Verify DB state
+  385 |     const count = await countAppointmentsForCustomer(testCustomer.id, testDate);
+  386 |     expect(count).toBe(1);
+  387 | 
+  388 |     // Verify the appointment has the right fields
+  389 |     const admin = adminClient();
+  390 |     const { data } = await admin
+  391 |       .from('appointments')
+  392 |       .select('status, preferred_professional_id, professional_id, appointment_date')
+  393 |       .eq('customer_id', testCustomer.id)
+  394 |       .eq('appointment_date', testDate)
+  395 |       .eq('status', 'pending')
+  396 |       .single();
+  397 | 
+  398 |     expect(data).toBeTruthy();
+  399 |     expect((data as any).status).toBe('pending');
+  400 |     expect((data as any).preferred_professional_id).toBe(barberId);
+  401 |     expect((data as any).professional_id).toBeNull();
+  402 |   });
+  403 | });
+  404 | 
 ```

@@ -139,6 +139,8 @@ async function navigateToDetailsStep(
   const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
   await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
   await serviceBtn.click();
+  await page.waitForTimeout(500);
+  await page.getByTestId('btn:services-continue').click();
   await page.waitForTimeout(800);
 
   // Step 4: Choose a date
@@ -150,8 +152,7 @@ async function navigateToDetailsStep(
   await page.waitForTimeout(800);
 
   // Step 4: Choose a time (pick the first available slot)
-  const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  const firstTimeSlot = timeSlots.first();
+  const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
   await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
   await firstTimeSlot.click();
   await page.waitForTimeout(800);
@@ -270,6 +271,8 @@ test.describe('Booking Happy Path — Section 11', () => {
     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
     await serviceBtn.click();
+    await page.waitForTimeout(500);
+    await page.getByTestId('btn:services-continue').click();
     await page.waitForTimeout(800);
 
     // Verify we're on step 4
@@ -314,6 +317,8 @@ test.describe('Booking Happy Path — Section 11', () => {
     const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
     await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
     await serviceBtn.click();
+    await page.waitForTimeout(500);
+    await page.getByTestId('btn:services-continue').click();
     await page.waitForTimeout(800);
 
     // Select date
@@ -323,10 +328,10 @@ test.describe('Booking Happy Path — Section 11', () => {
     await dateBtn.click({ force: true });
     await page.waitForTimeout(800);
 
-    // Select first time slot
-    const timeSlots = page.locator('[data-testid^="btn:time-"]');
-    await timeSlots.first().waitFor({ state: 'visible', timeout: 10000 });
-    await timeSlots.first().click();
+    // Select first available time slot
+    const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
+    await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
+    await firstTimeSlot.click();
 
     // Auto-advance to step 5
     await page.waitForTimeout(1000);

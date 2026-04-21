@@ -106,11 +106,7 @@ test.describe('Booking Service Step — Section 15', () => {
     await service1Btn.click();
     await page.waitForTimeout(500);
 
-    // Go back to select another service
-    await page.getByRole('button', { name: 'Go back' }).click();
-    await page.waitForTimeout(800);
-
-    // Select second service
+    // Select second service (stay on step 3)
     const service2Btn = page.getByTestId(`btn:service-${serviceIds[1]}`);
     await service2Btn.waitFor({ state: 'visible', timeout: 10000 });
     await service2Btn.click();
@@ -124,8 +120,9 @@ test.describe('Booking Service Step — Section 15', () => {
     expect(service1Selected).toContain('border-gold');
     expect(service2Selected).toContain('border-gold');
 
-    // Auto-advance to step 4
-    await page.waitForTimeout(1000);
+    // Click Continue to advance to step 4
+    await page.getByTestId('btn:services-continue').click();
+    await page.waitForTimeout(800);
     await expect(page.locator('#panel-title')).toContainText('Choose a Time');
   });
 
@@ -155,7 +152,10 @@ test.describe('Booking Service Step — Section 15', () => {
     // Step 3: we should be on service step, but without selecting any service
     await expect(page.locator('#panel-title')).toContainText('Choose a Service');
 
-    // Wait longer than the auto-advance timeout (500ms) and verify we're still on step 3
+    // Continue button should not be present with 0 services selected
+    await expect(page.getByTestId('btn:services-continue')).toHaveCount(0);
+
+    // Wait longer than the old auto-advance timeout (500ms) and verify we're still on step 3
     await page.waitForTimeout(1500);
     await expect(page.locator('#panel-title')).toContainText('Choose a Service');
   });
@@ -193,9 +193,8 @@ test.describe('Booking Service Step — Section 15', () => {
     let cls = await service1Btn.getAttribute('class');
     expect(cls).toContain('border-gold');
 
-    // Go back and toggle it off
-    await page.getByRole('button', { name: 'Go back' }).click();
-    await page.waitForTimeout(800);
+    // CTA should appear
+    await expect(page.getByTestId('btn:services-continue')).toBeVisible();
 
     // Click the same service again to deselect
     await service1Btn.click();
@@ -205,7 +204,10 @@ test.describe('Booking Service Step — Section 15', () => {
     cls = await service1Btn.getAttribute('class');
     expect(cls).not.toContain('border-gold');
 
-    // Should stay on step 3 (no auto-advance with 0 services)
+    // CTA should disappear
+    await expect(page.getByTestId('btn:services-continue')).toHaveCount(0);
+
+    // Should stay on step 3
     await page.waitForTimeout(1000);
     await expect(page.locator('#panel-title')).toContainText('Choose a Service');
   });

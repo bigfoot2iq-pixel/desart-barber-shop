@@ -105,6 +105,8 @@ async function navigateToDetailsStep(
   const serviceBtn = page.getByTestId(`btn:service-${serviceId}`);
   await serviceBtn.waitFor({ state: 'visible', timeout: 10000 });
   await serviceBtn.click();
+  await page.waitForTimeout(500);
+  await page.getByTestId('btn:services-continue').click();
   await page.waitForTimeout(800);
 
   const dateBtn = page.getByTestId(`btn:date-${testDate}`);
@@ -113,9 +115,9 @@ async function navigateToDetailsStep(
   await dateBtn.click({ force: true });
   await page.waitForTimeout(800);
 
-  const timeSlots = page.locator('[data-testid^="btn:time-"]');
-  await timeSlots.first().waitFor({ state: 'visible', timeout: 10000 });
-  await timeSlots.first().click();
+  const firstTimeSlot = page.locator('[data-testid^="btn:time-"]:enabled').first();
+  await firstTimeSlot.waitFor({ state: 'visible', timeout: 10000 });
+  await firstTimeSlot.click();
   await page.waitForTimeout(800);
 
   await expect(page.locator('#panel-title')).toContainText('Your Details');
