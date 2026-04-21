@@ -48,3 +48,9 @@ export function formatShortMonth(d: Date, locale: Locale): string {
     month: 'short',
   }).format(d);
 }
+
+export function formatShortWeekday(d: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
+    weekday: 'short',
+  }).format(d);
+}

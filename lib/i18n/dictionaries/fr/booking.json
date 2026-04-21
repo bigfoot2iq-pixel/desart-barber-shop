@@ -1,7 +1,8 @@
 {
   "hero": {
     "tagline": "Agadir · Depuis 2019",
-    "headline": "Coupes précises.\nStyle plus tranchant.",
+    "headline1": "Coupes précises.",
+    "headline2": "Style plus tranchant.",
     "subheadline": "Toilettage premium pour ceux qui connaissent la différence. Entrez, asseyez-vous, sortez plus élégant — sur rendez-vous ou à l'improviste.",
     "reserveCta": "Réserver une place",
     "viewMenuCta": "Voir le menu",
@@ -26,13 +27,14 @@
     "salonName": "Salon Desart",
     "flagship": "Salon Principal",
     "homeVisit": "Intervention à Domicile",
+    "homeVisitName": "Je me déplace",
+    "homeVisitDescription": "Intervention à Domicile (+30 MAD)",
+    "homeVisitCashNote": "Paiement en espèces le jour J. Pas de carte requise.",
+    "homeVisitCta": "Réserver à Domicile",
     "closedOnFriday": "Fermé"
   },
   "payment": {
     "cashInstructions": "Payez {total} en espèces lors de votre rendez-vous. Les annulations sont gratuites ; prévenez-nous à l'avance."
-  },
-  "aria": {
-    "close": "Fermer"
   },
   "marquee": [
     "Coupes Dégradées Précises",
@@ -117,8 +119,7 @@
       "title": "Réservation Confirmée",
       "headline": "Tout est prêt !",
       "message": "Votre rendez-vous a bien été reçu. Nous vous contacterons pour confirmation dans les prochaines heures.",
-      "dontForgetReceipt": "N'oubliez pas d'envoyer votre reçu de virement par WhatsApp au salon.",
-      "close": "Fermer"
+      "dontForgetReceipt": "N'oubliez pas d'envoyer votre reçu de virement par WhatsApp au salon."
     }
   },
   "validation": {
@@ -138,8 +139,7 @@
     "useMyLocation": "Utiliser ma position",
     "detecting": "Détection en cours…",
     "resolvingAddress": "Identification de l'adresse…",
-    "saveLocation": "Enregistrer la Position",
-    "close": "Fermer"
+    "saveLocation": "Enregistrer la Position"
   },
   "footer": {
     "navigate": "Navigation",

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { DictionaryProvider, useT } from "@/lib/i18n/client-dictionary";
-import { formatMoney, formatTimeFromHHMM, formatShortMonth } from "@/lib/i18n/format";
+import { formatMoney, formatTimeFromHHMM, formatShortMonth, formatShortWeekday } from "@/lib/i18n/format";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
 import {
   getActiveProfessionalsWithServices,
@@ -75,34 +75,16 @@ type BookingDraft = {
 
 const HOME_LOCATION: LocationOption = {
   id: "home",
-  name: "Come To Me",
-  description: "Home Visit (+30 MAD)",
+  name: "",
+  description: "",
   imageUrl: null,
   type: "home",
 };
 
 const HomePanelMapView = dynamic(
   () => import("@/components/map-view").then((mod) => ({ default: mod.MapView })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center rounded-xl bg-[rgb(10_8_0/5%)] text-sm text-[rgb(10_8_0/35%)]" style={{ height: 230 }}>
-        Loading map…
-      </div>
-    ),
-  }
+  { ssr: false }
 );
-
-
-const MARQUEE_ITEMS = [
-  "Precision Fades",
-  "Classic Cuts",
-  "Beard Sculpting",
-  "Hot Towel Shaves",
-  "Cash Only · No Fuss",
-  "Same Day Booking",
-  "Agadir Finest",
-];
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -389,7 +371,6 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
 
     const days: { date: number; dateStr: string; shortDay: string; monthStr: string; isPast: boolean; isAvailable: boolean; isFriday: boolean; isSelected: boolean }[] = [];
 
-    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     for (let i = 0; i < 6; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
@@ -399,7 +380,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
       days.push({
         date: d.getDate(),
         dateStr,
-        shortDay: dayNames[i],
+        shortDay: formatShortWeekday(d, locale as import('@/lib/i18n/config').Locale),
         monthStr: formatShortMonth(d, locale as import('@/lib/i18n/config').Locale),
         isPast,
         isAvailable,
@@ -1253,10 +1234,10 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                   <rect x="2" y="6" width="20" height="12" rx="2" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">Cash payment on the day. No card required at booking.</p>
+                <p className="text-sm leading-[1.7] opacity-70">{tBooking('locations.homeVisitCashNote')}</p>
               </div>
               <button type="button" className="mt-8 bg-brand-black text-white text-[11px] font-medium tracking-[0.1em] uppercase py-[13px] px-7 rounded-[3px] inline-block cursor-pointer transition-all duration-200 hover:bg-ink hover:-translate-y-px open-booking" onClick={openModal}>
-                Book Home Visit →
+                {tBooking('locations.homeVisitCta')} →
               </button>
             </div>
           </div>
@@ -1430,7 +1411,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                     if (!window.confirm(tBooking('steps.details.discardConfirm'))) return;
                   }
                   closeModal();
-                }} aria-label={tBooking('aria.close')}>
+                }} aria-label={tCommon('close')}>
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>

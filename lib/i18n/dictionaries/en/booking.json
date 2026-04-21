@@ -1,7 +1,8 @@
 {
   "hero": {
     "tagline": "Agadir · Est. 2019",
-    "headline": "Sharp cuts.\nSharper style.",
+    "headline1": "Sharp cuts.",
+    "headline2": "Sharper style.",
     "subheadline": "Premium grooming for those who know the difference. Walk in, sit down, walk out sharper — by appointment or by chance.",
     "reserveCta": "Reserve a chair",
     "viewMenuCta": "View menu",
@@ -26,13 +27,14 @@
     "salonName": "Desart Salon",
     "flagship": "Flagship Location",
     "homeVisit": "Home Visit",
+    "homeVisitName": "Come To Me",
+    "homeVisitDescription": "Home Visit (+30 MAD)",
+    "homeVisitCashNote": "Cash payment on the day. No card required at booking.",
+    "homeVisitCta": "Book Home Visit",
     "closedOnFriday": "Closed"
   },
   "payment": {
     "cashInstructions": "Pay {total} in cash at your appointment. Cancellations are free; let us know in advance."
-  },
-  "aria": {
-    "close": "Close"
   },
   "marquee": [
     "Precision Fades",
@@ -117,8 +119,7 @@
       "title": "Booking Confirmed",
       "headline": "You're all set!",
       "message": "Your appointment has been received. We'll reach out to confirm within a few hours.",
-      "dontForgetReceipt": "Don't forget to send your transfer receipt to WhatsApp the shop.",
-      "close": "Close"
+      "dontForgetReceipt": "Don't forget to send your transfer receipt to WhatsApp the shop."
     }
   },
   "validation": {
@@ -138,8 +139,7 @@
     "useMyLocation": "Use my location",
     "detecting": "Detecting…",
     "resolvingAddress": "Resolving address…",
-    "saveLocation": "Save Location",
-    "close": "Close"
+    "saveLocation": "Save Location"
   },
   "footer": {
     "navigate": "Navigate",
