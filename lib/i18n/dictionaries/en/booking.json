@@ -85,6 +85,9 @@
       "waitingForGoogle": "Waiting for Google…",
       "discardConfirm": "Discard your booking details?"
     },
+    "summary": {
+      "total": "Total"
+    },
 "confirmation": {
       "title": "Booking Confirmed",
       "headline": "You're all set!",

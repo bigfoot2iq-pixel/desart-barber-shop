@@ -16,5 +16,5 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
     getDictionary(locale, 'booking'),
   ]);
 
-  return <BookingExperience lang={lang} common={common} booking={booking} />;
+  return <BookingExperience locale={locale} common={common} booking={booking} />;
 }

@@ -16,6 +16,13 @@ export function formatTime(d: Date, locale: Locale): string {
   }).format(d);
 }
 
+export function formatTimeFromHHMM(hhmm: string, locale: Locale): string {
+  const [hours, minutes] = hhmm.split(':').map(Number);
+  const d = new Date();
+  d.setHours(hours, minutes, 0, 0);
+  return formatTime(d, locale);
+}
+
 export function formatDateTime(d: Date, locale: Locale): string {
   return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
     day: 'numeric',
@@ -34,4 +41,10 @@ export function formatMoney(n: number, locale: Locale): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(n);
+}
+
+export function formatShortMonth(d: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
+    month: 'short',
+  }).format(d);
 }

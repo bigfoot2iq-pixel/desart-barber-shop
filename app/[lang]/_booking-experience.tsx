@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { DictionaryProvider, useT } from "@/lib/i18n/client-dictionary";
+import { formatMoney, formatTimeFromHHMM, formatShortMonth } from "@/lib/i18n/format";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
 import {
   getActiveProfessionalsWithServices,
@@ -55,8 +56,6 @@ type ServiceOption = {
 };
 
 const REEL_DURATION_MS = 5000;
-const STEP_LABELS = ["Choose a Location", "Choose a Berber", "Choose a Service", "Choose a Time", "Details"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 type BookingDraft = {
   locationType: "salon" | "home";
   salonId: string | null;
@@ -116,12 +115,12 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 }
 
 export interface BookingExperienceProps {
-  lang: string;
+  locale: string;
   common: Record<string, unknown>;
   booking: Record<string, unknown>;
 }
 
-export function BookingExperience({ lang, common, booking }: BookingExperienceProps) {
+export function BookingExperience({ locale, common, booking }: BookingExperienceProps) {
   const tBooking = useT('booking');
   const tCommon = useT('common');
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
@@ -401,7 +400,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
         date: d.getDate(),
         dateStr,
         shortDay: dayNames[i],
-        monthStr: MONTHS[d.getMonth()],
+        monthStr: formatShortMonth(d, locale as import('@/lib/i18n/config').Locale),
         isPast,
         isAvailable,
         isFriday: !isPast && !isAvailable,
@@ -411,7 +410,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
     return days;
   }, [availableDateIds]);
 
-  const monthYearLabel = `${MONTHS[calendarMonth.month]} ${calendarMonth.year}`;
+  const monthYearLabel = `${formatShortMonth(new Date(calendarMonth.year, calendarMonth.month, 1), locale as import('@/lib/i18n/config').Locale)} ${calendarMonth.year}`;
 
   const canGoPrevMonth = (() => {
     const now = new Date();
@@ -1028,7 +1027,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                 <div className="font-playfair text-[22px] lg:text-[27px] font-normal mb-1.5">{service.name}</div>
                 <div className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] mb-8">{service.description}</div>
                 <div className="flex justify-between items-baseline mt-auto">
-                  <span className="text-[20px] font-medium">{service.price} <span className="text-[13px] font-normal text-[rgb(10_8_0/50%)]">MAD</span></span>
+                  <span className="text-[20px] font-medium">{formatMoney(service.price, locale as import('@/lib/i18n/config').Locale)}</span>
                   <span className="text-[11px] tracking-[0.06em] text-[rgb(10_8_0/40%)]">{service.duration} min</span>
                 </div>
               </div>
@@ -1048,7 +1047,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                   >
                     <span className="font-playfair text-[19px] font-normal">{service.name}</span>
                     <span className="flex items-center gap-3">
-                      <span className="text-[15px] font-medium">{service.price} MAD</span>
+                      <span className="text-[15px] font-medium">{formatMoney(service.price, locale as import('@/lib/i18n/config').Locale)}</span>
                       <span className={`w-4 h-4 flex items-center justify-center transition-transform duration-250 ${isOpen ? "rotate-45" : ""}`}>
                         <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 3v10M3 8h10" /></svg>
                       </span>
@@ -1636,7 +1635,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                       <div className={`text-sm font-semibold tracking-[-0.01em] text-left ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.name}</div>
                                       <div className={`text-[11px] font-medium text-left ${isServiceSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/40%)]"}`}>{service.duration} min</div>
                                     </div>
-                                  <span className={`text-[15px] font-bold tracking-[-0.02em] ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{service.price} MAD</span>
+                                  <span className={`text-[15px] font-bold tracking-[-0.02em] ${isServiceSelected ? "text-white" : "text-brand-black"}`}>{formatMoney(service.price, locale as import('@/lib/i18n/config').Locale)}</span>
                                 </button>
                               );
                             })}
@@ -1672,7 +1671,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                   </span>
                                 </span>
                                 <span className="font-bold tracking-[-0.01em]">
-                                  {effectiveSelectedServices.reduce((s, x) => s + x.price, 0)} MAD
+                                  {formatMoney(effectiveSelectedServices.reduce((s, x) => s + x.price, 0), locale as import('@/lib/i18n/config').Locale)}
                                 </span>
                               </button>
                             </motion.div>
@@ -1833,7 +1832,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                         className={`${baseClass} ${stateClass} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                         onClick={() => available && setSelectedTime(slot)}
                                       >
-                                        {slot}
+                                          {formatTimeFromHHMM(slot, locale as import('@/lib/i18n/config').Locale)}
                                       </button>
                                     );
                                   })}
@@ -2055,7 +2054,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                   <circle cx="12" cy="12" r="10" />
                                   <path d="M12 16v-4M12 8h.01" />
                                 </svg>
-                                Pay {total} MAD in cash at your appointment. Cancellations are free; let us know in advance.
+                                Pay {formatMoney(total, locale as import('@/lib/i18n/config').Locale)} in cash at your appointment. Cancellations are free; let us know in advance.
                               </div>
                             )}
                           </div>
@@ -2069,13 +2068,13 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                   <span className="text-[rgb(10_8_0/60%)] font-medium">{selectedServicesLabel || "—"}</span>
                                 </div>
                                 <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
-                                  {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
+                                  {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${formatTimeFromHHMM(selectedTime, locale as import('@/lib/i18n/config').Locale)}` : ""}
                                   {selectedLocation ? ` · ${selectedLocation.type === "home" ? tBooking('steps.location.comeToMe') : selectedLocation.name}` : ""}
                                 </div>
                               </div>
                               <div className="shrink-0 text-right">
                                 <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">Total</div>
-                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{total} MAD</div>
+                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{formatMoney(total, locale as import('@/lib/i18n/config').Locale)}</div>
                               </div>
                             </div>
                           </div>
@@ -2103,7 +2102,7 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                   )}
                                   {user ? tBooking('steps.details.confirmBooking') : tBooking('steps.details.continueWithGoogle')}
                                 </span>
-                                <span className="font-bold tracking-[-0.01em]">{total} MAD</span>
+                                <span className="font-bold tracking-[-0.01em]">{formatMoney(total, locale as import('@/lib/i18n/config').Locale)}</span>
                               </button>
                             </motion.div>
                           )}
@@ -2149,13 +2148,13 @@ export function BookingExperience({ lang, common, booking }: BookingExperiencePr
                                   {firstName} {lastName}
                                 </div>
                                 <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
-                                  {selectedDate?.fullDate}{selectedTime ? ` · ${selectedTime}` : ""} · {selectedBarber?.name}
+                                  {selectedDate?.fullDate}{selectedTime ? ` · ${formatTimeFromHHMM(selectedTime, locale as import('@/lib/i18n/config').Locale)}` : ""} · {selectedBarber?.name}
                                 </div>
                                 <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">{selectedServicesLabel}</div>
                               </div>
                               <div className="shrink-0 text-right">
-                                <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">Total</div>
-                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{total} MAD</div>
+                                <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">{tBooking('steps.summary.total')}</div>
+                                <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">{formatMoney(total, locale as import('@/lib/i18n/config').Locale)}</div>
                               </div>
                             </div>
                           </div>

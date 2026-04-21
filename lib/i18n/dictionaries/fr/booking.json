@@ -83,7 +83,10 @@
       "continueWithGoogle": "Continuer avec Google",
       "saving": "Enregistrement…",
       "waitingForGoogle": "Attente de Google…",
-      "discardConfirm": "Abandonner les détails de votre réservation ?"
+"discardConfirm": "Abandonner les détails de votre réservation ?"
+    },
+    "summary": {
+      "total": "Total"
     },
     "confirmation": {
       "title": "Réservation Confirmée",
