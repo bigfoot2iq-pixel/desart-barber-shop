@@ -267,3 +267,182 @@ test.describe('Booking Details Step — Section 16', () => {
     test.skip(true, 'todo: not yet implemented');
   });
 });
+
+test.describe('Booking Payment Method Selection', () => {
+  let barberId: string;
+  let serviceId: string;
+  let salonId: string;
+  let testDate: string;
+
+  test.beforeAll(async () => {
+    salonId = await getActiveSalonId();
+    barberId = await getActiveBarberId();
+    testDate = tomorrowStr();
+    serviceId = await getServiceIdForBarber(barberId);
+    await seedWeeklyAvailabilityForBarber(barberId);
+  });
+
+  test.afterAll(async () => {
+    await clearWeeklyAvailability(barberId);
+  });
+
+  test('cash is pre-selected by default and booking completes', async ({
+    authenticatedPage,
+    testCustomer,
+  }) => {
+    const page = authenticatedPage;
+    await page.goto('/');
+
+    await navigateToDetailsStep(page, barberId, serviceId, testDate);
+
+    await page.fill('#f-first', testCustomer.email.split('@')[0]);
+    await page.fill('#f-last', 'Test');
+    await page.fill('#f-phone', '+212600000006');
+
+    // Cash tile should be selected by default
+    const cashBtn = page.getByTestId('btn:payment-cash');
+    await expect(cashBtn).toBeVisible({ timeout: 10000 });
+    await expect(cashBtn).toHaveAttribute('aria-checked', 'true');
+
+    // Bank transfer tile may or may not be visible depending on admin settings
+    // (we don't seed it for this test)
+
+    await page.getByTestId('btn:confirm-booking').click();
+    await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+
+    // Verify the appointment was saved with cash
+    const admin = adminClient();
+    const { data } = await admin
+      .from('appointments')
+      .select('payment_method')
+      .eq('customer_id', testCustomer.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    expect(data && data.length > 0).toBe(true);
+    expect((data![0] as { payment_method: string }).payment_method).toBe('cash');
+
+    // Cleanup
+    await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
+  });
+
+  test('bank transfer path — RIB visible, copy works, booking saves bank_transfer', async ({
+    authenticatedPage,
+    testCustomer,
+  }) => {
+    const page = authenticatedPage;
+    const admin = adminClient();
+
+    // Seed payment settings with bank transfer enabled
+    await admin
+      .from('payment_settings')
+      .update({
+        bank_transfer_enabled: true,
+        account_holder: 'Test Account Holder',
+        bank_name: 'Test Bank',
+        rib: '123456789012345678901234',
+        payment_phone: '+212600000099',
+        instructions: 'Test instructions',
+      })
+      .eq('singleton', true);
+
+    try {
+      await page.goto('/');
+      await navigateToDetailsStep(page, barberId, serviceId, testDate);
+
+      await page.fill('#f-first', testCustomer.email.split('@')[0]);
+      await page.fill('#f-last', 'Test');
+      await page.fill('#f-phone', '+212600000007');
+
+      // Bank transfer tile should be visible
+      const bankBtn = page.getByTestId('btn:payment-bank-transfer');
+      await expect(bankBtn).toBeVisible({ timeout: 10000 });
+
+      // Click bank transfer
+      await bankBtn.click();
+      await page.waitForTimeout(500);
+
+      // RIB should be visible
+      await expect(page.getByText('123456789012345678901234')).toBeVisible();
+
+      // Copy button should work
+      await page.getByRole('button', { name: 'Copy' }).first().click();
+      await page.waitForTimeout(200);
+      await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
+
+      // Complete booking
+      await page.getByTestId('btn:confirm-booking').click();
+      await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+
+      // Verify payment_phone reminder is shown
+      await expect(page.getByText(/send your transfer receipt/)).toBeVisible();
+
+      // Verify the appointment was saved with bank_transfer
+      const { data } = await admin
+        .from('appointments')
+        .select('payment_method')
+        .eq('customer_id', testCustomer.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      expect(data && data.length > 0).toBe(true);
+      expect((data![0] as { payment_method: string }).payment_method).toBe('bank_transfer');
+    } finally {
+      // Reset payment settings
+      await admin
+        .from('payment_settings')
+        .update({
+          bank_transfer_enabled: false,
+          account_holder: null,
+          bank_name: null,
+          rib: null,
+          payment_phone: null,
+          instructions: null,
+        })
+        .eq('singleton', true);
+
+      // Cleanup
+      await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
+    }
+  });
+
+  test('disabled bank transfer — only cash tile renders', async ({
+    authenticatedPage,
+    testCustomer,
+  }) => {
+    const page = authenticatedPage;
+    const admin = adminClient();
+
+    // Ensure bank transfer is disabled
+    await admin
+      .from('payment_settings')
+      .update({
+        bank_transfer_enabled: false,
+        account_holder: null,
+        bank_name: null,
+        rib: null,
+      })
+      .eq('singleton', true);
+
+    try {
+      await page.goto('/');
+      await navigateToDetailsStep(page, barberId, serviceId, testDate);
+
+      await page.fill('#f-first', testCustomer.email.split('@')[0]);
+      await page.fill('#f-last', 'Test');
+      await page.fill('#f-phone', '+212600000008');
+
+      // Only cash tile should be visible
+      const cashBtn = page.getByTestId('btn:payment-cash');
+      await expect(cashBtn).toBeVisible({ timeout: 10000 });
+
+      const bankBtn = page.getByTestId('btn:payment-bank-transfer');
+      await expect(bankBtn).toHaveCount(0);
+
+      // Complete booking
+      await page.getByTestId('btn:confirm-booking').click();
+      await expect(page.getByTestId('step:booking-confirmed')).toBeVisible({ timeout: 15000 });
+    } finally {
+      // Cleanup
+      await admin.from('appointments').delete().eq('customer_id', testCustomer.id);
+    }
+  });
+});
