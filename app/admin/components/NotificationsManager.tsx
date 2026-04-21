@@ -660,6 +660,8 @@ export default function NotificationsManager() {
               size="sm"
               variant="outline"
               onClick={handleCustomerToggle}
+              disabled={!customerSettings?.has_api_key && !customerForm.resend_api_key}
+              title={!customerSettings?.has_api_key && !customerForm.resend_api_key ? 'Enter a Resend API key first' : ''}
             >
               {customerForm.is_enabled ? 'Disable' : 'Enable'}
             </Button>
