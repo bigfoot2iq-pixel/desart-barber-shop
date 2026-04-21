@@ -21,6 +21,8 @@ import type { Salon, ProfessionalAvailability, AvailabilityOverride } from "@/li
 import { useAuth } from "@/lib/auth-context";
 import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
 import { UserPanel } from "@/components/user-panel/user-panel";
+import { buildTimeSlots, buildTimeSlotsWithStatus, getWorkingHoursForDate, toMinutes, toHHMM, toHHMMSS, SLOT_STEP_MINUTES, type WorkingHours } from "@/lib/booking/slots";
+import { buildDateSlots, BOOKING_WINDOW_DAYS, type DateSlot } from "@/lib/booking/date-slots";
 
 type LocationOption = {
   id: string;
@@ -50,19 +52,9 @@ type ServiceOption = {
   duration: number;
 };
 
-type DateSlot = {
-  id: string;
-  shortDay: string;
-  displayDate: string;
-  fullDate: string;
-};
-
 const REEL_DURATION_MS = 5000;
 const STEP_LABELS = ["Choose a Location", "Choose a Berber", "Choose a Service", "Choose a Time", "Details"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const BOOKING_WINDOW_DAYS = 30;
-const SLOT_STEP_MINUTES = 30;
 type BookingDraft = {
   locationType: "salon" | "home";
   salonId: string | null;
@@ -78,23 +70,6 @@ type BookingDraft = {
   totalPrice: number;
   durationMinutes: number;
 };
-
-function toMinutes(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + (m ?? 0);
-}
-
-function toHHMM(mins: number): string {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
-function toHHMMSS(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
-}
-
 
 const HOME_LOCATION: LocationOption = {
   id: "home",
@@ -126,64 +101,6 @@ const MARQUEE_ITEMS = [
   "Same Day Booking",
   "Agadir Finest",
 ];
-
-function buildDateSlots(): DateSlot[] {
-  const slots: DateSlot[] = [];
-  const today = new Date();
-
-  for (let i = 1; i <= BOOKING_WINDOW_DAYS; i += 1) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-
-    const month = MONTHS[date.getMonth()];
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    slots.push({
-      id: `${y}-${m}-${d}`,
-      shortDay: DAYS[date.getDay()],
-      displayDate: `${date.getDate()} ${month}`,
-      fullDate: `${date.getDate()} ${month} ${date.getFullYear()}`,
-    });
-  }
-
-  return slots;
-}
-
-type WorkingHours = { start: number; end: number } | null;
-
-function getWorkingHoursForDate(
-  dateStr: string,
-  weekly: ProfessionalAvailability[],
-  overrides: AvailabilityOverride[]
-): WorkingHours {
-  const override = overrides.find((o) => o.override_date === dateStr);
-  if (override) {
-    if (!override.is_available || !override.start_time || !override.end_time) return null;
-    return { start: toMinutes(override.start_time), end: toMinutes(override.end_time) };
-  }
-  const d = new Date(`${dateStr}T12:00:00`);
-  const dow = d.getDay();
-  const weekday = weekly.find((w) => w.day_of_week === dow);
-  if (!weekday || !weekday.is_available) return null;
-  return { start: toMinutes(weekday.start_time), end: toMinutes(weekday.end_time) };
-}
-
-function buildTimeSlots(
-  hours: WorkingHours,
-  durationMin: number,
-  booked: { start_time: string; end_time: string }[]
-): string[] {
-  if (!hours || durationMin <= 0) return [];
-  const slots: string[] = [];
-  const bookedRanges = booked.map((b) => ({ start: toMinutes(b.start_time), end: toMinutes(b.end_time) }));
-  for (let t = hours.start; t + durationMin <= hours.end; t += SLOT_STEP_MINUTES) {
-    const slotEnd = t + durationMin;
-    const conflicts = bookedRanges.some((b) => t < b.end && slotEnd > b.start);
-    if (!conflicts) slots.push(toHHMM(t));
-  }
-  return slots;
-}
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -282,13 +199,17 @@ export default function Home() {
     }
     return set;
   }, [dateSlots, selectedBarber, weeklyForBarber, overridesForBarber, totalDurationMinutes, bookingsByBarberDate]);
-  const availableTimeSlots = useMemo(() => {
+  const timeSlotStatuses = useMemo(() => {
     if (!selectedBarber || !selectedDate || weeklyForBarber.length === 0) return [];
     const expectedKey = `${selectedBarber.id}:${selectedDate.id}`;
     const slots = bookedSlots?.key === expectedKey ? bookedSlots.slots : [];
     const hours = getWorkingHoursForDate(selectedDate.id, weeklyForBarber, overridesForBarber);
-    return buildTimeSlots(hours, totalDurationMinutes, slots);
+    return buildTimeSlotsWithStatus(hours, totalDurationMinutes, slots);
   }, [selectedBarber, selectedDate, weeklyForBarber, overridesForBarber, bookedSlots, totalDurationMinutes]);
+  const availableTimeSlots = useMemo(
+    () => timeSlotStatuses.filter((s) => s.available).map((s) => s.time),
+    [timeSlotStatuses]
+  );
   const effectiveSelectedTime = useMemo(
     () => (selectedTime && availableTimeSlots.includes(selectedTime) ? selectedTime : null),
     [selectedTime, availableTimeSlots]
@@ -788,7 +709,21 @@ export default function Home() {
       },
       draft.serviceIds
     );
-  }, []);
+
+    // Refresh booked slots so the UI is not stale if the user books again.
+    setBookedSlots(null);
+    const ids = barbers.map((b) => b.id);
+    if (ids.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const end = new Date(today);
+      end.setDate(today.getDate() + BOOKING_WINDOW_DAYS);
+      const fmt = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const refreshed = await getBookedSlotsInRange(ids, fmt(today), fmt(end));
+      setBookingsInRange(refreshed);
+    }
+  }, [barbers]);
 
   const advanceStep = async () => {
     if (isSubmitting) return;
@@ -818,10 +753,20 @@ export default function Home() {
         setStep(6);
       } catch (err) {
         console.error("Failed to save appointment:", err);
-        const message = err instanceof Error && err.message
-          ? err.message
-          : "Couldn't save your booking. Please try again.";
-        setSaveError(message);
+        if (err instanceof Error && err.message === 'SLOT_TAKEN') {
+          setSaveError("That time was just booked. Please pick another slot.");
+          setBookedSlots(null);
+          if (selectedBarber && selectedDate) {
+            const refreshed = await getBookedSlots(selectedBarber.id, selectedDate.id);
+            const key = `${selectedBarber.id}:${selectedDate.id}`;
+            setBookedSlots({ key, slots: refreshed });
+          }
+        } else {
+          const message = err instanceof Error && err.message
+            ? err.message
+            : "Couldn't save your booking. Please try again.";
+          setSaveError(message);
+        }
         setIsSubmitting(false);
       }
       return;
@@ -941,6 +886,7 @@ export default function Home() {
               type="button"
               onClick={openModal}
               className="open-booking inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3"
+              data-testid="btn:open-booking"
             >
               Reserve a chair
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
@@ -1438,6 +1384,7 @@ export default function Home() {
                               <button
                                 key={location.id}
                                 type="button"
+                                data-testid={`btn:location-${location.id}`}
                                 className={`flex items-start gap-3.5 rounded-2xl px-[18px] py-3.5 text-left transition-all duration-200 relative ${isLocationSelected ? "border-[1.5px] border-gold bg-gold" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedLocation(location)}
                               >
@@ -1498,6 +1445,7 @@ export default function Home() {
                               <button
                                 key={barber.id}
                                 type="button"
+                                data-testid={`btn:barber-${barber.id}`}
                                 className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${isBarberSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]" : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => setSelectedBarber(barber)}
                               >
@@ -1544,6 +1492,7 @@ export default function Home() {
                               <button
                                 key={service.id}
                                 type="button"
+                                data-testid={`btn:service-${service.id}`}
                                 className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-250 ${isServiceSelected ? "border-[1.5px] border-gold bg-gold shadow-[0_2px_8px_rgb(192_154_90/10%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
                                 onClick={() => toggleService(service)}
                               >
@@ -1580,6 +1529,7 @@ export default function Home() {
                                     <button
                                       key={day.dateStr}
                                       type="button"
+                                      data-testid={`btn:date-${day.dateStr}`}
                                       disabled={day.isPast || !day.isAvailable}
                                       onClick={() => {
                                         if (day.isAvailable) {
@@ -1689,16 +1639,26 @@ export default function Home() {
                               Select Time
                             </div>
                             {selectedDate ? (
-                              availableTimeSlots.length > 0 ? (
+                              timeSlotStatuses.length > 0 ? (
                                 <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
-                                  {availableTimeSlots.map((slot) => {
+                                  {timeSlotStatuses.map(({ time: slot, available }) => {
                                     const isTimeSelected = selectedTime === slot;
+                                    const baseClass = "rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250";
+                                    const stateClass = isTimeSelected
+                                      ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]"
+                                      : available
+                                      ? "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
+                                      : "border-[1.5px] border-[rgb(10_8_0/9%)] bg-[rgb(10_8_0/2%)] text-[rgb(10_8_0/25%)] line-through cursor-not-allowed";
                                     return (
                                       <button
                                         key={slot}
                                         type="button"
-                                        className={`rounded-[10px] px-1.5 py-2.5 text-center text-[13px] font-semibold tracking-[-0.01em] transition-all duration-250 ${isTimeSelected ? "border-[1.5px] border-gold bg-gold text-white shadow-[0_4px_12px_rgb(192_154_90/25%)]" : "border-[1.5px] border-[rgb(10_8_0/14%)] bg-white text-brand-black shadow-[0_1px_2px_rgb(0_0_0/3%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"}`}
-                                        onClick={() => setSelectedTime(slot)}
+                                        data-testid={`btn:time-${slot}`}
+                                        disabled={!available}
+                                        aria-disabled={!available}
+                                        title={!available ? "This time is already booked" : undefined}
+                                        className={`${baseClass} ${stateClass}`}
+                                        onClick={() => available && setSelectedTime(slot)}
                                       >
                                         {slot}
                                       </button>
@@ -1843,7 +1803,7 @@ export default function Home() {
                           </div>
 
                           {saveError && (
-                            <div className="mt-4 text-[12px] text-red-500 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">{saveError}</div>
+                            <div data-testid="text:booking-error" className="mt-4 text-[12px] text-red-500 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">{saveError}</div>
                           )}
                         </div>
 
@@ -1852,6 +1812,7 @@ export default function Home() {
                             type="button"
                             onClick={advanceStep}
                             disabled={!formComplete || isSubmitting}
+                            data-testid="btn:confirm-booking"
                             className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow,opacity] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
                           >
                             {isSubmitting ? (
@@ -1877,7 +1838,7 @@ export default function Home() {
                     )}
 
                     {step === 6 && (
-                      <div className="text-center pt-5 pb-2">
+                      <div className="text-center pt-5 pb-2" data-testid="step:booking-confirmed">
                         <div className="w-[72px] h-[72px] rounded-full bg-[linear-gradient(135deg,#c09a5a,#d4ae70)] flex items-center justify-center mx-auto mb-6 animate-pop-in shadow-[0_8px_24px_rgb(192_154_90/30%),0_4px_10px_rgb(0_0_0/8%)]">
                           <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
                             <svg className="w-6 h-6 stroke-gold fill-none stroke-[2.5] animate-check-draw" viewBox="0 0 24 24">

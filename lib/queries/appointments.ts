@@ -178,29 +178,34 @@ export async function getBookedSlotsInRange(
 ): Promise<Pick<Appointment, 'professional_id' | 'appointment_date' | 'start_time' | 'end_time'>[]> {
   if (professionalIds.length === 0) return [];
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('professional_id, appointment_date, start_time, end_time')
-    .in('professional_id', professionalIds)
-    .gte('appointment_date', startDate)
-    .lte('appointment_date', endDate)
-    .in('status', ['pending', 'confirmed']);
+  const { data, error } = await supabase.rpc('get_barber_booked_slots', {
+    p_barber_ids: professionalIds,
+    p_from: startDate,
+    p_to: endDate,
+  });
 
   if (error) throw error;
-  return data as Pick<Appointment, 'professional_id' | 'appointment_date' | 'start_time' | 'end_time'>[];
+  return (data as { barber_id: string; appointment_date: string; start_time: string; end_time: string }[]).map((row) => ({
+    professional_id: row.barber_id,
+    appointment_date: row.appointment_date,
+    start_time: row.start_time,
+    end_time: row.end_time,
+  }));
 }
 
 export async function getBookedSlots(professionalId: string, date: string): Promise<Pick<Appointment, 'start_time' | 'end_time'>[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('start_time, end_time')
-    .eq('professional_id', professionalId)
-    .eq('appointment_date', date)
-    .in('status', ['pending', 'confirmed']);
+  const { data, error } = await supabase.rpc('get_barber_booked_slots', {
+    p_barber_ids: [professionalId],
+    p_from: date,
+    p_to: date,
+  });
 
   if (error) throw error;
-  return data as Pick<Appointment, 'start_time' | 'end_time'>[];
+  return (data as { barber_id: string; appointment_date: string; start_time: string; end_time: string }[]).map((row) => ({
+    start_time: row.start_time,
+    end_time: row.end_time,
+  }));
 }
 
 export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>, serviceIds: string[]): Promise<Appointment> {
@@ -212,7 +217,15 @@ export async function createAppointment(appointment: Omit<Appointment, 'id' | 'c
     .select()
     .single();
 
-  if (appointmentError) throw appointmentError;
+  if (appointmentError) {
+    if (
+      'code' in appointmentError &&
+      (appointmentError as { code?: string }).code === '23P01'
+    ) {
+      throw new Error('SLOT_TAKEN');
+    }
+    throw appointmentError;
+  }
 
   const appointmentServices = serviceIds.map((serviceId) => ({
     appointment_id: (appointmentData as Appointment).id,
