@@ -17,7 +17,8 @@ import {
   updateProfile,
 } from "@/lib/queries";
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
-import type { Salon, ProfessionalAvailability, AvailabilityOverride } from "@/lib/types/database";
+import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMethod } from "@/lib/types/database";
+import { getPublicPaymentSettings } from "@/lib/queries/payment-settings";
 import { useAuth } from "@/lib/auth-context";
 import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
 import { UserPanel } from "@/components/user-panel/user-panel";
@@ -69,6 +70,7 @@ type BookingDraft = {
   phone: string;
   totalPrice: number;
   durationMinutes: number;
+  paymentMethod: PaymentMethod;
 };
 
 const HOME_LOCATION: LocationOption = {
@@ -129,6 +131,11 @@ export default function Home() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentSettings, setPaymentSettings] = useState<Awaited<
+    ReturnType<typeof getPublicPaymentSettings>
+  > | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [expandedTeamMember, setExpandedTeamMember] = useState<string | null>(null);
@@ -644,6 +651,9 @@ export default function Home() {
     setFirstName("");
     setLastName("");
     setPhone("");
+    setPaymentMethod("cash");
+    setPaymentSettings(null);
+    setCopiedField(null);
     setIsSubmitting(false);
     setCalendarExpanded(false);
     setCalendarMonth(() => {
@@ -689,8 +699,9 @@ export default function Home() {
       phone: phone.trim(),
       totalPrice: total,
       durationMinutes: totalDurationMinutes,
+      paymentMethod,
     };
-  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, firstName, lastName, phone, total, totalDurationMinutes]);
+  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, firstName, lastName, phone, total, totalDurationMinutes, paymentMethod]);
 
   const persistAppointment = useCallback(async (draft: BookingDraft, customerId: string) => {
     // Profile upsert must succeed — the appointment insert FKs to profiles.id,
@@ -720,7 +731,7 @@ export default function Home() {
         appointment_date: draft.date,
         start_time: startTime,
         end_time: endTime,
-        payment_method: "cash",
+        payment_method: draft.paymentMethod,
         status: "pending",
         total_price_mad: draft.totalPrice,
         notes: null,
@@ -754,6 +765,11 @@ export default function Home() {
       const phoneRegex = /^(?:\+?212|0)\s?[5-7](?:[\s-]?\d){8}$/;
       if (!phoneRegex.test(phone.trim())) {
         setToast({ kind: "error", text: "Please enter a valid Moroccan phone number." });
+        return;
+      }
+
+      if (paymentMethod === "bank_transfer" && !paymentSettings?.bank_transfer_enabled) {
+        setToast({ kind: "error", text: "Bank transfer isn't available right now. Please choose cash." });
         return;
       }
 
@@ -799,6 +815,13 @@ export default function Home() {
     setDirection("forward");
     setStep((current) => Math.min(current + 1, 5));
   };
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    getPublicPaymentSettings()
+      .then((settings) => setPaymentSettings(settings))
+      .catch(() => setPaymentSettings(null));
+  }, [isModalOpen]);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -1868,14 +1891,163 @@ export default function Home() {
                                 <p className="text-[10px] text-[rgb(10_8_0/40%)] mt-0.5">Format: +212 6XX XXX XXX or 06XX XXX XXX</p>
                               </div>
                             </div>
-                          </div>
+                           </div>
 
-                          <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)] mb-4">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M12 16v-4M12 8h.01" />
-                            </svg>
-                            Cash only — pay at your appointment. Cancellations are free; let us know in advance.
+                          <div className="flex flex-col gap-3 mb-[22px]">
+                            <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                                <line x1="1" y1="10" x2="23" y2="10" />
+                              </svg>
+                              Payment Method
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                              <button
+                                type="button"
+                                role="radio"
+                                aria-checked={paymentMethod === "cash"}
+                                data-testid="btn:payment-cash"
+                                onClick={() => setPaymentMethod("cash")}
+                                className={`text-left rounded-xl border-2 px-4 py-3 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+                                  paymentMethod === "cash"
+                                    ? "border-gold bg-[rgb(192_154_90/6%)]"
+                                    : "border-[rgb(10_8_0/12%)] bg-white hover:border-[rgb(10_8_0/22%)]"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    paymentMethod === "cash" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
+                                  }`}>
+                                    {paymentMethod === "cash" && (
+                                      <div className="w-2 h-2 rounded-full bg-gold" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-brand-black">Cash</div>
+                                    <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay at your appointment</div>
+                                  </div>
+                                </div>
+                              </button>
+
+                              {paymentSettings?.bank_transfer_enabled && (
+                                <button
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={paymentMethod === "bank_transfer"}
+                                  data-testid="btn:payment-bank-transfer"
+                                  onClick={() => {
+                                    setPaymentMethod("bank_transfer");
+                                    const el = document.getElementById("payment-bank-details");
+                                    if (el) el.scrollIntoView({ block: "nearest" });
+                                  }}
+                                  className={`text-left rounded-xl border-2 px-4 py-3 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+                                    paymentMethod === "bank_transfer"
+                                      ? "border-gold bg-[rgb(192_154_90/6%)]"
+                                      : "border-[rgb(10_8_0/12%)] bg-white hover:border-[rgb(10_8_0/22%)]"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                      paymentMethod === "bank_transfer" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
+                                    }`}>
+                                      {paymentMethod === "bank_transfer" && (
+                                        <div className="w-2 h-2 rounded-full bg-gold" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-semibold text-brand-black">Bank transfer</div>
+                                      <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay in advance</div>
+                                    </div>
+                                  </div>
+                                </button>
+                              )}
+                            </div>
+
+                            {paymentMethod === "bank_transfer" && paymentSettings?.bank_transfer_enabled && (
+                              <div
+                                id="payment-bank-details"
+                                className="bg-white rounded-xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden"
+                              >
+                                <div className="px-4 py-3 space-y-2 text-sm">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Account holder:</span>
+                                    <span className="text-brand-black font-medium text-right">{paymentSettings.account_holder}</span>
+                                  </div>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Bank:</span>
+                                    <span className="text-brand-black font-medium text-right">{paymentSettings.bank_name}</span>
+                                  </div>
+                                  {paymentSettings.rib && (
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">RIB:</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-brand-black font-mono text-xs">{paymentSettings.rib}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                              navigator.clipboard.writeText(paymentSettings.rib!).then(() => {
+                                                setCopiedField("rib");
+                                                setTimeout(() => setCopiedField(null), 1500);
+                                              });
+                                            }
+                                          }}
+                                          className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
+                                        >
+                                          {copiedField === "rib" ? "Copied" : "Copy"}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {paymentSettings.iban && (
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">IBAN:</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-brand-black font-mono text-xs">{paymentSettings.iban}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                              navigator.clipboard.writeText(paymentSettings.iban!).then(() => {
+                                                setCopiedField("iban");
+                                                setTimeout(() => setCopiedField(null), 1500);
+                                              });
+                                            }
+                                          }}
+                                          className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
+                                        >
+                                          {copiedField === "iban" ? "Copied" : "Copy"}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Reference:</span>
+                                    <span className="text-brand-black font-medium text-right">{firstName.trim()} {lastName.trim()}</span>
+                                  </div>
+                                  <div className="border-t border-[rgb(10_8_0/8%)] my-2" />
+                                  <p className="text-xs text-[rgb(10_8_0/55%)] leading-relaxed">
+                                    After you transfer, send the receipt to WhatsApp{" "}
+                                    <span className="font-semibold text-brand-black">{paymentSettings.payment_phone ?? "the shop"}</span>.
+                                    Your booking stays pending until we confirm the payment.
+                                  </p>
+                                  {paymentSettings.instructions && (
+                                    <p className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed">{paymentSettings.instructions}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {paymentMethod === "cash" && (
+                              <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <path d="M12 16v-4M12 8h.01" />
+                                </svg>
+                                Pay {total} MAD in cash at your appointment. Cancellations are free; let us know in advance.
+                              </div>
+                            )}
                           </div>
 
                           <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden">
@@ -1953,6 +2125,12 @@ export default function Home() {
                           <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">
                             Your appointment has been received. We&apos;ll reach out to confirm within a few hours.
                           </p>
+
+                          {paymentMethod === "bank_transfer" && paymentSettings?.payment_phone && (
+                            <p className="text-[12px] text-[rgb(192_154_90/80%)] leading-[1.6] max-w-[320px] mx-auto mb-4 font-medium">
+                              Don&apos;t forget to send your transfer receipt to WhatsApp {paymentSettings.payment_phone}.
+                            </p>
+                          )}
 
                           <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] text-left px-4 py-3 mx-1">
                             <div className="flex items-center justify-between gap-3">
