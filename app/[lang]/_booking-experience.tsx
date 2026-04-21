@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
+import { DictionaryProvider, useT } from "@/lib/i18n/client-dictionary";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
 import {
   getActiveProfessionalsWithServices,
@@ -114,9 +115,15 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export interface BookingExperienceProps { lang: string; }
+export interface BookingExperienceProps {
+  lang: string;
+  common: Record<string, unknown>;
+  booking: Record<string, unknown>;
+}
 
-export function BookingExperience({ lang }: BookingExperienceProps) {
+export function BookingExperience({ lang, common, booking }: BookingExperienceProps) {
+  const tBooking = useT('booking');
+  const tCommon = useT('common');
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
   const [salons, setSalons] = useState<LocationOption[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
@@ -480,7 +487,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setToast({ kind: "error", text: "Location access denied. Please enable location in your browser settings." });
+        setToast({ kind: "error", text: tBooking('toast.locationDenied') });
         setNearbyLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -766,12 +773,12 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
 
       const phoneRegex = /^(?:\+?212|0)\s?[5-7](?:[\s-]?\d){8}$/;
       if (!phoneRegex.test(phone.trim())) {
-        setToast({ kind: "error", text: "Please enter a valid Moroccan phone number." });
+        setToast({ kind: "error", text: tBooking('validation.phoneInvalid') });
         return;
       }
 
       if (paymentMethod === "bank_transfer" && !paymentSettings?.bank_transfer_enabled) {
-        setToast({ kind: "error", text: "Bank transfer isn't available right now. Please choose cash." });
+        setToast({ kind: "error", text: tBooking('validation.bankTransferUnavailable') });
         return;
       }
 
@@ -796,7 +803,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
       } catch (err) {
         console.error("Failed to save appointment:", err);
         if (err instanceof Error && err.message === 'SLOT_TAKEN') {
-          setToast({ kind: "error", text: "That time was just booked. Please pick another slot.", testid: "text:booking-error" });
+          setToast({ kind: "error", text: tBooking('validation.slotTaken'), testid: "text:booking-error" });
           setBookedSlots(null);
           if (selectedBarber && selectedDate) {
             const refreshed = await getBookedSlots(selectedBarber.id, selectedDate.id);
@@ -806,7 +813,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
         } else {
           const message = err instanceof Error && err.message
             ? err.message
-            : "Couldn't save your booking. Please try again.";
+            : tBooking('validation.saveFailed');
           setToast({ kind: "error", text: message, testid: "text:booking-error" });
         }
         setIsSubmitting(false);
@@ -927,13 +934,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
       };
 
   return (
+    <DictionaryProvider value={{ common, booking }}>
     <>
       <nav id="main-nav" className={`fixed top-0 left-0 right-0 z-[300] flex items-center justify-between lg:px-[100px] px-[56px] py-5 transition-[background,padding] duration-300 ${isScrolled ? "bg-[rgb(10_8_0/90%)] [backdrop-filter:blur(18px)] py-[14px] border-b border-[rgb(254_251_243/10%)]" : ""}`}>
         <div className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3">
           <img src="/logo.jpg" alt="Desart" className="w-8 h-8 rounded-full object-cover shrink-0 md:w-9 md:h-9" />
           DESART
         </div>
-        <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label="Menu">
+        <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label={tBooking('misc.menu')}>
           <span className="block w-[22px] h-[1.5px] bg-brand-white" />
           <span className="block w-[22px] h-[1.5px] bg-brand-white" />
           <span className="block w-[22px] h-[1.5px] bg-brand-white" />
@@ -945,14 +953,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
         {/* Left column */}
         <div className="relative z-[3] pb-6 max-sm:pb-2 max-w-[560px] lg:pl-[100px] lg:pb-20">
           <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
-            Agadir · Est. 2019
+            {tBooking('hero.tagline')}
           </span>
           <h1 className="font-fraunces font-normal text-[clamp(48px,5.5vw,76px)] leading-[.92] tracking-[-0.035em]">
-            Sharp cuts.<br />
-            Sharper <em className="italic font-normal text-gold3">style.</em>
+            {tBooking('hero.headline1')}<br />
+            {tBooking('hero.headline2')}
           </h1>
           <p className="mt-7 text-brand-white/60 text-base leading-[1.7] max-w-[440px] font-light">
-            Premium grooming for those who know the difference. Walk in, sit down, walk out sharper — by appointment or by chance.
+            {tBooking('hero.subheadline')}
           </p>
           <div className="flex gap-3.5 items-center mt-10 flex-wrap max-sm:hidden">
             <button
@@ -961,27 +969,27 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
               className="open-booking inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3"
               data-testid="btn:open-booking"
             >
-              Reserve a chair
+              {tBooking('hero.reserveCta')}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </button>
             <a
               href="#services"
               className="inline-flex items-center gap-2.5 px-[22px] py-[15px] text-brand-white border border-brand-white/25 text-[11px] tracking-[.16em] uppercase font-semibold transition-[border-color] duration-150 hover:border-brand-white"
             >
-              View menu
+              {tBooking('hero.viewMenuCta')}
             </a>
           </div>
           <div className="flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50 max-sm:gap-5 max-sm:mt-10 max-sm:hidden">
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">Hours</span>
+              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.hours')}</span>
               <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">9:00 — 17:00</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">Closed</span>
+              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.closed')}</span>
               <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">Friday</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">Payment</span>
+              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.payment')}</span>
               <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">Cash only</span>
             </div>
           </div>
@@ -1064,14 +1072,16 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
 
       <div className="bg-gold overflow-hidden py-[22px] border-y border-[rgb(10_8_0/10%)]">
         <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused]">
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, index) => (
-            <div
-              className="inline-flex items-center gap-[26px] px-[26px] font-playfair text-[19px] font-normal italic text-brand-black shrink-0"
-              key={`${item}-${index}`}
-            >
-              {item} <span className="w-1 h-1 rounded-full bg-brand-black opacity-30 shrink-0" />
-            </div>
-          ))}
+          {[...Array(2)].flatMap((_, repeatIndex) =>
+            Array.from({ length: 7 }, (_, i) => (
+              <div
+                className="inline-flex items-center gap-[26px] px-[26px] font-playfair text-[19px] font-normal italic text-brand-black shrink-0"
+                key={`${i}-${repeatIndex}`}
+              >
+                {tBooking(`marquee.${i}`)} <span className="w-1 h-1 rounded-full bg-brand-black opacity-30 shrink-0" />
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -1090,7 +1100,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
           {/* Mobile: Accordion */}
           <div className="flex flex-col sm:hidden border-t border-[rgb(254_251_243/10%)]">
             {barbers.length === 0 && (
-              <p className="text-center text-[rgb(254_251_243/40%)] py-10 text-[13px]">Loading team...</p>
+              <p className="text-center text-[rgb(254_251_243/40%)] py-10 text-[13px]">{tBooking('misc.loadingTeam')}</p>
             )}
             {barbers.map((barber) => {
               const isOpen = expandedTeamMember === barber.id;
@@ -1265,38 +1275,38 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
               </p>
             </div>
             <div>
-              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">Navigate</h4>
+              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">{tBooking('footer.navigate')}</h4>
               <ul className="list-none flex flex-col gap-3">
                 <li>
-                  <a href="#services" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Services</a>
+                  <a href="#services" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('services')}</a>
                 </li>
                 <li>
-                  <a href="#team" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Our Team</a>
+                  <a href="#team" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('ourTeam')}</a>
                 </li>
                 <li>
-                  <a href="#locations" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">Locations</a>
+                  <a href="#locations" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('locations')}</a>
                 </li>
                 <li>
                   <button type="button" className="text-sm text-[rgb(254_251_243/40%)] p-0 transition-colors duration-200 hover:text-white open-booking" onClick={openModal}>
-                    Book Now
+                    {tCommon('bookNow')}
                   </button>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">Contact</h4>
+              <h4 className="text-[10px] font-medium tracking-[0.2em] uppercase text-gold3 mb-[22px]">{tBooking('footer.contact')}</h4>
               <ul className="list-none flex flex-col gap-3">
-                <li className="text-sm text-[rgb(254_251_243/40%)]">14 Rue Mohammed V, Agadir</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.address')}</li>
                 <li>
                   <a href="tel:+212600000000" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 600 000 000</a>
                 </li>
-                <li className="text-sm text-[rgb(254_251_243/40%)]">Sat–Thu: 9:00 – 17:00</li>
-                <li className="text-sm text-[rgb(254_251_243/40%)]">Friday: Closed</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursSatThu')}</li>
+                <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursFriday')}</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-[rgb(254_251_243/10%)] pt-7 flex justify-between items-center flex-wrap gap-3">
-            <p className="text-[13px] text-[rgb(254_251_243/28%)]">© 2026 Desart. Cash only · Agadir, Morocco</p>
+            <p className="text-[13px] text-[rgb(254_251_243/28%)]">{tBooking('footer.copyright')}</p>
             <div className="flex gap-3.5">
               <a className="w-[34px] h-[34px] rounded-full border border-[rgb(254_251_243/10%)] flex items-center justify-center text-[rgb(254_251_243/35%)] transition-all duration-200 hover:border-gold hover:text-gold" href="#" aria-label="Instagram">
                 <svg className="w-[15px] h-[15px] fill-none stroke-current stroke-[1.5]" viewBox="0 0 24 24">
@@ -1321,7 +1331,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
           >
-            Book Now
+            {tCommon('bookNow')}
           </motion.button>
         )}
       </AnimatePresence>
@@ -1387,7 +1397,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                       className="w-8 h-8 flex items-center justify-center bg-none border-none cursor-pointer text-brand-black rounded-lg transition-[background,color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/6%)] active:bg-[rgb(10_8_0/10%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                       onClick={prevStep}
-                      aria-label="Go back"
+                      aria-label={tBooking('misc.goBack')}
                     >
                       <svg viewBox="0 0 9 16" width="9" height="16">
                         <path d="M8 1L1 8l7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -1406,19 +1416,19 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      {step === 1 && "Choose a Location"}
-                      {step === 2 && "Choose a Berber"}
-                      {step === 3 && "Choose a Service"}
-                      {step === 4 && "Choose a Time"}
-                      {step === 5 && "Your Details"}
-                      {step === 6 && "Booking Confirmed"}
+                      {step === 1 && tBooking('steps.location.title')}
+                      {step === 2 && tBooking('steps.barber.title')}
+                      {step === 3 && tBooking('steps.service.title')}
+                      {step === 4 && tBooking('steps.time.title')}
+                      {step === 5 && tBooking('steps.details.title')}
+                      {step === 6 && tBooking('steps.confirmation.title')}
                     </motion.p>
                   </AnimatePresence>
                 </div>
                 <MenuAvatarButton onClick={() => setShowUserPanel(true)} />
                 <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-none border border-[rgb(10_8_0/20%)] cursor-pointer text-brand-black transition-[background,border-color] duration-200 shrink-0 p-0 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2" onClick={() => {
                   if (step === 5 && (firstName.trim() || lastName.trim() || phone.trim())) {
-                    if (!window.confirm("Discard your booking details?")) return;
+                    if (!window.confirm(tBooking('steps.details.discardConfirm'))) return;
                   }
                   closeModal();
                 }} aria-label="Close">
@@ -1454,14 +1464,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 <circle cx="5" cy="4" r="1.5"/>
                               </svg>
                             )}
-                            Nearby
+                            {tBooking('steps.location.nearby')}
                           </button>
                           <button type="button" className={`flex items-center justify-center h-8 px-3 mr-3 rounded-full border uppercase text-[11px] font-semibold tracking-[0.05em] transition-all duration-200 ${showHomePanel ? "border-gold bg-gold text-white" : "border-[rgb(10_8_0/22%)] bg-white text-black hover:border-[rgb(10_8_0/30%)] hover:bg-[rgb(10_8_0/3%)]"} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`} onClick={openHomePanel}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5 opacity-60">
                               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                               <polyline points="9 22 9 12 15 12 15 22" />
                             </svg>
-                            Come to me
+                            {tBooking('steps.location.comeToMe')}
                           </button>
                         </div>
                         {isLoadingSalons && salons.length === 0 && (
@@ -1581,7 +1591,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                         {nextAvailable.shortDay} {nextAvailable.displayDate}
                                       </span>
                                     ) : (
-                                      <span className={`text-[11px] font-medium ${isBarberSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/45%)]"}`}>Unavailable</span>
+                                      <span className={`text-[11px] font-medium ${isBarberSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/45%)]"}`}>{tBooking('steps.barber.unavailable')}</span>
                                     )}
                                   </div>
                                 )}
@@ -1597,7 +1607,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                         <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5">
                           <div className="flex flex-col gap-2 pb-24">
                             {(selectedBarber?.services ?? []).length === 0 && !isLoadingServices && (
-                              <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">This barber has no services listed yet.</p>
+                              <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">{tBooking('steps.service.thisBarberNoServices')}</p>
                             )}
                             {isLoadingServices && (selectedBarber?.services ?? []).length === 0 && (
                               <div className="flex flex-col gap-2">
@@ -1634,7 +1644,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
 
                           {effectiveSelectedServices.length === 0 && (selectedBarber?.services ?? []).length > 1 && !isLoadingServices && (
                             <p className="text-[11px] text-[rgb(10_8_0/45%)] text-center py-3">
-                              Pick one or more services, then tap Continue.
+                              {tBooking('steps.service.pickOneOrMore')}
                             </p>
                           )}
                         </div>
@@ -1656,9 +1666,9 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                               >
                                 <span>
-                                  Continue
+                                  {tBooking('steps.service.continue')}
                                   <span className="opacity-60 normal-case tracking-normal ml-2 font-medium">
-                                    {effectiveSelectedServices.length} service{effectiveSelectedServices.length > 1 ? "s" : ""}
+                                    ({effectiveSelectedServices.length === 1 ? tBooking('steps.service.services_one') : tBooking('steps.service.services_other', { count: effectiveSelectedServices.length })})
                                   </span>
                                 </span>
                                 <span className="font-bold tracking-[-0.01em]">
@@ -1681,7 +1691,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 <rect x="3" y="4" width="18" height="18" rx="2" />
                                 <path d="M16 2v4M8 2v4M3 10h18" />
                               </svg>
-                              Select Date
+                              {tBooking('steps.time.selectDate')}
                             </div>
 
                             {!calendarExpanded && (
@@ -1799,7 +1809,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 <circle cx="12" cy="12" r="10" />
                                 <path d="M12 6v6l4 2" />
                               </svg>
-                              Select Time
+                              {tBooking('steps.time.selectTime')}
                             </div>
                             {selectedDate ? (
                               timeSlotStatuses.length > 0 ? (
@@ -1819,7 +1829,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                         data-testid={`btn:time-${slot}`}
                                         disabled={!available}
                                         aria-disabled={!available}
-                                        title={!available ? "This time is already booked" : undefined}
+                                        title={!available ? tBooking('steps.time.timeUnavailable') : undefined}
                                         className={`${baseClass} ${stateClass} focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
                                         onClick={() => available && setSelectedTime(slot)}
                                       >
@@ -1829,10 +1839,10 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                   })}
                                 </div>
                               ) : (
-                                <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">No slots available on this day — try another date.</p>
+                                <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center py-4">{tBooking('steps.time.noSlotsAvailable')}</p>
                               )
                             ) : (
-                              <p className="text-[12px] text-[rgb(10_8_0/35%)] text-center py-4">Pick a date first.</p>
+                              <p className="text-[12px] text-[rgb(10_8_0/35%)] text-center py-4">{tBooking('steps.time.pickDateFirst')}</p>
                             )}
                           </div>
                         </div>
@@ -1849,15 +1859,15 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                                 <circle cx="12" cy="7" r="4" />
                               </svg>
-                              Contact Information
+                              {tBooking('steps.details.contactInfo')}
                             </div>
                             <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                               <div className="flex flex-col gap-1.5">
-                                <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">First Name</label>
+                                <label htmlFor="f-first" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">{tBooking('steps.details.firstName')}</label>
                                 <input
                                   id="f-first"
                                   type="text"
-                                  placeholder="Mohamed"
+                                  placeholder={tBooking('steps.details.firstNamePlaceholder')}
                                   autoComplete="given-name"
                                   value={firstName}
                                   onChange={(event) => setFirstName(event.target.value)}
@@ -1866,11 +1876,11 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 />
                               </div>
                               <div className="flex flex-col gap-1.5">
-                                <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Last Name</label>
+                                <label htmlFor="f-last" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">{tBooking('steps.details.lastName')}</label>
                                 <input
                                   id="f-last"
                                   type="text"
-                                  placeholder="Alaoui"
+                                  placeholder={tBooking('steps.details.lastNamePlaceholder')}
                                   autoComplete="family-name"
                                   value={lastName}
                                   onChange={(event) => setLastName(event.target.value)}
@@ -1879,18 +1889,18 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 />
                               </div>
                               <div className="flex flex-col gap-1.5 col-span-2 max-sm:col-span-1">
-                                <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">Phone Number</label>
+                                <label htmlFor="f-phone" className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">{tBooking('steps.details.phone')}</label>
                                 <input
                                   id="f-phone"
                                   type="tel"
-                                  placeholder="+212 6XX XXX XXX"
+                                  placeholder={tBooking('steps.details.phonePlaceholder')}
                                   autoComplete="tel"
                                   value={phone}
                                   onChange={(event) => setPhone(event.target.value)}
                                   onBlur={() => setPhone(phone.trim())}
                                   className="bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)] focus:bg-white"
                                 />
-                                <p className="text-[10px] text-[rgb(10_8_0/40%)] mt-0.5">Format: +212 6XX XXX XXX or 06XX XXX XXX</p>
+                                <p className="text-[10px] text-[rgb(10_8_0/40%)] mt-0.5">{tBooking('steps.details.phoneFormat')}</p>
                               </div>
                             </div>
                            </div>
@@ -1901,7 +1911,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                                 <line x1="1" y1="10" x2="23" y2="10" />
                               </svg>
-                              Payment Method
+                              {tBooking('steps.details.paymentMethod')}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
@@ -1926,8 +1936,8 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                     )}
                                   </div>
                                   <div>
-                                    <div className="text-sm font-semibold text-brand-black">Cash</div>
-                                    <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay at your appointment</div>
+                                    <div className="text-sm font-semibold text-brand-black">{tBooking('steps.details.cash')}</div>
+                                    <div className="text-[11px] text-[rgb(10_8_0/45%)]">{tBooking('steps.details.payAtAppointment')}</div>
                                   </div>
                                 </div>
                               </button>
@@ -1958,8 +1968,8 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                       )}
                                     </div>
                                     <div>
-                                      <div className="text-sm font-semibold text-brand-black">Bank transfer</div>
-                                      <div className="text-[11px] text-[rgb(10_8_0/45%)]">Pay in advance</div>
+                                      <div className="text-sm font-semibold text-brand-black">{tBooking('steps.details.bankTransfer')}</div>
+                                      <div className="text-[11px] text-[rgb(10_8_0/45%)]">{tBooking('steps.details.payInAdvance')}</div>
                                     </div>
                                   </div>
                                 </button>
@@ -1973,16 +1983,16 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                               >
                                 <div className="px-4 py-3 space-y-2 text-sm">
                                   <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Account holder:</span>
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">{tBooking('steps.details.accountHolder')}</span>
                                     <span className="text-brand-black font-medium text-right">{paymentSettings.account_holder}</span>
                                   </div>
                                   <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Bank:</span>
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">{tBooking('steps.details.bank')}</span>
                                     <span className="text-brand-black font-medium text-right">{paymentSettings.bank_name}</span>
                                   </div>
                                   {paymentSettings.rib && (
                                     <div className="flex items-start justify-between gap-2">
-                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">RIB:</span>
+                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">{tBooking('steps.details.rib')}</span>
                                       <div className="flex items-center gap-1.5">
                                         <span className="text-brand-black font-mono text-xs">{paymentSettings.rib}</span>
                                         <button
@@ -1997,14 +2007,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                           }}
                                           className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
                                         >
-                                          {copiedField === "rib" ? "Copied" : "Copy"}
+                                          {copiedField === "rib" ? tBooking('steps.details.copied') : tBooking('steps.details.copy')}
                                         </button>
                                       </div>
                                     </div>
                                   )}
                                   {paymentSettings.iban && (
                                     <div className="flex items-start justify-between gap-2">
-                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">IBAN:</span>
+                                      <span className="text-[rgb(10_8_0/50%)] shrink-0">{tBooking('steps.details.iban')}</span>
                                       <div className="flex items-center gap-1.5">
                                         <span className="text-brand-black font-mono text-xs">{paymentSettings.iban}</span>
                                         <button
@@ -2019,20 +2029,18 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                           }}
                                           className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gold hover:text-[rgb(192_154_90/70%)] transition-colors shrink-0"
                                         >
-                                          {copiedField === "iban" ? "Copied" : "Copy"}
+                                          {copiedField === "iban" ? tBooking('steps.details.copied') : tBooking('steps.details.copy')}
                                         </button>
                                       </div>
                                     </div>
                                   )}
                                   <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">Reference:</span>
+                                    <span className="text-[rgb(10_8_0/50%)] shrink-0">{tBooking('steps.details.reference')}</span>
                                     <span className="text-brand-black font-medium text-right">{firstName.trim()} {lastName.trim()}</span>
                                   </div>
                                   <div className="border-t border-[rgb(10_8_0/8%)] my-2" />
                                   <p className="text-xs text-[rgb(10_8_0/55%)] leading-relaxed">
-                                    After you transfer, send the receipt to WhatsApp{" "}
-                                    <span className="font-semibold text-brand-black">{paymentSettings.payment_phone ?? "the shop"}</span>.
-                                    Your booking stays pending until we confirm the payment.
+                                    {tBooking('steps.details.afterTransfer', { phone: paymentSettings.payment_phone ?? "the shop" })}
                                   </p>
                                   {paymentSettings.instructions && (
                                     <p className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed">{paymentSettings.instructions}</p>
@@ -2062,7 +2070,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                 </div>
                                 <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
                                   {selectedDate?.fullDate ?? "—"}{selectedTime ? ` · ${selectedTime}` : ""}
-                                  {selectedLocation ? ` · ${selectedLocation.type === "home" ? "Come to me" : selectedLocation.name}` : ""}
+                                  {selectedLocation ? ` · ${selectedLocation.type === "home" ? tBooking('steps.location.comeToMe') : selectedLocation.name}` : ""}
                                 </div>
                               </div>
                               <div className="shrink-0 text-right">
@@ -2093,7 +2101,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                                   {!user && (
                                     <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
                                   )}
-                                  {user ? "Confirm Booking" : "Continue with Google"}
+                                  {user ? tBooking('steps.details.confirmBooking') : tBooking('steps.details.continueWithGoogle')}
                                 </span>
                                 <span className="font-bold tracking-[-0.01em]">{total} MAD</span>
                               </button>
@@ -2106,7 +2114,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                             <button type="button" disabled data-testid="btn:confirm-booking"
                               className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed">
                               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                              {user ? "Saving…" : "Waiting for Google…"}
+                              {user ? tBooking('steps.details.saving') : tBooking('steps.details.waitingForGoogle')}
                             </button>
                           </div>
                         )}
@@ -2123,14 +2131,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                               </svg>
                             </div>
                           </div>
-                          <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">You&apos;re all set!</h2>
+                          <h2 className="font-playfair text-[28px] font-medium text-brand-black mb-2 tracking-[-0.02em]">{tBooking('steps.confirmation.headline')}</h2>
                           <p className="text-[13px] text-[rgb(10_8_0/50%)] leading-[1.7] max-w-[320px] mx-auto mb-6">
-                            Your appointment has been received. We&apos;ll reach out to confirm within a few hours.
+                            {tBooking('steps.confirmation.message')}
                           </p>
 
                           {paymentMethod === "bank_transfer" && paymentSettings?.payment_phone && (
                             <p className="text-[12px] text-[rgb(192_154_90/80%)] leading-[1.6] max-w-[320px] mx-auto mb-4 font-medium">
-                              Don&apos;t forget to send your transfer receipt to WhatsApp {paymentSettings.payment_phone}.
+                              {tBooking('steps.confirmation.dontForgetReceipt', { phone: paymentSettings.payment_phone })}
                             </p>
                           )}
 
@@ -2167,7 +2175,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                               onClick={finishBooking}
                               className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-2 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                             >
-                              Close
+                              {tCommon('close')}
                             </button>
                           </motion.div>
                         </AnimatePresence>
@@ -2206,14 +2214,14 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                     >
                       <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/11%)]">
                         <div>
-                          <h3 className="text-[15px] font-bold text-brand-black tracking-[-0.01em]">Your Location</h3>
-                          <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">Tap the map or drag the pin to your address</p>
+                          <h3 className="text-[15px] font-bold text-brand-black tracking-[-0.01em]">{tBooking('homePanel.yourLocation')}</h3>
+                          <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">{tBooking('homePanel.tapMapHint')}</p>
                         </div>
                         <button
                           type="button"
                           className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/20%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                           onClick={() => setShowHomePanel(false)}
-                          aria-label="Close"
+                          aria-label={tCommon('close')}
                         >
                           <svg viewBox="0 0 10 10" width="10" height="10">
                             <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
@@ -2239,7 +2247,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                               <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
                             </svg>
                           )}
-                          {homeLocating ? "Detecting…" : "Use my location"}
+                          {homeLocating ? tBooking('homePanel.detecting') : tBooking('homePanel.useMyLocation')}
                         </button>
 
                         <div className="rounded-xl overflow-hidden border border-[rgb(10_8_0/15%)]" style={{ height: 230 }}>
@@ -2260,7 +2268,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                           </svg>
                           <span>
                             {homePinGeoLoading
-                              ? "Resolving address…"
+                              ? tBooking('homePanel.resolvingAddress')
                               : homePinLabel
                               ? homePinLabel
                               : homePin
@@ -2276,7 +2284,7 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
                           className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                           onClick={handleConfirmHomeLocation}
                         >
-                          Save Location
+                          {tBooking('homePanel.saveLocation')}
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M13 6l6 6-6 6" />
                           </svg>
@@ -2291,5 +2299,6 @@ export function BookingExperience({ lang }: BookingExperienceProps) {
         )}
       </AnimatePresence>
     </>
+    </DictionaryProvider>
   );
 }
