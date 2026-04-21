@@ -24,6 +24,7 @@ interface DeliveryRow {
   appointment_id: string;
   event_type: string;
   channel_id: string;
+  recipient_kind: string;
   status: string;
   attempt_count: number;
   last_error: string | null;
@@ -31,6 +32,21 @@ interface DeliveryRow {
   sent_at: string | null;
   channel: { channel: string; provider: string } | null;
 }
+
+interface CustomerSettings {
+  id: string;
+  is_enabled: boolean;
+  from_address: string;
+  events: string[];
+  has_api_key: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+const CUSTOMER_EVENTS = [
+  'appointment.confirmed',
+  'appointment.cancelled',
+];
 
 const ALL_EVENTS = [
   'appointment.created',
@@ -56,6 +72,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 export default function NotificationsManager() {
   const [channels, setChannels] = useState<ChannelRow[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
+  const [customerSettings, setCustomerSettings] = useState<CustomerSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<ChannelRow | null>(null);
@@ -65,19 +82,30 @@ export default function NotificationsManager() {
   const [formConfig, setFormConfig] = useState<Record<string, string>>({});
   const [formEvents, setFormEvents] = useState<string[]>(ALL_EVENTS);
   const [formProvider, setFormProvider] = useState<string>('callmebot');
+  const [deliveryFilter, setDeliveryFilter] = useState<'all' | 'admin' | 'customer'>('all');
+  const [customerForm, setCustomerForm] = useState({
+    is_enabled: false,
+    resend_api_key: '',
+    from_address: '',
+    events: [...CUSTOMER_EVENTS],
+  });
+  const [customerTestEmail, setCustomerTestEmail] = useState('');
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [channelsRes, deliveriesRes] = await Promise.all([
+      const [channelsRes, deliveriesRes, customerRes] = await Promise.all([
         fetch('/api/notifications/channels'),
         fetch('/api/notifications/deliveries'),
+        fetch('/api/notifications/customer-settings'),
       ]);
       const channelsData = await channelsRes.json();
       const deliveriesData = await deliveriesRes.json();
+      const customerData = await customerRes.json();
       if (channelsRes.ok) setChannels(channelsData.channels ?? []);
       if (deliveriesRes.ok) setDeliveries(deliveriesData.deliveries ?? []);
+      if (customerRes.ok) setCustomerSettings(customerData.settings ?? null);
     } catch {
       toast('Failed to load notification data', 'error');
     } finally {
@@ -88,6 +116,17 @@ export default function NotificationsManager() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (customerSettings) {
+      setCustomerForm({
+        is_enabled: customerSettings.is_enabled,
+        resend_api_key: '',
+        from_address: customerSettings.from_address,
+        events: [...customerSettings.events],
+      });
+    }
+  }, [customerSettings]);
 
   const openCreateModal = (channel: string) => {
     setCreatingChannel(channel);
@@ -253,6 +292,88 @@ export default function NotificationsManager() {
     );
   };
 
+  const toggleCustomerEvent = (event: string) => {
+    setCustomerForm((prev) => ({
+      ...prev,
+      events: prev.events.includes(event)
+        ? prev.events.filter((e) => e !== event)
+        : [...prev.events, event],
+    }));
+  };
+
+  const handleCustomerSave = async () => {
+    const body: Record<string, unknown> = {
+      is_enabled: customerForm.is_enabled,
+      from_address: customerForm.from_address,
+      events: customerForm.events,
+    };
+    if (customerForm.resend_api_key.trim()) {
+      body.resend_api_key = customerForm.resend_api_key;
+    }
+
+    try {
+      const res = await fetch('/api/notifications/customer-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error ?? 'Failed to save', 'error');
+        return;
+      }
+      toast(customerSettings ? 'Customer settings updated' : 'Customer settings created');
+      setCustomerForm((prev) => ({ ...prev, resend_api_key: '' }));
+      loadData();
+    } catch {
+      toast('Failed to save customer settings', 'error');
+    }
+  };
+
+  const handleCustomerTest = async () => {
+    if (!customerTestEmail.trim()) {
+      toast('Enter a recipient email', 'error');
+      return;
+    }
+    setTestLoading('customer-test');
+    try {
+      const res = await fetch('/api/notifications/customer-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: customerTestEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error ?? 'Test failed', 'error');
+        return;
+      }
+      toast('Test email sent');
+      setCustomerTestEmail('');
+    } catch {
+      toast('Test failed', 'error');
+    } finally {
+      setTestLoading(null);
+    }
+  };
+
+  const handleCustomerToggle = async () => {
+    try {
+      const res = await fetch('/api/notifications/customer-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_enabled: !customerForm.is_enabled }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast(data.error ?? 'Failed to toggle', 'error');
+        return;
+      }
+      loadData();
+    } catch {
+      toast('Failed to toggle customer notifications', 'error');
+    }
+  };
+
   const renderChannelForm = () => {
     const channel = creatingChannel ?? editingChannel?.channel;
     if (!channel) return null;
@@ -355,11 +476,20 @@ export default function NotificationsManager() {
       ),
     },
     {
+      key: 'recipient_kind',
+      label: 'Recipient',
+      render: (item: DeliveryRow) => (
+        <AdminBadge variant={item.recipient_kind === 'customer' ? 'confirmed' : 'inactive'}>
+          {item.recipient_kind ?? 'admin'}
+        </AdminBadge>
+      ),
+    },
+    {
       key: 'channel',
       label: 'Channel',
       render: (item: DeliveryRow) => (
         <span className="text-foreground/85 text-xs">
-          {item.channel?.channel} / {PROVIDER_LABELS[item.channel?.provider ?? ''] ?? item.channel?.provider}
+          {item.channel?.channel ? `${item.channel.channel} / ${PROVIDER_LABELS[item.channel?.provider ?? ''] ?? item.channel?.provider}` : '—'}
         </span>
       ),
     },
@@ -414,6 +544,11 @@ export default function NotificationsManager() {
         ) : null,
     },
   ];
+
+  const filteredDeliveries = deliveries.filter((d) => {
+    if (deliveryFilter === 'all') return true;
+    return d.recipient_kind === deliveryFilter;
+  });
 
   if (loading) {
     return (
@@ -510,10 +645,124 @@ export default function NotificationsManager() {
 
       <Card>
         <CardContent className="p-4">
-          <h3 className="font-playfair text-lg text-foreground mb-4">Delivery Log</h3>
+          <div className="flex items-center gap-3 mb-3">
+            <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <h3 className="font-medium text-foreground">Customer notifications</h3>
+            <AdminBadge variant={customerForm.is_enabled ? 'confirmed' : 'inactive'}>
+              {customerForm.is_enabled ? 'Enabled' : 'Disabled'}
+            </AdminBadge>
+          </div>
+
+          <div className="space-y-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCustomerToggle}
+            >
+              {customerForm.is_enabled ? 'Disable' : 'Enable'}
+            </Button>
+
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                Resend API Key
+              </Label>
+              <Input
+                type="password"
+                value={customerForm.resend_api_key}
+                onChange={(e) => setCustomerForm((prev) => ({ ...prev, resend_api_key: e.target.value }))}
+                placeholder={customerSettings?.has_api_key ? 'Leave blank to keep current value' : 're_...'}
+                className="mt-1"
+              />
+              {customerSettings?.has_api_key && !customerForm.resend_api_key && (
+                <p className="text-xs text-muted-foreground mt-1">API key is set</p>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                From address
+              </Label>
+              <Input
+                type="text"
+                value={customerForm.from_address}
+                onChange={(e) => setCustomerForm((prev) => ({ ...prev, from_address: e.target.value }))}
+                placeholder="DesArt <no-reply@yourdomain.com>"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-2 block">
+                Event Subscriptions
+              </Label>
+              <div className="space-y-2">
+                {CUSTOMER_EVENTS.map((event) => (
+                  <label key={event} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={customerForm.events.includes(event)}
+                      onChange={() => toggleCustomerEvent(event)}
+                      className="rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span className="text-foreground/85">{event.replace('appointment.', '')}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                Send test email
+              </Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  type="email"
+                  value={customerTestEmail}
+                  onChange={(e) => setCustomerTestEmail(e.target.value)}
+                  placeholder="test@example.com"
+                  className="flex-1"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCustomerTest}
+                  disabled={testLoading === 'customer-test'}
+                >
+                  {testLoading === 'customer-test' ? 'Sending...' : 'Send Test'}
+                </Button>
+              </div>
+            </div>
+
+            <Button size="sm" onClick={handleCustomerSave}>Save</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-playfair text-lg text-foreground">Delivery Log</h3>
+            <div className="flex gap-1">
+              {(['all', 'admin', 'customer'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setDeliveryFilter(filter)}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                    deliveryFilter === filter
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
           <DataTable
             columns={deliveryColumns as never}
-            data={deliveries as unknown as Record<string, unknown>[]}
+            data={filteredDeliveries as unknown as Record<string, unknown>[]}
             keyExtractor={(item) => String(item.id)}
             emptyMessage="No deliveries yet"
           />
