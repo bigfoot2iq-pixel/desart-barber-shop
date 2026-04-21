@@ -83,6 +83,25 @@ export function formatTime(time: string): string {
   return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
+export interface CustomerNotificationSettings {
+  id: string;
+  is_enabled: boolean;
+  resend_api_key: string;
+  from_address: string;
+  events: NotificationEventType[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerDispatchResult {
+  appointmentId: string;
+  eventType: NotificationEventType;
+  recipientKind: 'customer';
+  status: 'sent' | 'failed';
+  error?: string;
+  dedupKey: string;
+}
+
 export function maskSecret(value: string, visibleChars = 4): string {
   if (value.length <= visibleChars) return '****';
   return value.slice(0, visibleChars) + '…' + '*'.repeat(Math.min(value.length - visibleChars, 8));

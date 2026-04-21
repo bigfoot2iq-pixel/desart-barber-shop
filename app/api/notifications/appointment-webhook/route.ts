@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dispatchEvent } from '@/lib/notifications';
+import { dispatchCustomerEvent } from '@/lib/notifications/customer-dispatch';
 import { getAppointmentWithDetailsService } from '@/lib/notifications/queries';
 import type { NotificationEventType } from '@/lib/notifications/types';
 
@@ -82,16 +83,34 @@ export async function POST(request: Request) {
     }
 
     const allResults: Awaited<ReturnType<typeof dispatchEvent>>[] = [];
+    const CUSTOMER_EVENT_TYPES: NotificationEventType[] = [
+      'appointment.confirmed',
+      'appointment.cancelled',
+    ];
+
     const updatedAt = String(payload.record.updated_at);
     for (const eventType of eventTypes) {
       const results = await dispatchEvent(eventType, appointment, updatedAt);
       allResults.push(results);
     }
 
+    const updatedBy = payload.record.updated_by as string | null;
+    const customerId = payload.record.customer_id as string | null;
+    const actorIsNonCustomer = !!updatedBy && !!customerId && updatedBy !== customerId;
+
+    const customerResults: (Awaited<ReturnType<typeof dispatchCustomerEvent>>)[] = [];
+    if (actorIsNonCustomer) {
+      for (const eventType of eventTypes) {
+        if (!CUSTOMER_EVENT_TYPES.includes(eventType)) continue;
+        const result = await dispatchCustomerEvent(eventType, appointment, updatedAt);
+        customerResults.push(result);
+      }
+    }
+
     const flatResults = allResults.flat();
     const dispatched = flatResults.filter((r) => r.status === 'sent').length;
 
-    return NextResponse.json({ ok: true, dispatched, results: flatResults }, { status: 200 });
+    return NextResponse.json({ ok: true, dispatched, results: flatResults, customerResults }, { status: 200 });
   } catch (err) {
     console.error('[webhook] dispatch error', err);
     return NextResponse.json({ ok: true, error: 'dispatch_failed' }, { status: 200 });

@@ -25,6 +25,9 @@ NOTIFICATIONS_WEBHOOK_SECRET=generate-a-random-hex-string
 
 # Optional: home visit surcharge
 NEXT_PUBLIC_HOME_VISIT_SURCHARGE_MAD=30
+
+# Public site origin — used in customer emails to build the /book rebook link
+NEXT_PUBLIC_SITE_URL=https://desart.example.com
 ```
 
 ## Admin Appointment Notifications
@@ -117,3 +120,36 @@ To rotate the webhook secret:
 1. Generate a new one: `openssl rand -hex 32`
 2. Update `NOTIFICATIONS_WEBHOOK_SECRET` in your `.env.local` / Vercel env vars.
 3. Update the `x-webhook-secret` header in the Supabase webhook config.
+
+## Customer Notifications
+
+When an admin (or any non-customer actor) confirms or cancels an appointment, the customer receives an email notification. Customer self-cancels do **not** trigger an email to the customer.
+
+### Architecture
+
+The same Supabase webhook that fires admin notifications also dispatches customer emails. The `updated_by` column on `appointments` (added by migration 015) tracks who last modified the row. Customer dispatch only fires when `updated_by != customer_id`.
+
+### Setting Up Customer Notifications (Admin UI)
+
+Navigate to **Admin → Notifications** in the sidebar. The **Customer notifications** card is below the three channel cards.
+
+1. Click **Enable** to turn on customer notifications.
+2. Enter your **Resend API Key** (or leave blank to keep the existing one).
+3. Set the **From address** (e.g. `DesArt <no-reply@yourdomain.com>`).
+4. Select which events should trigger customer emails:
+   - **Confirmed by admin** — sent when an admin confirms a pending booking
+   - **Cancelled by admin** — sent when an admin cancels a booking
+5. Use **Send test email** to verify the configuration.
+6. Click **Save**.
+
+### Database Schema
+
+- `customer_notification_settings` — singleton table holding the Resend API key, from address, and event subscriptions.
+- `appointments.updated_by` — tracks the last actor who modified an appointment row.
+- `notification_deliveries.recipient_kind` — distinguishes `admin` vs `customer` deliveries in the audit log.
+
+### Delivery Log Filter
+
+The delivery log at the bottom of the Notifications page now includes:
+- A **Recipient** column showing `admin` or `customer` badges.
+- Filter tabs: **All / Admin / Customer** to narrow the view.
