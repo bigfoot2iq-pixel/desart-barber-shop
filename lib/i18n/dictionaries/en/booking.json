@@ -1,0 +1,134 @@
+{
+  "hero": {
+    "tagline": "Agadir · Est. 2019",
+    "headline": "Sharp cuts.\nSharper style.",
+    "subheadline": "Premium grooming for those who know the difference. Walk in, sit down, walk out sharper — by appointment or by chance.",
+    "reserveCta": "Reserve a chair",
+    "viewMenuCta": "View menu",
+    "hours": "9:00 — 17:00",
+    "closed": "Friday",
+    "cashOnly": "Cash only"
+  },
+  "marquee": [
+    "Precision Fades",
+    "Classic Cuts",
+    "Beard Sculpting",
+    "Hot Towel Shaves",
+    "Cash Only · No Fuss",
+    "Same Day Booking",
+    "Agadir Finest"
+  ],
+  "nav": {
+    "services": "Services",
+    "ourTeam": "Our Team",
+    "locations": "Locations",
+    "bookNow": "Book Now"
+  },
+  "steps": {
+    "location": {
+      "title": "Choose a Location",
+      "nearby": "Nearby",
+      "comeToMe": "Come to me",
+      "nearbyLocating": "Locating…",
+      "loadingSalons": "Loading salons…",
+      "flagshipLocation": "Flagship Location",
+      "homeVisit": "Home Visit",
+      "homeVisitFee": "+30 MAD Travel Fee",
+      "bookLocation": "Book This Location",
+      "bookHomeVisit": "Book Home Visit"
+    },
+    "barber": {
+      "title": "Choose a Berber",
+      "loadingTeam": "Loading team…",
+      "next": "Next",
+      "unavailable": "Unavailable",
+      "noServices": "This barber has no services listed yet."
+    },
+    "service": {
+      "title": "Choose a Service",
+      "pickOneOrMore": "Pick one or more services, then tap Continue.",
+      "thisBarberNoServices": "This barber has no services listed yet.",
+      "continue": "Continue",
+      "services_one": "1 service",
+      "services_other": "%d services"
+    },
+    "time": {
+      "title": "Choose a Time",
+      "selectDate": "Select Date",
+      "selectTime": "Select Time",
+      "noSlotsAvailable": "No slots available on this day — try another date.",
+      "pickDateFirst": "Pick a date first.",
+      "timeUnavailable": "This time is already booked"
+    },
+    "details": {
+      "title": "Your Details",
+      "contactInfo": "Contact Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+212 6XX XXX XXX",
+      "phoneFormat": "Format: +212 6XX XXX XXX or 06XX XXX XXX",
+      "paymentMethod": "Payment Method",
+      "cash": "Cash",
+      "payAtAppointment": "Pay at your appointment",
+      "bankTransfer": "Bank transfer",
+      "payInAdvance": "Pay in advance",
+      "accountHolder": "Account holder:",
+      "bank": "Bank:",
+      "rib": "RIB:",
+      "iban": "IBAN:",
+      "reference": "Reference:",
+      "afterTransfer": "After you transfer, send the receipt to WhatsApp the shop. Your booking stays pending until we confirm the payment.",
+      "confirmBooking": "Confirm Booking",
+      "continueWithGoogle": "Continue with Google",
+      "saving": "Saving…",
+      "waitingForGoogle": "Waiting for Google…",
+      "discardConfirm": "Discard your booking details?"
+    },
+"confirmation": {
+      "title": "Booking Confirmed",
+      "headline": "You're all set!",
+      "message": "Your appointment has been received. We'll reach out to confirm within a few hours.",
+      "dontForgetReceipt": "Don't forget to send your transfer receipt to WhatsApp the shop.",
+      "close": "Close"
+    }
+  },
+  "validation": {
+    "phoneRequired": "Please enter a valid Moroccan phone number.",
+    "phoneInvalid": "Please enter a valid Moroccan phone number.",
+    "bankTransferUnavailable": "Bank transfer isn’t available right now. Please choose cash.",
+    "slotTaken": "That time was just booked. Please pick another slot.",
+    "saveFailed": "Couldn’t save your booking. Please try again."
+  },
+  "toast": {
+    "locationDenied": "Location access denied. Please enable location in your browser settings.",
+    "genericError": "Something went wrong. Please try again."
+  },
+  "homePanel": {
+    "yourLocation": "Your Location",
+    "tapMapHint": "Tap the map or drag the pin to your address",
+    "useMyLocation": "Use my location",
+    "detecting": "Detecting…",
+    "resolvingAddress": "Resolving address…",
+    "saveLocation": "Save Location",
+    "close": "Close"
+  },
+  "footer": {
+    "navigate": "Navigate",
+    "services": "Services",
+    "ourTeam": "Our Team",
+    "locations": "Locations",
+    "bookNow": "Book Now",
+    "contact": "Contact",
+    "address": "14 Rue Mohammed V, Agadir",
+    "hoursSatThu": "Sat–Thu: 9:00 – 17:00",
+    "hoursFriday": "Friday: Closed",
+    "copyright": "© 2026 Desart. Cash only · Agadir, Morocco"
+  },
+  "misc": {
+    "menu": "Menu",
+    "loadingTeam": "Loading team…",
+    "loadingMap": "Loading map…",
+    "comeToMe": "Come to me"
+  }
+}
