@@ -13,5 +13,16 @@
   "signIn": "Sign in",
   "signOut": "Sign Out",
   "dashboard": "Dashboard",
-  "admin": "Admin"
+  "admin": "Admin",
+  "login": {
+    "welcomeBack": "Welcome back",
+    "signInSubtitle": "Sign in to your account to continue booking premium grooming services.",
+    "continueWithGoogle": "Continue with Google",
+    "failedToSignIn": "Failed to sign in with Google. Please try again.",
+    "or": "or",
+    "newToDesart": "New to DESART?",
+    "createAccount": "Create an account",
+    "termsAgree": "By continuing, you agree to DESART's Terms of Service and Privacy Policy.",
+    "backToHome": "Back to home"
+  }
 }
