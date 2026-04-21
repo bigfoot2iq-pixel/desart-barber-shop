@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/sheet';
 
 
-export type Section = 'dashboard' | 'appointments' | 'professionals' | 'services' | 'salons' | 'notifications';
+export type Section = 'dashboard' | 'appointments' | 'professionals' | 'services' | 'salons' | 'notifications' | 'payment';
 
 interface SidebarProps {
   active: Section;
@@ -19,6 +19,7 @@ interface SidebarProps {
   onSignOut: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onNavigateToPayment?: () => void;
 }
 
 const navItems: { key: Section; label: string; icon: string }[] = [
@@ -28,20 +29,29 @@ const navItems: { key: Section; label: string; icon: string }[] = [
   { key: 'services', label: 'Services', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
   { key: 'salons', label: 'Salons', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
   { key: 'notifications', label: 'Notifications', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+  { key: 'payment', label: 'Payment', icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z' },
 ];
 
-function SidebarNav({ active, onChange, pendingCount, onNavigate }: {
+function SidebarNav({ active, onChange, pendingCount, onNavigate, onNavigateToPayment }: {
   active: Section;
   onChange: (section: Section) => void;
   pendingCount: number;
   onNavigate?: () => void;
+  onNavigateToPayment?: () => void;
 }) {
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">
       {navItems.map((item) => (
         <button
           key={item.key}
-          onClick={() => { onChange(item.key); onNavigate?.(); }}
+          onClick={() => {
+            if (item.key === 'payment') {
+              onNavigateToPayment?.();
+            } else {
+              onChange(item.key);
+            }
+            onNavigate?.();
+          }}
           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             active === item.key
               ? 'bg-primary/15 text-primary border-l-2 border-primary rounded-l-none rounded-r-lg'
@@ -63,12 +73,12 @@ function SidebarNav({ active, onChange, pendingCount, onNavigate }: {
   );
 }
 
-export default function Sidebar({ active, onChange, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({ active, onChange, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, onNavigateToPayment }: SidebarProps) {
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen sticky top-0">
         <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} />
-        <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} />
+        <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigateToPayment={onNavigateToPayment} />
         <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} />
       </aside>
 
@@ -78,7 +88,7 @@ export default function Sidebar({ active, onChange, pendingCount, adminName, adm
             <SheetTitle className="font-playfair text-xl tracking-wider font-bold">DESART</SheetTitle>
             <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium">Admin Panel</p>
           </SheetHeader>
-          <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigate={onMobileClose} />
+          <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigate={onMobileClose} onNavigateToPayment={onNavigateToPayment} />
         </SheetContent>
       </Sheet>
     </>

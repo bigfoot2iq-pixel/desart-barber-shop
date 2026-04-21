@@ -7,6 +7,7 @@ import { getPendingAppointments, getTodayAppointmentsCount, getActiveProfessiona
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import Sidebar, { type Section } from './Sidebar';
 import StatsCards from './StatsCards';
 import AppointmentsManager from './AppointmentsManager';
@@ -14,6 +15,7 @@ import ProfessionalsManager from './ProfessionalsManager';
 import ServicesManager from './ServicesManager';
 import SalonsManager from './SalonsManager';
 import NotificationsManager from './NotificationsManager';
+import PaymentSettingsManager from './PaymentSettingsManager';
 import { ToastProvider } from './ui';
 
 interface AdminDashboardProps {
@@ -23,6 +25,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ initialPendingCount, adminName, adminEmail }: AdminDashboardProps) {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(initialPendingCount);
@@ -65,6 +68,18 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
       setStatsLoading(false);
     }
   }, []);
+
+  const handleSectionChange = useCallback((section: Section) => {
+    if (section === 'payment') {
+      router.push('/admin/payment');
+    } else {
+      setActiveSection(section);
+    }
+  }, [router]);
+
+  const handleNavigateToPayment = useCallback(() => {
+    router.push('/admin/payment');
+  }, [router]);
 
   useEffect(() => {
     loadData();
@@ -160,6 +175,7 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                 { section: 'services' as Section, label: 'Services', desc: 'Manage catalog', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
                 { section: 'salons' as Section, label: 'Salons', desc: 'Manage locations', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
                 { section: 'notifications' as Section, label: 'Notifications', desc: 'Alerts & channels', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+                { section: 'payment' as Section, label: 'Payment', desc: 'Bank transfer settings', icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z' },
               ].map(({ section, label, desc, icon }) => (
                 <Card
                   key={section}
@@ -188,6 +204,12 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
         return <SalonsManager initialSalons={salons} />;
       case 'notifications':
         return <NotificationsManager />;
+      case 'payment':
+        return (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>Payment settings are available at <a href="/admin/payment" className="text-primary underline">/admin/payment</a>.</p>
+          </div>
+        );
     }
   };
 
@@ -196,13 +218,14 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
       <div className="flex min-h-screen">
         <Sidebar
           active={activeSection}
-          onChange={setActiveSection}
+          onChange={handleSectionChange}
           pendingCount={pendingCount}
           adminName={adminName}
           adminEmail={adminEmail}
           onSignOut={signOut}
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
+          onNavigateToPayment={handleNavigateToPayment}
         />
 
         <main className="flex-1 min-w-0">
