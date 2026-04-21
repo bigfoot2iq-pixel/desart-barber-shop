@@ -1,13 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getRole } from '@/lib/roles';
+import { hasLocale } from '@/lib/i18n/config';
+import { localeHref } from '@/lib/i18n/href';
 
-export default async function DashboardPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage({ params }: PageProps<'/[lang]'>) {
+  const { lang } = await params;
+  if (!hasLocale(lang)) notFound();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(localeHref(lang, '/login'));
   }
 
   const role = getRole(user);

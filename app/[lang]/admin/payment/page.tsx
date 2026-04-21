@@ -1,22 +1,28 @@
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getRole } from '@/lib/roles';
 import { ToastProvider } from '../components/ui';
 import PaymentSettingsManager from '../components/PaymentSettingsManager';
+import { hasLocale } from '@/lib/i18n/config';
+import { localeHref } from '@/lib/i18n/href';
 import type { PaymentSettings } from '@/lib/types/database';
 
-export default async function AdminPaymentPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>) {
+  const { lang } = await params;
+  if (!hasLocale(lang)) notFound();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(localeHref(lang, '/login'));
   }
 
   const role = getRole(user);
 
   if (role !== 'admin') {
-    redirect('/dashboard');
+    redirect(localeHref(lang, '/dashboard'));
   }
 
   const { data: settings, error } = await supabase

@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { DesktopVideoGrid } from '@/app/components/video-grid';
+import { localeHref } from '@/lib/i18n/href';
+import type { Locale } from '@/lib/i18n/config';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
+  const params = useParams();
+  const lang = (params?.lang as Locale) ?? 'fr';
 
   const handleGoogleSignIn = async () => {
     setError(null);
@@ -112,7 +116,7 @@ export default function LoginPage() {
 
         {/* Back to Home */}
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(localeHref(lang, '/'))}
           className="absolute top-6 left-6 flex items-center gap-2 text-[12px] tracking-[0.06em] text-[rgb(254_251_243/30)] hover:text-gold3 transition-colors duration-200 group"
         >
           <svg className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">

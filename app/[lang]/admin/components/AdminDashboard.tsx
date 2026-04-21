@@ -7,7 +7,9 @@ import { getPendingAppointments, getTodayAppointmentsCount, getActiveProfessiona
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { localeHref } from '@/lib/i18n/href';
+import type { Locale } from '@/lib/i18n/config';
 import Sidebar, { type Section } from './Sidebar';
 import StatsCards from './StatsCards';
 import AppointmentsManager from './AppointmentsManager';
@@ -26,6 +28,8 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ initialPendingCount, adminName, adminEmail }: AdminDashboardProps) {
   const router = useRouter();
+  const params = useParams();
+  const lang = (params?.lang as Locale) ?? 'fr';
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(initialPendingCount);
@@ -71,15 +75,15 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
 
   const handleSectionChange = useCallback((section: Section) => {
     if (section === 'payment') {
-      router.push('/admin/payment');
+      router.push(localeHref(lang, '/admin/payment'));
     } else {
       setActiveSection(section);
     }
-  }, [router]);
+  }, [router, lang]);
 
   const handleNavigateToPayment = useCallback(() => {
-    router.push('/admin/payment');
-  }, [router]);
+    router.push(localeHref(lang, '/admin/payment'));
+  }, [router, lang]);
 
   useEffect(() => {
     loadData();
@@ -207,7 +211,7 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
       case 'payment':
         return (
           <div className="text-center py-12 text-muted-foreground">
-            <p>Payment settings are available at <a href="/admin/payment" className="text-primary underline">/admin/payment</a>.</p>
+            <p>Payment settings are available at <a href={localeHref(lang, '/admin/payment')} className="text-primary underline">/admin/payment</a>.</p>
           </div>
         );
     }
