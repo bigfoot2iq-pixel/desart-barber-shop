@@ -118,3 +118,18 @@ export interface AppointmentReview {
   comment: string | null;
   created_at: string;
 }
+
+export interface PaymentSettings {
+  id: string;
+  bank_transfer_enabled: boolean;
+  account_holder: string | null;
+  bank_name: string | null;
+  rib: string | null;
+  iban: string | null;
+  swift_bic: string | null;
+  payment_phone: string | null;
+  instructions: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
