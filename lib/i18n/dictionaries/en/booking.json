@@ -7,7 +7,32 @@
     "viewMenuCta": "View menu",
     "hours": "9:00 — 17:00",
     "closed": "Friday",
-    "cashOnly": "Cash only"
+    "cashOnly": "Cash only",
+    "locationDescription": "Home Visit (+30 MAD)"
+  },
+  "services": {
+    "eyebrow": "What We Do",
+    "title": "Services"
+  },
+  "team": {
+    "eyebrow": "The Craftsmen",
+    "headline": "Meet Our",
+    "highlight": "Team"
+  },
+  "locations": {
+    "eyebrow": "Find Us",
+    "headline": "Our",
+    "highlight": "Locations",
+    "salonName": "Desart Salon",
+    "flagship": "Flagship Location",
+    "homeVisit": "Home Visit",
+    "closedOnFriday": "Closed"
+  },
+  "payment": {
+    "cashInstructions": "Pay {total} in cash at your appointment. Cancellations are free; let us know in advance."
+  },
+  "aria": {
+    "close": "Close"
   },
   "marquee": [
     "Precision Fades",

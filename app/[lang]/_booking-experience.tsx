@@ -1014,8 +1014,8 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
             <div>
-              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">What We Do</div>
-              <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">Services</h2>
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">{tBooking('services.eyebrow')}</div>
+              <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">{tBooking('services.title')}</h2>
             </div>
             <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Cash only. Same-day booking available.</p>
           </div>
@@ -1088,9 +1088,9 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
             <div>
-              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(254_251_243/50%)] mb-[14px]">The Craftsmen</div>
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(254_251_243/50%)] mb-[14px]">{tBooking('team.eyebrow')}</div>
               <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic text-brand-white">
-                Meet Our <em className="text-gold3">Team</em>
+                {tBooking('team.headline')} <em className="text-gold3">{tBooking('team.highlight')}</em>
               </h2>
               <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60 text-[rgb(254_251_243/50%)]">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
             </div>
@@ -1188,17 +1188,17 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
         <div className="max-w-[1160px] mx-auto">
           <div className="flex items-end justify-between gap-5 flex-wrap mb-[50px]">
             <div>
-              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">Find Us</div>
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">{tBooking('locations.eyebrow')}</div>
               <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">
-                Our <em>Locations</em>
+                {tBooking('locations.headline')} <em>{tBooking('locations.highlight')}</em>
               </h2>
             </div>
             <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Visit us at the salon or let us come to you — your call.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
-              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">Desart Salon</h3>
-              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">Flagship Location</span>
+              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">{tBooking('locations.salonName')}</h3>
+              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">{tBooking('locations.flagship')}</span>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
@@ -1223,7 +1223,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                 </div>
                 <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
                   <span className="opacity-50">Friday</span>
-                  <span className="font-medium">Closed</span>
+                  <span className="font-medium">{tBooking('locations.closedOnFriday')}</span>
                 </div>
               </div>
               <button type="button" className="mt-8 bg-brand-black text-white text-[11px] font-medium tracking-[0.1em] uppercase py-[13px] px-7 rounded-[3px] inline-block cursor-pointer transition-all duration-200 hover:bg-ink hover:-translate-y-px open-booking" onClick={openModal}>
@@ -1232,7 +1232,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
             </div>
 
             <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
-              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">Home Visit</h3>
+              <h3 className="font-playfair text-[30px] font-normal mb-[7px]">{tBooking('locations.homeVisit')}</h3>
               <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">+30 MAD Travel Fee</span>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -1430,7 +1430,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                     if (!window.confirm(tBooking('steps.details.discardConfirm'))) return;
                   }
                   closeModal();
-                }} aria-label="Close">
+                }} aria-label={tBooking('aria.close')}>
                   <svg viewBox="0 0 10 10" width="10" height="10">
                     <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </svg>
@@ -1521,8 +1521,8 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                                   </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <div className={`text-[17px] font-semibold leading-snug tracking-[-0.408px] mb-0.5 truncate ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.name}</div>
-                                  <div className={`text-[13px] leading-[18px] tracking-[-0.078px] font-normal line-clamp-2 ${isLocationSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{location.description}</div>
+                                  <div className={`text-[17px] font-semibold leading-snug tracking-[-0.408px] mb-0.5 truncate ${isLocationSelected ? "text-white" : "text-brand-black"}`}>{location.id === 'home' ? tBooking('steps.location.comeToMe') : location.name}</div>
+                                  <div className={`text-[13px] leading-[18px] tracking-[-0.078px] font-normal line-clamp-2 ${isLocationSelected ? "text-[rgb(255_255_255/70%)]" : "text-[rgb(10_8_0/55%)]"}`}>{location.id === 'home' ? tBooking('hero.locationDescription') : location.description}</div>
                                   {nearbyActive && salonDistances[location.id] != null && (
                                     <div className="mt-2">
                                       <div className="w-[30px] border-t border-[rgb(199_199_204)] mb-1" />
@@ -2054,7 +2054,7 @@ export function BookingExperience({ locale, common, booking }: BookingExperience
                                   <circle cx="12" cy="12" r="10" />
                                   <path d="M12 16v-4M12 8h.01" />
                                 </svg>
-                                Pay {formatMoney(total, locale as import('@/lib/i18n/config').Locale)} in cash at your appointment. Cancellations are free; let us know in advance.
+                                {tBooking('payment.cashInstructions', { total: formatMoney(total, locale as import('@/lib/i18n/config').Locale) })}
                               </div>
                             )}
                           </div>

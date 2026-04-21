@@ -7,7 +7,32 @@
     "viewMenuCta": "Voir le menu",
     "hours": "9h00 — 17h00",
     "closed": "Vendredi",
-    "cashOnly": "Cash uniquement"
+    "cashOnly": "Cash uniquement",
+    "locationDescription": "Intervention à Domicile (+30 MAD)"
+  },
+  "services": {
+    "eyebrow": "Ce Que Nous Faisons",
+    "title": "Services"
+  },
+  "team": {
+    "eyebrow": "Les Artisans",
+    "headline": "Rencontrez Notre",
+    "highlight": "Équipe"
+  },
+  "locations": {
+    "eyebrow": "Trouvez-Nous",
+    "headline": "Nos",
+    "highlight": "Emplacements",
+    "salonName": "Salon Desart",
+    "flagship": "Salon Principal",
+    "homeVisit": "Intervention à Domicile",
+    "closedOnFriday": "Fermé"
+  },
+  "payment": {
+    "cashInstructions": "Payez {total} en espèces lors de votre rendez-vous. Les annulations sont gratuites ; prévenez-nous à l'avance."
+  },
+  "aria": {
+    "close": "Fermer"
   },
   "marquee": [
     "Coupes Dégradées Précises",
