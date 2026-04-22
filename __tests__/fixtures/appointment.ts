@@ -35,7 +35,9 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
     salon: {
       id: 'salon-001',
       name: 'Salon Downtown',
+      name_fr: null,
       address: '123 Main St',
+      address_fr: null,
       latitude: 0,
       longitude: 0,
       image_url: null,
@@ -47,7 +49,9 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
       {
         id: 'svc-001',
         name: 'Classic haircut',
+        name_fr: null,
         description: 'A classic cut',
+        description_fr: null,
         duration_minutes: 30,
         price_mad: 100,
         is_active: true,
@@ -57,7 +61,9 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
       {
         id: 'svc-002',
         name: 'Beard trim',
+        name_fr: null,
         description: 'Beard shaping',
+        description_fr: null,
         duration_minutes: 15,
         price_mad: 80,
         is_active: true,
