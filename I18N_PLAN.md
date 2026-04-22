@@ -238,14 +238,14 @@ Nullable — existing rows keep English in the base column; `_fr` backfilled man
 
 ## 6. Rollout order (for tracking)
 
-- [ ] Phase 1 — scaffolding
-- [ ] Phase 2 — landing + booking
-- [ ] Phase 3a — login
-- [ ] Phase 3b — user panel
-- [ ] Phase 3c — admin panel
-- [ ] Phase 3d — professional + dashboard
-- [ ] Phase 4 — DB content columns + admin editor
-- [ ] Phase 5 — notifications (customer, then staff)
-- [ ] Phase 6 — switcher, metadata, E2E, cutover
+- [x] Phase 1 — scaffolding
+- [x] Phase 2 — landing + booking
+- [x] Phase 3a — login
+- [x] Phase 3b — user panel
+- [x] Phase 3c — admin panel
+- [x] Phase 3d — professional + dashboard
+- [x] Phase 4 — DB content columns + admin editor
+- [x] Phase 5 — notifications (customer, then staff)
+- [x] Phase 6 — switcher, metadata, E2E, cutover
 
 Each phase ships independently. After Phase 2 the app already serves real French to the highest-traffic surface; everything after is incremental.
