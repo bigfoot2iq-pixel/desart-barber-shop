@@ -1,6 +1,7 @@
 {
   "confirmed": {
     "subject": "Votre rendez-vous est confirmé — {date}",
+    "heading": "Tout est confirmé !",
     "greeting": "Bonjour {name},",
     "body": "Bonne nouvelle — votre rendez-vous est confirmé.",
     "dateLabel": "Date",
@@ -13,10 +14,13 @@
   },
   "cancelled": {
     "subject": "Votre rendez-vous a été annulé — {date}",
+    "heading": "Rendez-vous annulé",
     "greeting": "Bonjour {name},",
     "body": "Votre rendez-vous a été annulé.",
     "dateLabel": "Date",
     "timeLabel": "Heure",
+    "contactNote": "Si cette annulation est inattendue, veuillez nous contacter. Vous pouvez également réserver un nouveau créneau à tout moment.",
+    "rebookCta": "Réserver un nouveau rendez-vous",
     "signoff": "Nous espérons vous revoir bientôt.",
     "brand": "— DesArt Barber Shop"
   },

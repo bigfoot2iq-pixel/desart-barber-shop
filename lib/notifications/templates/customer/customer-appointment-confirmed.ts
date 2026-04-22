@@ -4,6 +4,7 @@ import type { RenderedMessage } from '../../types';
 import { formatDate, formatTime } from '../../types';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import type { Locale } from '@/lib/i18n/config';
+import { localizeService, localizeSalon } from '@/lib/i18n/localize-row';
 
 function interpolate(template: string, values: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? `{${key}}`);
@@ -17,13 +18,12 @@ export async function buildCustomerAppointmentConfirmedMessage(
   const confirmed = dict.confirmed as Record<string, string>;
 
   const firstName = apt.customer?.first_name ?? '';
-  const services = apt.services.map((s) =>
-    locale === 'fr' ? (s.name_fr ?? s.name) : s.name,
-  ).join(', ');
+  const services = apt.services.map((s) => localizeService(s, locale).name).join(', ');
 
+  const localizedSalon = apt.salon ? localizeSalon(apt.salon, locale) : null;
   const locationName = apt.location_type === 'home'
     ? (apt.home_address ?? (dict.homeVisit as string))
-    : (locale === 'fr' ? (apt.salon?.name_fr ?? apt.salon?.name) : apt.salon?.name)
+    : localizedSalon?.name
     ?? (dict.homeVisit as string);
 
   const paymentLabel = apt.payment_method === 'bank_transfer'
@@ -61,7 +61,7 @@ export async function buildCustomerAppointmentConfirmedMessage(
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #f5f5f5;">
       <div style="background: #ffffff; border-radius: 8px; padding: 32px 24px; border: 1px solid #e0e0e0; border-left: 4px solid #22c55e;">
-        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">${locale === 'fr' ? 'Tout est confirmé !' : "You're all set!"}</h2>
+        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">${confirmed.heading}</h2>
         <p style="margin: 0 0 24px; color: #555; font-size: 15px;">${greeting} ${confirmed.body}</p>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #333;">
           <tr><td style="padding: 8px 0; color: #888; width: 100px;">${confirmed.dateLabel}</td><td style="padding: 8px 0; font-weight: 600;">${dateStr}</td></tr>

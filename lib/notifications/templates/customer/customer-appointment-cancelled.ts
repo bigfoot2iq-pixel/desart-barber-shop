@@ -35,10 +35,8 @@ export async function buildCustomerAppointmentCancelledMessage(
     '',
     `${cancelled.body} ${dateStr} ${cancelled.timeLabel}: ${startTimeStr}.`,
     '',
-    locale === 'fr'
-      ? 'Si cette annulation est inattendue, veuillez nous contacter. Vous pouvez également réserver un nouveau créneau à tout moment.'
-      : 'If this was unexpected, please contact us. You can also book a new time any time.',
-    ...(siteUrl ? [locale === 'fr' ? `Réserver : ${siteUrl}/book` : `Rebook: ${siteUrl}/book`] : []),
+    cancelled.contactNote,
+    ...(siteUrl ? [`Rebook: ${siteUrl}/book`] : []),
     '',
     cancelled.brand,
   ].join('\n');
@@ -46,10 +44,10 @@ export async function buildCustomerAppointmentCancelledMessage(
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #f5f5f5;">
       <div style="background: #ffffff; border-radius: 8px; padding: 32px 24px; border: 1px solid #e0e0e0; border-left: 4px solid #ef4444;">
-        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">${locale === 'fr' ? 'Rendez-vous annulé' : 'Appointment cancelled'}</h2>
+        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">${cancelled.heading}</h2>
         <p style="margin: 0 0 24px; color: #555; font-size: 15px;">${greeting} ${cancelled.body} <strong>${dateStr}</strong> ${cancelled.timeLabel}: <strong>${startTimeStr}</strong>.</p>
-        <p style="margin: 0 0 24px; color: #555; font-size: 14px;">${locale === 'fr' ? 'Si cette annulation est inattendue, veuillez nous contacter. Vous pouvez également réserver un nouveau créneau à tout moment.' : 'If this was unexpected, please contact us. You can also book a new time any time.'}</p>
-        ${siteUrl ? `<a href="${siteUrl}/book" style="display: inline-block; background: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">${locale === 'fr' ? 'Réserver un nouveau rendez-vous' : 'Book a new appointment'}</a>` : ''}
+        <p style="margin: 0 0 24px; color: #555; font-size: 14px;">${cancelled.contactNote}</p>
+        ${siteUrl ? `<a href="${siteUrl}/book" style="display: inline-block; background: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">${cancelled.rebookCta}</a>` : ''}
         <p style="margin: 24px 0 0; color: #999; font-size: 13px;">${cancelled.brand}</p>
       </div>
     </div>
