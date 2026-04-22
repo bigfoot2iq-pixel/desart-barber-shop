@@ -219,6 +219,7 @@ function AdminDashboardInner({ lang, initialPendingCount, adminName, adminEmail 
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
           onNavigateToPayment={handleNavigateToPayment}
+          lang={lang}
         />
 
         <main className="flex-1 min-w-0">

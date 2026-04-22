@@ -1,6 +1,8 @@
 'use client';
 
 import { useT } from '@/lib/i18n/client-dictionary';
+import type { Locale } from '@/lib/i18n/config';
+import { LocaleSwitcher } from '@/app/components/locale-switcher';
 import {
   Sheet,
   SheetContent,
@@ -21,6 +23,7 @@ interface SidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
   onNavigateToPayment?: () => void;
+  lang: Locale;
 }
 
 const navItems: { key: Section; icon: string }[] = [
@@ -76,14 +79,14 @@ function SidebarNav({ active, onChange, pendingCount, onNavigate, onNavigateToPa
   );
 }
 
-export default function Sidebar({ active, onChange, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, onNavigateToPayment }: SidebarProps) {
+export default function Sidebar({ active, onChange, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, onNavigateToPayment, lang }: SidebarProps) {
   const tAdmin = useT('admin');
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen sticky top-0">
-        <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} />
+        <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
         <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigateToPayment={onNavigateToPayment} />
-        <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} />
+        <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose(); }}>
@@ -91,38 +94,52 @@ export default function Sidebar({ active, onChange, pendingCount, adminName, adm
           <SheetHeader className="px-6 py-6 border-b border-border">
             <SheetTitle className="font-playfair text-xl tracking-wider font-bold">DESART</SheetTitle>
             <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium">{tAdmin('strapline')}</p>
+            <div className="mt-3">
+              <LocaleSwitcher locale={lang} variant="dark" />
+            </div>
           </SheetHeader>
           <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigate={onMobileClose} onNavigateToPayment={onNavigateToPayment} />
+          <div className="px-6 py-4 border-t border-border">
+            <LocaleSwitcher locale={lang} variant="dark" />
+          </div>
         </SheetContent>
       </Sheet>
     </>
   );
 }
 
-function SidebarDesktopHeader({ adminName, adminEmail, onSignOut }: {
+function SidebarDesktopHeader({ adminName, adminEmail, onSignOut, lang }: {
   adminName: string;
   adminEmail: string;
   onSignOut: () => void;
+  lang: Locale;
 }) {
   const tAdmin = useT('admin');
   return (
     <div className="px-6 py-6 border-b border-border">
       <h1 className="font-playfair text-2xl text-foreground tracking-wider font-bold">DESART</h1>
       <p className="text-xs text-muted-foreground mt-1 uppercase tracking-[0.2em] font-medium">{tAdmin('strapline')}</p>
+      <div className="mt-3">
+        <LocaleSwitcher locale={lang} variant="dark" />
+      </div>
     </div>
   );
 }
 
-function SidebarFooter({ adminName, adminEmail, onSignOut }: {
+function SidebarFooter({ adminName, adminEmail, onSignOut, lang }: {
   adminName: string;
   adminEmail: string;
   onSignOut: () => void;
+  lang: Locale;
 }) {
   const tAdmin = useT('admin');
   const tCommon = useT('common');
   const displayName = adminName || tAdmin('nav.adminFallback');
   return (
-    <div className="px-4 py-4 border-t border-border">
+    <div className="px-4 py-4 border-t border-border space-y-3">
+      <div className="px-1">
+        <LocaleSwitcher locale={lang} variant="dark" />
+      </div>
       <div className="flex items-center gap-3 mb-3 px-1">
         <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">
           {displayName?.charAt(0)?.toUpperCase() || 'A'}

@@ -7,6 +7,7 @@ import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { DictionaryProvider, useT } from "@/lib/i18n/client-dictionary";
 import { formatMoney, formatTimeFromHHMM, formatShortMonth, formatShortWeekday } from "@/lib/i18n/format";
 import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
+import { LocaleSwitcher } from "@/app/components/locale-switcher";
 import {
   getActiveProfessionalsWithServices,
   getActiveServices,
@@ -942,11 +943,14 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
           <img src="/logo.jpg" alt="Desart" className="w-8 h-8 rounded-full object-cover shrink-0 md:w-9 md:h-9" />
           DESART
         </div>
-        <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label={tBooking('misc.menu')}>
-          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-          <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-        </button>
+        <div className="flex items-center gap-4">
+          <LocaleSwitcher locale={locale} variant="light" />
+          <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label={tBooking('misc.menu')}>
+            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
+            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
+            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
+          </button>
+        </div>
       </nav>
 
       <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-8 max-sm:gap-4 items-center py-12 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 lg:pt-[110px] lg:pb-0 lg:pr-0">
