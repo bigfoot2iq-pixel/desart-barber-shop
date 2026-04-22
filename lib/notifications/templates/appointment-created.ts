@@ -36,7 +36,7 @@ export async function buildAppointmentCreatedMessage(
   const heading = interpolate(created.heading, interp);
 
   const plainText = [
-    `🆕 New ${locationType} — ${locale === 'fr' ? 'En attente' : 'pending'}`,
+    `🆕 New ${locationType} — ${created.statusLabel}`,
     `${dict.customerLabel as string}: ${customerName}`,
     `${dict.phoneLabel as string}: ${formatPhone(apt.customer?.phone)}`,
     `${dict.emailLabel as string}: ${apt.customer?.email ?? 'N/A'}`,
@@ -67,7 +67,7 @@ export async function buildAppointmentCreatedMessage(
   `;
 
   const telegramLines = [
-    `<b>🆕 New ${locationType} — ${locale === 'fr' ? 'En attente' : 'pending'}</b>`,
+    `<b>🆕 New ${locationType} — ${created.statusLabel}</b>`,
     `<b>${dict.customerLabel as string}:</b> ${customerName}`,
     `<b>${dict.phoneLabel as string}:</b> ${formatPhone(apt.customer?.phone)}`,
     `<b>${dict.emailLabel as string}:</b> ${apt.customer?.email ?? 'N/A'}`,

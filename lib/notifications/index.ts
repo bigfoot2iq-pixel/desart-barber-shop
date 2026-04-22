@@ -87,7 +87,7 @@ export async function dispatchEvent(
         } else if (channel.provider === 'callmebot') {
           await sendWhatsAppCallMeBot(channel.config as unknown as CallMeBotConfig, message);
         } else if (channel.provider === 'whatsapp_cloud') {
-          await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message);
+          await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message, locale);
         }
 
         await supabase

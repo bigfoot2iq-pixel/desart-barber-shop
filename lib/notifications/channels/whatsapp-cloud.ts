@@ -1,23 +1,20 @@
 import type { WhatsAppCloudConfig, RenderedMessage } from '../types';
+import type { Locale } from '@/lib/i18n/config';
 
-// Expected Meta template variable order (must match approved template):
-// {{1}} Customer name
-// {{2}} Date
-// {{3}} Time
-// {{4}} Services
-// {{5}} Location type (Salon / Come to Home)
-// {{6}} Payment info
-//
-// When approving the template in Meta, use:
-// {{1}}
-// {{2}}
-// {{3}}
-// {{4}}
-// {{5}}
-// {{6}}
+const META_LANG_MAP: Record<Locale, string> = {
+  fr: 'fr',
+  en: 'en',
+};
 
-export async function sendWhatsAppCloud(config: WhatsAppCloudConfig, message: RenderedMessage): Promise<void> {
+export async function sendWhatsAppCloud(
+  config: WhatsAppCloudConfig,
+  message: RenderedMessage,
+  locale?: Locale,
+): Promise<void> {
   const url = `https://graph.facebook.com/v17.0/${config.phone_number_id}/messages`;
+
+  const templateName = resolveTemplateName(config, locale);
+  const langCode = locale ? META_LANG_MAP[locale] : config.template_lang;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -30,8 +27,8 @@ export async function sendWhatsAppCloud(config: WhatsAppCloudConfig, message: Re
       to: config.to,
       type: 'template',
       template: {
-        name: config.template_name,
-        language: { code: config.template_lang },
+        name: templateName,
+        language: { code: langCode },
         components: [
           {
             type: 'body',
@@ -49,4 +46,13 @@ export async function sendWhatsAppCloud(config: WhatsAppCloudConfig, message: Re
     const body = await res.text();
     throw new Error(`WhatsApp Cloud API error: ${res.status} ${body}`);
   }
+}
+
+function resolveTemplateName(config: WhatsAppCloudConfig, locale: Locale | undefined): string {
+  if (!locale) return config.template_name;
+
+  if (locale === 'fr' && config.template_name_fr) return config.template_name_fr;
+  if (locale === 'en' && config.template_name_en) return config.template_name_en;
+
+  return config.template_name;
 }

@@ -66,6 +66,8 @@ export interface WhatsAppCloudConfig {
   to: string;
   template_name: string;
   template_lang: string;
+  template_name_fr?: string;
+  template_name_en?: string;
 }
 
 export function formatPhone(phone: string | null | undefined): string {

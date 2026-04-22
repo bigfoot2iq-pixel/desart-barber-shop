@@ -14,22 +14,27 @@
   "professionalLabel": "Professionnel",
   "created": {
     "subject": "Nouvelle réservation — {customerName} • {date}",
-    "heading": "Nouvelle réservation {locationType} — En attente"
+    "heading": "Nouvelle réservation {locationType} — En attente",
+    "statusLabel": "En attente"
   },
   "confirmed": {
     "subject": "Réservation confirmée — {customerName} • {date}",
-    "heading": "Réservation {locationType} Confirmée"
+    "heading": "Réservation {locationType} Confirmée",
+    "statusLabel": "confirmée"
   },
   "cancelled": {
     "subject": "Réservation annulée — {customerName} • {date}",
-    "heading": "Réservation {locationType} Annulée"
+    "heading": "Réservation {locationType} Annulée",
+    "statusLabel": "annulée"
   },
   "completed": {
     "subject": "Réservation terminée — {customerName} • {date}",
-    "heading": "Réservation {locationType} Terminée"
+    "heading": "Réservation {locationType} Terminée",
+    "statusLabel": "terminée"
   },
   "assigned": {
     "subject": "Professionnel assigné — {professionalName} → {customerName}",
-    "heading": "Professionnel Assigné — {locationType}"
+    "heading": "Professionnel Assigné — {locationType}",
+    "statusLabel": "Professionnel assigné"
   }
 }

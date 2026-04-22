@@ -63,7 +63,7 @@ export async function POST(
         await sendWhatsAppCallMeBot(channel.config as unknown as CallMeBotConfig, message);
         break;
       case 'whatsapp_cloud':
-        await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message);
+        await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message, 'fr' as Locale);
         break;
       default:
         throw new Error(`Unsupported provider: ${channel.provider}`);

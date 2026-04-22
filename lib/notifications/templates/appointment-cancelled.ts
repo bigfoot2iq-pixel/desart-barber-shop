@@ -36,7 +36,7 @@ export async function buildAppointmentCancelledMessage(
   const heading = interpolate(cancelled.heading, interp);
 
   const plainText = [
-    `❌ ${locationType} ${locale === 'fr' ? 'annulée' : 'cancelled'}`,
+    `❌ ${locationType} ${cancelled.statusLabel}`,
     `${dict.customerLabel as string}: ${customerName}`,
     `${dict.phoneLabel as string}: ${formatPhone(apt.customer?.phone)}`,
     `${dict.emailLabel as string}: ${apt.customer?.email ?? 'N/A'}`,
@@ -67,7 +67,7 @@ export async function buildAppointmentCancelledMessage(
   `;
 
   const telegramLines = [
-    `<b>❌ ${locationType} ${locale === 'fr' ? 'annulée' : 'cancelled'}</b>`,
+    `<b>❌ ${locationType} ${cancelled.statusLabel}</b>`,
     `<b>${dict.customerLabel as string}:</b> ${customerName}`,
     `<b>${dict.phoneLabel as string}:</b> ${formatPhone(apt.customer?.phone)}`,
     `<b>${dict.emailLabel as string}:</b> ${apt.customer?.email ?? 'N/A'}`,
