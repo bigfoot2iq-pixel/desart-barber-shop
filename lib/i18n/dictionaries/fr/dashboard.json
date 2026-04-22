@@ -1,0 +1,20 @@
+{
+  "welcome": "Bon retour !",
+  "signedInAs": "Connecté en tant que :",
+  "role": "Rôle :",
+  "adminAccess": "Accès Admin",
+  "adminAccessDesc": "Vous avez un accès complet pour gérer le barbier.",
+  "professionalAccess": "Accès Professionnel",
+  "professionalAccessDesc": "Gérez votre planning et consultez vos réservations.",
+  "customerAccess": "Accès Client",
+  "customerAccessDesc": "Réservez des créneaux et consultez votre historique.",
+  "professionalH1": "Tableau de bord Professionnel",
+  "mySchedule": "Mon Planning",
+  "myScheduleDesc": "Visualisez et gérez vos disponibilités.",
+  "todaysBookings": "Réservations du Jour",
+  "todaysBookingsDesc": "Consultez vos rendez-vous du jour.",
+  "upcomingBookings": "À Venir",
+  "upcomingBookingsDesc": "Visualisez vos futurs rendez-vous.",
+  "myProfile": "Mon Profil",
+  "myProfileDesc": "Mettez à jour votre profil et vos paramètres."
+}

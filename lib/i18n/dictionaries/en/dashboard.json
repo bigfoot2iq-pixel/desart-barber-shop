@@ -1,0 +1,20 @@
+{
+  "welcome": "Welcome!",
+  "signedInAs": "Signed in as:",
+  "role": "Role:",
+  "adminAccess": "Admin Access",
+  "adminAccessDesc": "You have full access to manage the barbershop.",
+  "professionalAccess": "Professional Access",
+  "professionalAccessDesc": "Manage your schedule and view your bookings.",
+  "customerAccess": "Customer Access",
+  "customerAccessDesc": "Book appointments and view your booking history.",
+  "professionalH1": "Professional Dashboard",
+  "mySchedule": "My Schedule",
+  "myScheduleDesc": "View and manage your availability.",
+  "todaysBookings": "Today's Bookings",
+  "todaysBookingsDesc": "See your appointments for today.",
+  "upcomingBookings": "Upcoming Bookings",
+  "upcomingBookingsDesc": "View your future appointments.",
+  "myProfile": "My Profile",
+  "myProfileDesc": "Update your profile and settings."
+}
