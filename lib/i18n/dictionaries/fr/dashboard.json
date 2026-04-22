@@ -3,7 +3,7 @@
   "signedInAs": "Connecté en tant que :",
   "role": "Rôle :",
   "adminAccess": "Accès Admin",
-  "adminAccessDesc": "Vous avez un accès complet pour gérer le barbier.",
+  "adminAccessDesc": "Vous avez un accès complet pour gérer le salon de coiffure.",
   "professionalAccess": "Accès Professionnel",
   "professionalAccessDesc": "Gérez votre planning et consultez vos réservations.",
   "customerAccess": "Accès Client",
@@ -16,5 +16,10 @@
   "upcomingBookings": "À Venir",
   "upcomingBookingsDesc": "Visualisez vos futurs rendez-vous.",
   "myProfile": "Mon Profil",
-  "myProfileDesc": "Mettez à jour votre profil et vos paramètres."
+  "myProfileDesc": "Mettez à jour votre profil et vos paramètres.",
+  "roles": {
+    "admin": "Admin",
+    "professional": "Professionnel",
+    "customer": "Client"
+  }
 }

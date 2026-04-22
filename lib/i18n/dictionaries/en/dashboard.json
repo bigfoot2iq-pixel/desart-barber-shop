@@ -16,5 +16,10 @@
   "upcomingBookings": "Upcoming Bookings",
   "upcomingBookingsDesc": "View your future appointments.",
   "myProfile": "My Profile",
-  "myProfileDesc": "Update your profile and settings."
+  "myProfileDesc": "Update your profile and settings.",
+  "roles": {
+    "admin": "Admin",
+    "professional": "Professional",
+    "customer": "Customer"
+  }
 }

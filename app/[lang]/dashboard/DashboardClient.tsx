@@ -30,7 +30,7 @@ function DashboardInner({ dict, common, user, role }: DashboardClientProps) {
                 {td('signedInAs')} <span className="text-gold3">{user.email}</span>
               </p>
               <p className="text-brand-cream/70">
-                {td('role')} <span className="text-gold3 capitalize">{role}</span>
+                {td('role')} <span className="text-gold3">{td(`roles.${role}`)}</span>
               </p>
             </div>
 
