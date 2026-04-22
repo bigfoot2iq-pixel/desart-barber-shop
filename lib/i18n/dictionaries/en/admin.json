@@ -283,9 +283,6 @@
     "eventLabel": "{event}",
     "recipientAdmin": "admin",
     "recipientCustomer": "customer",
-    "statusSent": "sent",
-    "statusFailed": "failed",
-    "statusPending": "pending",
     "statusLabel": {
       "sent": "Sent",
       "failed": "Failed",
