@@ -11,10 +11,11 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
     notFound();
   }
 
-  const [common, booking] = await Promise.all([
+  const [common, booking, userPanel] = await Promise.all([
     getDictionary(locale, 'common'),
     getDictionary(locale, 'booking'),
+    getDictionary(locale, 'userPanel'),
   ]);
 
-  return <BookingExperience locale={locale} common={common} booking={booking} />;
+  return <BookingExperience locale={locale} common={common} booking={booking} userPanel={userPanel} />;
 }

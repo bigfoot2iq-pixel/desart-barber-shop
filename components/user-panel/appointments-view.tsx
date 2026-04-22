@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/lib/i18n/client-dictionary";
 import type { AppointmentWithDetails, AppointmentReview } from "@/lib/types/database";
 import { getCustomerAppointments, cancelAppointment } from "@/lib/queries/appointments";
 import { createReview, getReviewsForAppointments } from "@/lib/queries/reviews";
@@ -10,10 +11,13 @@ import { AppointmentCard } from "./appointment-card";
 interface AppointmentsViewProps {
   onSignOut: () => void;
   showToast: (kind: "success" | "error", text: string) => void;
+  locale: string;
 }
 
-export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps) {
+export function AppointmentsView({ onSignOut, showToast, locale }: AppointmentsViewProps) {
   const { user, signOut } = useAuth();
+  const tUser = useT('userPanel');
+  const tCommon = useT('common');
   const [items, setItems] = useState<AppointmentWithDetails[]>([]);
   const [reviews, setReviews] = useState<AppointmentReview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,20 +61,20 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
   const handleCancel = async (id: string) => {
     await cancelAppointment(id);
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, status: "cancelled" as const } : item)));
-    showToast("success", "Appointment cancelled");
+    showToast("success", tUser('toast.appointmentCancelled'));
   };
 
   const handleRate = async (appointmentId: string, professionalId: string | null, rating: number, comment: string | null) => {
     if (!user) return;
     await createReview({ appointment_id: appointmentId, customer_id: user.id, professional_id: professionalId, rating, comment });
     setReviews((prev) => [...prev, { id: crypto.randomUUID(), appointment_id: appointmentId, customer_id: user.id, professional_id: professionalId, rating, comment, created_at: new Date().toISOString() }]);
-    showToast("success", "Thanks for rating!");
+    showToast("success", tUser('toast.thanksForRating'));
   };
 
   const handleSignOut = async () => {
     await signOut();
     onSignOut();
-    showToast("success", "Signed out successfully");
+    showToast("success", tUser('toast.signedOut'));
   };
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -92,7 +96,7 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-brand-black truncate">{fullName ?? "User"}</p>
+            <p className="text-sm font-semibold text-brand-black truncate">{fullName ?? tUser('panel.guest')}</p>
             <p className="text-[11px] text-[rgb(10_8_0/40%)] truncate">{email}</p>
           </div>
         </div>
@@ -109,7 +113,7 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
                   : "bg-white text-[rgb(10_8_0/50%)] border border-[rgb(10_8_0/14%)] hover:border-[rgb(10_8_0/24%)]"
               }`}
             >
-              {t}
+              {tUser(t === 'upcoming' ? 'appointments.upcoming' : 'appointments.past')}
             </button>
           ))}
         </div>
@@ -117,10 +121,10 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
 
       <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">
         {loading ? (
-          <p className="text-[13px] text-[rgb(10_8_0/40%)] text-center py-8">Loading appointments…</p>
+          <p className="text-[13px] text-[rgb(10_8_0/40%)] text-center py-8">{tUser('appointments.loading')}</p>
         ) : filtered.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
-            <p className="text-[14px] text-[rgb(10_8_0/40%)]">No {tab} appointments</p>
+            <p className="text-[14px] text-[rgb(10_8_0/40%)]">{tUser(tab === 'upcoming' ? 'appointments.noUpcoming' : 'appointments.noPast')}</p>
           </div>
         ) : (
           filtered.map((item) => (
@@ -130,6 +134,7 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
               hasReview={reviewIds.has(item.id)}
               onCancel={handleCancel}
               onRate={handleRate}
+              locale={locale}
             />
           ))
         )}
@@ -141,7 +146,7 @@ export function AppointmentsView({ onSignOut, showToast }: AppointmentsViewProps
           onClick={handleSignOut}
           className="w-full border-[1.5px] border-red-200 text-red-600 rounded-xl py-3 text-sm font-medium transition-[background,border-color] duration-200 hover:bg-red-50 hover:border-red-300"
         >
-          Sign out
+          {tCommon('signOut')}
         </button>
       </div>
     </div>

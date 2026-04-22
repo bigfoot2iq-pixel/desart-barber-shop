@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/lib/i18n/client-dictionary";
 
 interface MenuAvatarButtonProps {
   onClick: () => void;
@@ -8,6 +9,7 @@ interface MenuAvatarButtonProps {
 
 export function MenuAvatarButton({ onClick }: MenuAvatarButtonProps) {
   const { user } = useAuth();
+  const tUser = useT('userPanel');
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   const fullName = user?.user_metadata?.full_name as string | undefined;
@@ -25,7 +27,7 @@ export function MenuAvatarButton({ onClick }: MenuAvatarButtonProps) {
       type="button"
       onClick={onClick}
       className={`${user ? "w-auto px-1.5 gap-1.5" : "w-8 justify-center"} h-8 rounded-full border border-[rgb(10_8_0/20%)] bg-white flex items-center cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]`}
-      aria-label="Open menu"
+      aria-label={tUser('panel.openMenu')}
     >
       <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-brand-black shrink-0">
         <path d="M3 5h12M3 9h12M3 13h12" />
