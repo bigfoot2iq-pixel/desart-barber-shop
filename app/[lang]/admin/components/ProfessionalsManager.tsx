@@ -59,18 +59,18 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
   const { toast } = useToast();
 
   useEffect(() => {
-    getAllServices().then(setAllServices).catch(() => {});
-  }, []);
+    getAllServices(lang).then(setAllServices).catch(() => {});
+  }, [lang]);
 
   const refresh = useCallback(async () => {
     try {
-      const [profs, slns] = await Promise.all([getAllProfessionals(), getAllSalons()]);
+      const [profs, slns] = await Promise.all([getAllProfessionals(lang), getAllSalons(lang)]);
       setProfessionals(profs);
       setSalons(slns);
     } catch {
       toast(tAdmin('professionals.toastRefreshFailed'), 'error');
     }
-  }, [toast, tAdmin]);
+  }, [toast, tAdmin, lang]);
 
   const openAddForm = () => {
     setEditingProfessional(null);

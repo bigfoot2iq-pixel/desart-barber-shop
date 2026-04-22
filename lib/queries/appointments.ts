@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
+import type { Locale } from '@/lib/i18n/config';
+import { localizeService, localizeSalon } from '@/lib/i18n/localize-row';
 import type {
   Salon,
   Professional,
@@ -11,7 +13,7 @@ import type {
 } from '@/lib/types/database';
 
 type ServiceRow = { service_id: string; services: Service };
-type ProfessionalWithSalon = Professional & { salon: Salon };
+type ProfessionalWithSalon = Professional & { salon: Salon | null };
 type ProfessionalWithServicesRow = Professional & {
   salon: Salon;
   professional_services: { service_id: string; services: Service }[];
@@ -21,7 +23,7 @@ export type ProfessionalWithServices = Professional & {
   services: Service[];
 };
 
-export async function getActiveSalons(): Promise<Salon[]> {
+export async function getActiveSalons(locale: Locale): Promise<Salon[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('salons')
@@ -30,10 +32,10 @@ export async function getActiveSalons(): Promise<Salon[]> {
     .order('name');
 
   if (error) throw error;
-  return data as Salon[];
+  return (data as Salon[]).map((s) => localizeSalon(s, locale));
 }
 
-export async function getSalonById(id: string): Promise<Salon | null> {
+export async function getSalonById(id: string, locale: Locale): Promise<Salon | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('salons')
@@ -42,10 +44,10 @@ export async function getSalonById(id: string): Promise<Salon | null> {
     .single();
 
   if (error) throw error;
-  return data as Salon;
+  return data ? localizeSalon(data as Salon, locale) : null;
 }
 
-export async function getActiveProfessionals(options?: { salonId?: string; offersHomeVisit?: boolean }): Promise<ProfessionalWithSalon[]> {
+export async function getActiveProfessionals(locale: Locale, options?: { salonId?: string; offersHomeVisit?: boolean }): Promise<ProfessionalWithSalon[]> {
   const supabase = createClient();
   let query = supabase
     .from('professionals')
@@ -61,10 +63,13 @@ export async function getActiveProfessionals(options?: { salonId?: string; offer
 
   const { data, error } = await query.order('display_name');
   if (error) throw error;
-  return data as unknown as ProfessionalWithSalon[];
+  return (data as unknown as ProfessionalWithSalon[]).map((p) => ({
+    ...p,
+    salon: p.salon ? localizeSalon(p.salon, locale) : null,
+  }));
 }
 
-export async function getProfessionalById(id: string): Promise<ProfessionalWithSalon | null> {
+export async function getProfessionalById(id: string, locale: Locale): Promise<ProfessionalWithSalon | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('professionals')
@@ -73,10 +78,15 @@ export async function getProfessionalById(id: string): Promise<ProfessionalWithS
     .single();
 
   if (error) throw error;
-  return data as unknown as ProfessionalWithSalon;
+  if (!data) return null;
+  const prof = data as unknown as ProfessionalWithSalon;
+  return {
+    ...prof,
+    salon: prof.salon ? localizeSalon(prof.salon, locale) : null,
+  };
 }
 
-export async function getActiveProfessionalsWithServices(): Promise<ProfessionalWithServices[]> {
+export async function getActiveProfessionalsWithServices(locale: Locale): Promise<ProfessionalWithServices[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('professionals')
@@ -88,13 +98,15 @@ export async function getActiveProfessionalsWithServices(): Promise<Professional
 
   return (data as unknown as ProfessionalWithServicesRow[]).map((prof) => ({
     ...prof,
+    salon: localizeSalon(prof.salon, locale),
     services: (prof.professional_services ?? [])
       .map((ps) => ps.services)
-      .filter((s) => s.is_active),
+      .filter((s) => s.is_active)
+      .map((s) => localizeService(s, locale)),
   }));
 }
 
-export async function getServicesForProfessional(professionalId: string): Promise<Service[]> {
+export async function getServicesForProfessional(professionalId: string, locale: Locale): Promise<Service[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('professional_services')
@@ -103,11 +115,11 @@ export async function getServicesForProfessional(professionalId: string): Promis
 
   if (error) throw error;
   return (data as unknown as ServiceRow[])
-    .map((row) => row.services)
+    .map((row) => localizeService(row.services, locale))
     .filter((s) => s.is_active);
 }
 
-export async function getActiveServices(): Promise<Service[]> {
+export async function getActiveServices(locale: Locale): Promise<Service[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('services')
@@ -116,7 +128,7 @@ export async function getActiveServices(): Promise<Service[]> {
     .order('name');
 
   if (error) throw error;
-  return data as Service[];
+  return (data as Service[]).map((s) => localizeService(s, locale));
 }
 
 export async function getProfessionalAvailability(professionalId: string): Promise<ProfessionalAvailability[]> {
@@ -431,7 +443,7 @@ export async function getAppointmentsByDateRange(startDate: string, endDate: str
   return (data as Record<string, unknown>[]).map(mapAppointmentDetails);
 }
 
-export async function getAllSalons(): Promise<Salon[]> {
+export async function getAllSalons(locale: Locale): Promise<Salon[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('salons')
@@ -439,7 +451,7 @@ export async function getAllSalons(): Promise<Salon[]> {
     .order('name');
 
   if (error) throw error;
-  return data as Salon[];
+  return (data as Salon[]).map((s) => localizeSalon(s, locale));
 }
 
 export async function createSalon(salon: Omit<Salon, 'id' | 'created_at' | 'updated_at'>): Promise<Salon> {
@@ -467,7 +479,7 @@ export async function updateSalon(id: string, updates: Partial<Salon>): Promise<
   return data as Salon;
 }
 
-export async function getAllProfessionals(): Promise<ProfessionalWithSalon[]> {
+export async function getAllProfessionals(locale: Locale): Promise<ProfessionalWithSalon[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('professionals')
@@ -475,7 +487,10 @@ export async function getAllProfessionals(): Promise<ProfessionalWithSalon[]> {
     .order('display_name');
 
   if (error) throw error;
-  return data as unknown as ProfessionalWithSalon[];
+  return (data as unknown as ProfessionalWithSalon[]).map((p) => ({
+    ...p,
+    salon: p.salon ? localizeSalon(p.salon, locale) : null,
+  }));
 }
 
 export async function createProfessional(professional: Omit<Professional, 'created_at' | 'updated_at'>): Promise<Professional> {
@@ -503,7 +518,7 @@ export async function updateProfessional(id: string, updates: Partial<Profession
   return data as Professional;
 }
 
-export async function getAllServices(): Promise<Service[]> {
+export async function getAllServices(locale: Locale): Promise<Service[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('services')
@@ -511,7 +526,7 @@ export async function getAllServices(): Promise<Service[]> {
     .order('name');
 
   if (error) throw error;
-  return data as Service[];
+  return (data as Service[]).map((s) => localizeService(s, locale));
 }
 
 export async function createService(service: Omit<Service, 'id' | 'created_at' | 'updated_at'>): Promise<Service> {

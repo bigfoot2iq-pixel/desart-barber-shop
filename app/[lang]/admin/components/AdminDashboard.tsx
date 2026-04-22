@@ -59,9 +59,9 @@ function AdminDashboardInner({ lang, initialPendingCount, adminName, adminEmail 
         getTodayAppointmentsCount(),
         getActiveProfessionalsCount(),
         getActiveServicesCount(),
-        getAllProfessionals(),
-        getAllServices(),
-        getAllSalons(),
+        getAllProfessionals(lang),
+        getAllServices(lang),
+        getAllSalons(lang),
       ]);
       setPendingCount(pendingApts.length);
       setAppointments(allApts);
@@ -200,7 +200,7 @@ function AdminDashboardInner({ lang, initialPendingCount, adminName, adminEmail 
       case 'services':
         return <ServicesManager lang={lang} initialServices={services} />;
       case 'salons':
-        return <SalonsManager initialSalons={salons} />;
+        return <SalonsManager lang={lang} initialSalons={salons} />;
       case 'notifications':
         return <NotificationsManager lang={lang} />;
     }

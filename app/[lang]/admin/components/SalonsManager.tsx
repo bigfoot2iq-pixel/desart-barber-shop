@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Salon } from '@/lib/types/database';
+import type { Locale } from '@/lib/i18n/config';
 import { getAllSalons, createSalon, updateSalon } from '@/lib/queries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,19 +14,22 @@ import { Modal, ToggleButton, useToast } from './ui';
 import { useT } from '@/lib/i18n/client-dictionary';
 
 interface SalonsManagerProps {
+  lang: Locale;
   initialSalons: Salon[];
 }
 
 const emptyForm = {
   name: '',
   address: '',
+  name_fr: '',
+  address_fr: '',
   latitude: 0,
   longitude: 0,
   image_url: '',
   is_active: true,
 };
 
-export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
+export default function SalonsManager({ lang, initialSalons }: SalonsManagerProps) {
   const tAdmin = useT('admin');
   const tCommon = useT('common');
   const [salons, setSalons] = useState<Salon[]>(initialSalons);
@@ -38,12 +42,12 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const data = await getAllSalons();
+      const data = await getAllSalons(lang);
       setSalons(data);
     } catch {
       toast(tAdmin('salons.toastRefreshFailed'), 'error');
     }
-  }, [toast, tAdmin]);
+  }, [toast, tAdmin, lang]);
 
   const openAddForm = () => {
     setEditingSalon(null);
@@ -56,7 +60,9 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
     setEditingSalon(s);
     setForm({
       name: s.name,
+      name_fr: s.name_fr ?? '',
       address: s.address,
+      address_fr: s.address_fr ?? '',
       latitude: s.latitude,
       longitude: s.longitude,
       image_url: s.image_url || '',

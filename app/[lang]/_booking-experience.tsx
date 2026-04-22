@@ -246,7 +246,7 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
 
   useEffect(() => {
     setIsLoadingBarbers(true);
-    getActiveProfessionalsWithServices()
+    getActiveProfessionalsWithServices(locale as import('@/lib/i18n/config').Locale)
       .then((data: ProfessionalWithServices[]) => {
         const mapped: BarberOption[] = data.map((p) => ({
           id: p.id,
@@ -279,7 +279,7 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
       });
 
     setIsLoadingServices(true);
-    getActiveServices()
+    getActiveServices(locale as import('@/lib/i18n/config').Locale)
       .then((data) => {
         setServices(
           data.map((s) => ({
@@ -298,7 +298,7 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
       });
 
     setIsLoadingSalons(true);
-    getActiveSalons()
+    getActiveSalons(locale as import('@/lib/i18n/config').Locale)
       .then((data: Salon[]) => {
         setRawSalons(data);
         const mapped: LocationOption[] = data.map((s) => ({
@@ -315,7 +315,7 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
         console.error("Failed to load salons:", err);
         setIsLoadingSalons(false);
       });
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (barbers.length === 0) return;

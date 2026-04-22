@@ -40,12 +40,12 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
 
   const refresh = useCallback(async () => {
     try {
-      const data = await getAllServices();
+      const data = await getAllServices(lang);
       setServices(data);
     } catch {
       toast(tAdmin('services.toastRefreshFailed'), 'error');
     }
-  }, [toast, tAdmin]);
+  }, [toast, tAdmin, lang]);
 
   const openAddForm = () => {
     setEditingService(null);

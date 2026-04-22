@@ -45,8 +45,8 @@ export default function AppointmentsManager({ lang, initialAppointments }: Appoi
   const { toast } = useToast();
 
   useEffect(() => {
-    getActiveProfessionals().then(setProfessionals).catch(() => {});
-  }, []);
+    getActiveProfessionals(lang).then(setProfessionals).catch(() => {});
+  }, [lang]);
 
   const refreshAppointments = useCallback(async () => {
     setLoading(true);
