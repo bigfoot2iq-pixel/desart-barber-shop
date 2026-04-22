@@ -1,4 +1,4 @@
-import type { NotificationEventType, NotificationChannelRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig } from './types';
+import type { NotificationEventType, NotificationChannelRow, DispatchResult, RenderedMessage, TelegramConfig, ResendConfig, CallMeBotConfig, WhatsAppCloudConfig, ChannelKind } from './types';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { AppointmentWithDetails } from '@/lib/types/database';
 import { TEMPLATE_MAP } from './templates';
@@ -6,14 +6,28 @@ import { sendTelegram } from './channels/telegram-bot';
 import { sendEmail } from './channels/email-resend';
 import { sendWhatsAppCallMeBot } from './channels/whatsapp-callmebot';
 import { sendWhatsAppCloud } from './channels/whatsapp-cloud';
+import type { Locale } from '@/lib/i18n/config';
+
+async function resolveAdminLocale(adminId: string, channel: ChannelKind): Promise<Locale> {
+  if (channel === 'telegram') {
+    return 'fr';
+  }
+
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from('profiles')
+    .select('locale')
+    .eq('id', adminId)
+    .single() as { data: { locale: string } | null; error: unknown };
+
+  return (data?.locale as Locale) ?? 'fr';
+}
 
 export async function dispatchEvent(
   eventType: NotificationEventType,
   appointment: AppointmentWithDetails,
   updatedAt: string
 ): Promise<DispatchResult[]> {
-  // intentional: notify every admin of every appointment event.
-  // No per-admin scoping — all configured channels receive all events.
   const supabase = createServiceClient();
 
   const { data: channels, error: channelsError } = await supabase
@@ -63,7 +77,8 @@ export async function dispatchEvent(
       }
 
       try {
-        const message = TEMPLATE_MAP[eventType](appointment);
+        const locale = await resolveAdminLocale(channel.admin_id, channel.channel);
+        const message = await TEMPLATE_MAP[eventType](appointment, locale);
 
         if (channel.provider === 'telegram_bot') {
           await sendTelegram(channel.config as unknown as TelegramConfig, message);

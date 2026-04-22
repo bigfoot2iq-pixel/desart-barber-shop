@@ -1,0 +1,35 @@
+{
+  "locationTypeHome": "À domicile",
+  "locationTypeSalon": "Salon",
+  "customerLabel": "Client",
+  "phoneLabel": "Téléphone",
+  "emailLabel": "E-mail",
+  "serviceLabel": "Service",
+  "servicesLabel": "Services",
+  "dateLabel": "Date",
+  "timeLabel": "Heure",
+  "locationLabel": "Lieu",
+  "paymentLabel": "Paiement",
+  "notesLabel": "Notes",
+  "professionalLabel": "Professionnel",
+  "created": {
+    "subject": "Nouvelle réservation — {customerName} • {date}",
+    "heading": "Nouvelle réservation {locationType} — En attente"
+  },
+  "confirmed": {
+    "subject": "Réservation confirmée — {customerName} • {date}",
+    "heading": "Réservation {locationType} Confirmée"
+  },
+  "cancelled": {
+    "subject": "Réservation annulée — {customerName} • {date}",
+    "heading": "Réservation {locationType} Annulée"
+  },
+  "completed": {
+    "subject": "Réservation terminée — {customerName} • {date}",
+    "heading": "Réservation {locationType} Terminée"
+  },
+  "assigned": {
+    "subject": "Professionnel assigné — {professionalName} → {customerName}",
+    "heading": "Professionnel Assigné — {locationType}"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "locationTypeHome": "Come to Home",
+  "locationTypeSalon": "Salon",
+  "customerLabel": "Customer",
+  "phoneLabel": "Phone",
+  "emailLabel": "Email",
+  "serviceLabel": "Service",
+  "servicesLabel": "Services",
+  "dateLabel": "Date",
+  "timeLabel": "Time",
+  "locationLabel": "Location",
+  "paymentLabel": "Payment",
+  "notesLabel": "Notes",
+  "professionalLabel": "Professional",
+  "created": {
+    "subject": "New booking — {customerName} • {date}",
+    "heading": "New {locationType} Booking — Pending"
+  },
+  "confirmed": {
+    "subject": "Booking confirmed — {customerName} • {date}",
+    "heading": "{locationType} Booking Confirmed"
+  },
+  "cancelled": {
+    "subject": "Booking cancelled — {customerName} • {date}",
+    "heading": "{locationType} Booking Cancelled"
+  },
+  "completed": {
+    "subject": "Booking completed — {customerName} • {date}",
+    "heading": "{locationType} Booking Completed"
+  },
+  "assigned": {
+    "subject": "Professional assigned — {professionalName} → {customerName}",
+    "heading": "Professional Assigned — {locationType}"
+  }
+}
