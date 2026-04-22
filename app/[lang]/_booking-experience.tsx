@@ -20,6 +20,7 @@ import {
 } from "@/lib/queries";
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
 import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMethod } from "@/lib/types/database";
+import type { Locale } from "@/lib/i18n/config";
 import { getPublicPaymentConfig } from "@/lib/queries/payment-settings";
 import { useAuth } from "@/lib/auth-context";
 import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
@@ -101,7 +102,7 @@ function formatRib(rib: string): string {
 }
 
 export interface BookingExperienceProps {
-  locale: string;
+  locale: Locale;
   common: Record<string, unknown>;
   booking: Record<string, unknown>;
   userPanel: Record<string, unknown>;
@@ -706,6 +707,7 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
       first_name: draft.firstName,
       last_name: draft.lastName,
       phone: draft.phone,
+      locale,
     });
 
     const startTime = toHHMMSS(draft.time);
