@@ -4,6 +4,7 @@ import { getRole } from '@/lib/roles';
 import { getPendingAppointments } from '@/lib/queries';
 import { hasLocale } from '@/lib/i18n/config';
 import { localeHref } from '@/lib/i18n/href';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 import AdminDashboard from './components/AdminDashboard';
 
 export const dynamic = 'force-dynamic';
@@ -41,11 +42,19 @@ export default async function AdminPage({ params }: PageProps<'/[lang]'>) {
     // Will be loaded client-side
   }
 
+  const [adminDict, commonDict] = await Promise.all([
+    getDictionary(lang, 'admin'),
+    getDictionary(lang, 'common'),
+  ]);
+
   return (
     <AdminDashboard
+      lang={lang}
       initialPendingCount={pendingCount}
       adminName={adminName}
       adminEmail={adminEmail}
+      adminDict={adminDict}
+      commonDict={commonDict}
     />
   );
 }

@@ -10,15 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Modal, AdminBadge, useToast } from './ui';
+import { formatDate, formatTimeFromHHMM, formatMoney } from '@/lib/i18n/format';
+import { useT } from '@/lib/i18n/client-dictionary';
+import type { Locale } from '@/lib/i18n/config';
 
 type StatusFilter = 'all' | AppointmentStatus;
-
-const statusLabels: Record<string, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
 
 const statusBadgeVariants: Record<string, 'pending' | 'confirmed' | 'completed' | 'cancelled'> = {
   pending: 'pending',
@@ -28,10 +24,13 @@ const statusBadgeVariants: Record<string, 'pending' | 'confirmed' | 'completed' 
 };
 
 interface AppointmentsManagerProps {
+  lang: Locale;
   initialAppointments: AppointmentWithDetails[];
 }
 
-export default function AppointmentsManager({ initialAppointments }: AppointmentsManagerProps) {
+export default function AppointmentsManager({ lang, initialAppointments }: AppointmentsManagerProps) {
+  const tAdmin = useT('admin');
+  const tCommon = useT('common');
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>(initialAppointments);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -55,11 +54,11 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
       const data = await getAllAppointments(statusFilter === 'all' ? undefined : statusFilter);
       setAppointments(data);
     } catch {
-      toast('Failed to load appointments', 'error');
+      toast(tAdmin('appointments.toastLoadFailed'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, toast]);
+  }, [statusFilter, toast, tAdmin]);
 
   useEffect(() => {
     refreshAppointments();
@@ -78,24 +77,24 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
       if (dateRange.to) filtered = filtered.filter((a) => a.appointment_date <= dateRange.to);
       setAppointments(filtered);
     } catch {
-      toast('Search failed', 'error');
+      toast(tAdmin('appointments.toastSearchFailed'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, dateRange, statusFilter, toast, refreshAppointments]);
+  }, [searchQuery, dateRange, statusFilter, toast, refreshAppointments, tAdmin]);
 
   const handleAssign = async () => {
     if (!assigningAppointment || !selectedProfessionalId) return;
     setActionLoading(assigningAppointment.id);
     try {
       await assignProfessionalToAppointment(assigningAppointment.id, selectedProfessionalId);
-      toast('Professional assigned & appointment confirmed');
+      toast(tAdmin('appointments.toastProfessionalAssigned'));
       setAssignModalOpen(false);
       setSelectedProfessionalId('');
       setAssigningAppointment(null);
       refreshAppointments();
     } catch {
-      toast('Failed to assign professional', 'error');
+      toast(tAdmin('appointments.toastAssignFailed'), 'error');
     } finally {
       setActionLoading(null);
     }
@@ -105,13 +104,13 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
     setActionLoading(appointmentId);
     try {
       await updateAppointmentStatus(appointmentId, newStatus);
-      toast(`Appointment ${statusLabels[newStatus]?.toLowerCase()}`);
+      toast(tAdmin('appointments.toastStatusUpdated', { status: tAdmin(`status.${newStatus}`) }));
       refreshAppointments();
       if (selectedAppointment?.id === appointmentId) {
         setSelectedAppointment({ ...selectedAppointment, status: newStatus });
       }
     } catch {
-      toast('Failed to update status', 'error');
+      toast(tAdmin('appointments.toastStatusUpdateFailed'), 'error');
     } finally {
       setActionLoading(null);
     }
@@ -130,43 +129,33 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
     return true;
   });
 
-  const formatTime = (time: string) => {
-    const [h, m] = time.split(':');
-    const hour = parseInt(h);
-    return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
   return (
     <div className="space-y-6">
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[200px]">
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Search</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('appointments.searchPlaceholder')}</Label>
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Customer name or phone..."
+                placeholder={tAdmin('appointments.searchPlaceholder')}
                 className="mt-1"
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Date Range</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('appointments.dateRangeLabel')}</Label>
               <div className="mt-1">
                 <DateRangePicker
                   value={dateRange}
                   onChange={(range) => setDateRange(range)}
-                  placeholder="Filter by date range…"
+                  placeholder={tAdmin('appointments.dateRangePlaceholder')}
                 />
               </div>
             </div>
-            <Button onClick={handleSearch}>Search</Button>
+            <Button onClick={handleSearch}>{tAdmin('appointments.search')}</Button>
           </div>
         </CardContent>
       </Card>
@@ -179,7 +168,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
             size="sm"
             onClick={() => setStatusFilter(s)}
           >
-            {s === 'all' ? 'All' : statusLabels[s]}
+            {s === 'all' ? tAdmin('appointments.filterAll') : tAdmin(`status.${s}`)}
           </Button>
         ))}
       </div>
@@ -198,7 +187,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No appointments found</p>
+            <p className="text-muted-foreground mb-4">{tAdmin('appointments.noAppointments')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -218,9 +207,9 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                     onClick={() => setSelectedAppointment(apt)}
                   >
                     <div className="flex flex-wrap items-center gap-2 md:hidden mb-2">
-                      <span className="text-foreground font-medium text-sm">{formatDate(apt.appointment_date)}</span>
-                      <span className="text-muted-foreground text-sm">{formatTime(apt.start_time)} - {formatTime(apt.end_time)}</span>
-                      <AdminBadge variant={statusBadgeVariants[apt.status]}>{statusLabels[apt.status]}</AdminBadge>
+                      <span className="text-foreground font-medium text-sm">{formatDate(new Date(apt.appointment_date + 'T00:00:00'), lang)}</span>
+                      <span className="text-muted-foreground text-sm">{formatTimeFromHHMM(apt.start_time, lang)} - {formatTimeFromHHMM(apt.end_time, lang)}</span>
+                      <AdminBadge variant={statusBadgeVariants[apt.status]}>{tAdmin(`status.${apt.status}`)}</AdminBadge>
                     </div>
                     <p className="text-foreground font-medium md:hidden">
                       {apt.customer?.first_name} {apt.customer?.last_name}
@@ -230,14 +219,14 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                     </p>
 
                     <div className="hidden md:grid grid-cols-[100px_120px_1fr_1fr_1fr_80px_100px_80px] gap-3 items-center text-sm">
-                      <span className="text-foreground/85">{formatDate(apt.appointment_date)}</span>
-                      <span className="text-muted-foreground">{formatTime(apt.start_time)}</span>
+                      <span className="text-foreground/85">{formatDate(new Date(apt.appointment_date + 'T00:00:00'), lang)}</span>
+                      <span className="text-muted-foreground">{formatTimeFromHHMM(apt.start_time, lang)}</span>
                       <span className="text-foreground font-medium truncate">{apt.customer?.first_name} {apt.customer?.last_name}</span>
-                      <span className="text-muted-foreground truncate">{apt.preferred_professional?.display_name || 'Any'}</span>
+                      <span className="text-muted-foreground truncate">{apt.preferred_professional?.display_name || tAdmin('appointments.anyAvailable')}</span>
                       <span className="text-muted-foreground truncate">{apt.professional?.display_name || '—'}</span>
-                      <span className="text-primary font-semibold">{apt.total_price_mad} MAD</span>
-                      <AdminBadge variant={statusBadgeVariants[apt.status]}>{statusLabels[apt.status]}</AdminBadge>
-                      <span className="text-muted-foreground truncate text-xs">{apt.location_type === 'home' ? 'Home' : apt.salon?.name || 'Salon'}</span>
+                      <span className="text-primary font-semibold">{formatMoney(apt.total_price_mad, lang)}</span>
+                      <AdminBadge variant={statusBadgeVariants[apt.status]}>{tAdmin(`status.${apt.status}`)}</AdminBadge>
+                      <span className="text-muted-foreground truncate text-xs">{apt.location_type === 'home' ? tAdmin('appointments.locationHome') : apt.salon?.name || tAdmin('appointments.locationSalon')}</span>
                     </div>
 
                     {apt.status === 'pending' && (
@@ -251,7 +240,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                             setAssignModalOpen(true);
                           }}
                         >
-                          Assign Professional
+                          {tAdmin('appointments.assignProfessional')}
                         </Button>
                       </div>
                     )}
@@ -266,32 +255,32 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
       <Modal
         open={!!selectedAppointment}
         onClose={() => setSelectedAppointment(null)}
-        title="Appointment Details"
+        title={tAdmin('appointments.modalDetailsTitle')}
         maxWidth="sm:max-w-2xl"
       >
         {selectedAppointment && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <AdminBadge variant={statusBadgeVariants[selectedAppointment.status]}>
-                {statusLabels[selectedAppointment.status]}
+                {tAdmin(`status.${selectedAppointment.status}`)}
               </AdminBadge>
               <span className="text-muted-foreground text-sm">
-                {formatDate(selectedAppointment.appointment_date)} at {formatTime(selectedAppointment.start_time)} - {formatTime(selectedAppointment.end_time)}
+                {formatDate(new Date(selectedAppointment.appointment_date + 'T00:00:00'), lang)} {tAdmin('appointments.dateTimeSeparator')} {formatTimeFromHHMM(selectedAppointment.start_time, lang)} {tAdmin('appointments.timeRangeSeparator')} {formatTimeFromHHMM(selectedAppointment.end_time, lang)}
               </span>
             </div>
 
             <div className="rounded-lg p-4 border border-border">
-              <h3 className="text-sm font-semibold text-primary mb-2">Customer</h3>
+              <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionCustomer')}</h3>
               <p className="text-foreground font-medium">{selectedAppointment.customer?.first_name} {selectedAppointment.customer?.last_name}</p>
-              <p className="text-muted-foreground text-sm">{selectedAppointment.customer?.phone || 'No phone'}</p>
-              <p className="text-muted-foreground text-sm">{selectedAppointment.customer?.email || 'No email'}</p>
+              <p className="text-muted-foreground text-sm">{selectedAppointment.customer?.phone || tAdmin('appointments.noPhone')}</p>
+              <p className="text-muted-foreground text-sm">{selectedAppointment.customer?.email || tAdmin('appointments.noEmail')}</p>
             </div>
 
             <div className="rounded-lg p-4 border border-border">
-              <h3 className="text-sm font-semibold text-primary mb-2">Location</h3>
+              <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionLocation')}</h3>
               {selectedAppointment.location_type === 'home' ? (
                 <div>
-                  <p className="text-foreground/85 text-sm">{selectedAppointment.home_address || 'Home visit'}</p>
+                  <p className="text-foreground/85 text-sm">{selectedAppointment.home_address || tAdmin('appointments.homeVisit')}</p>
                   {selectedAppointment.home_latitude && (
                     <p className="text-muted-foreground text-xs mt-1">
                       {selectedAppointment.home_latitude.toFixed(6)}, {selectedAppointment.home_longitude?.toFixed(6)}
@@ -299,54 +288,54 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                   )}
                 </div>
               ) : (
-                <p className="text-foreground/85 text-sm">{selectedAppointment.salon?.name || 'Salon'} — {selectedAppointment.salon?.address || ''}</p>
+                <p className="text-foreground/85 text-sm">{selectedAppointment.salon?.name || tAdmin('appointments.locationSalon')} — {selectedAppointment.salon?.address || ''}</p>
               )}
             </div>
 
             <div className="rounded-lg p-4 border border-border">
-              <h3 className="text-sm font-semibold text-primary mb-2">Services</h3>
+              <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionServices')}</h3>
               <div className="space-y-2">
                 {selectedAppointment.services.map((s) => (
                   <div key={s.id} className="flex justify-between text-sm">
                     <span className="text-foreground/85">{s.name}</span>
-                    <span className="text-muted-foreground">{s.duration_minutes} min — {s.price_mad} MAD</span>
+                    <span className="text-muted-foreground">{s.duration_minutes} {tAdmin('services.minAbbr')} — {formatMoney(s.price_mad, lang)}</span>
                   </div>
                 ))}
                 <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm font-semibold">
-                  <span className="text-primary">Total</span>
-                  <span className="text-primary">{selectedAppointment.total_price_mad} MAD</span>
+                  <span className="text-primary">{tAdmin('appointments.total')}</span>
+                  <span className="text-primary">{formatMoney(selectedAppointment.total_price_mad, lang)}</span>
                 </div>
                 {selectedAppointment.location_type === 'home' && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Home visit surcharge</span>
-                    <span className="text-muted-foreground">{process.env.NEXT_PUBLIC_HOME_VISIT_SURCHARGE_MAD || '30'} MAD</span>
+                    <span className="text-muted-foreground">{tAdmin('appointments.homeVisitSurcharge')}</span>
+                    <span className="text-muted-foreground">{formatMoney(Number(process.env.NEXT_PUBLIC_HOME_VISIT_SURCHARGE_MAD) || 30, lang)}</span>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="rounded-lg p-4 border border-border">
-              <h3 className="text-sm font-semibold text-primary mb-2">Professional</h3>
+              <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionProfessional')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Preferred</span>
-                  <span className="text-foreground/85">{selectedAppointment.preferred_professional?.display_name || 'Any available'}</span>
+                  <span className="text-muted-foreground">{tAdmin('appointments.preferred')}</span>
+                  <span className="text-foreground/85">{selectedAppointment.preferred_professional?.display_name || tAdmin('appointments.anyAvailable')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Assigned</span>
-                  <span className="text-foreground/85">{selectedAppointment.professional?.display_name || 'Not assigned'}</span>
+                  <span className="text-muted-foreground">{tAdmin('appointments.columnAssigned')}</span>
+                  <span className="text-foreground/85">{selectedAppointment.professional?.display_name || tAdmin('appointments.notAssigned')}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-lg p-4 border border-border">
-              <h3 className="text-sm font-semibold text-primary mb-2">Payment</h3>
-              <p className="text-foreground/85 text-sm capitalize">{selectedAppointment.payment_method?.replace('_', ' ')}</p>
+              <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionPayment')}</h3>
+              <p className="text-foreground/85 text-sm">{tAdmin(`appointments.paymentMethods.${selectedAppointment.payment_method}`)}</p>
             </div>
 
             {selectedAppointment.notes && (
               <div className="rounded-lg p-4 border border-border">
-                <h3 className="text-sm font-semibold text-primary mb-2">Notes</h3>
+                <h3 className="text-sm font-semibold text-primary mb-2">{tAdmin('appointments.sectionNotes')}</h3>
                 <p className="text-muted-foreground text-sm">{selectedAppointment.notes}</p>
               </div>
             )}
@@ -360,7 +349,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                     setAssignModalOpen(true);
                   }}
                 >
-                  Assign Professional
+                  {tAdmin('appointments.assignProfessional')}
                 </Button>
               )}
               {selectedAppointment.status === 'confirmed' && (
@@ -369,7 +358,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                   disabled={actionLoading === selectedAppointment.id}
                   className="bg-white hover:bg-neutral-200 text-black"
                 >
-                  Mark Completed
+                  {tAdmin('appointments.markCompleted')}
                 </Button>
               )}
               {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed') && (
@@ -378,7 +367,7 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
                   onClick={() => handleStatusChange(selectedAppointment.id, 'cancelled')}
                   disabled={actionLoading === selectedAppointment.id}
                 >
-                  Cancel Appointment
+                  {tAdmin('appointments.cancelAppointment')}
                 </Button>
               )}
             </div>
@@ -389,37 +378,37 @@ export default function AppointmentsManager({ initialAppointments }: Appointment
       <Modal
         open={assignModalOpen}
         onClose={() => { setAssignModalOpen(false); setSelectedProfessionalId(''); setAssigningAppointment(null); }}
-        title="Assign Professional"
+        title={tAdmin('appointments.modalAssignTitle')}
       >
         <div className="space-y-4">
           {assigningAppointment?.preferred_professional && (
             <div className="rounded-lg p-3 border border-primary/30 bg-primary/10">
-              <p className="text-xs text-primary mb-1 font-medium">Customer preferred:</p>
+              <p className="text-xs text-primary mb-1 font-medium">{tAdmin('appointments.customerPreferred')}</p>
               <p className="text-foreground font-medium">{assigningAppointment.preferred_professional.display_name}</p>
             </div>
           )}
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Select Professional</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('appointments.selectProfessional')}</Label>
             <select
               value={selectedProfessionalId}
               onChange={(e) => setSelectedProfessionalId(e.target.value)}
               className="mt-1 flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
             >
-              <option value="">— Choose a professional —</option>
+              <option value="">{tAdmin('appointments.chooseProfessional')}</option>
               {professionals.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.display_name} (at {p.salon_id ? 'Salon' : 'No salon'})
-                  {p.id === assigningAppointment?.preferred_professional_id ? ' ★ Preferred' : ''}
+                  {p.display_name}
+                  {p.id === assigningAppointment?.preferred_professional_id ? ` ${tAdmin('appointments.preferredBadge')}` : ''}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="flex gap-3 justify-end pt-2">
-            <Button variant="outline" onClick={() => { setAssignModalOpen(false); setSelectedProfessionalId(''); setAssigningAppointment(null); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setAssignModalOpen(false); setSelectedProfessionalId(''); setAssigningAppointment(null); }}>{tCommon('cancel')}</Button>
             <Button onClick={handleAssign} disabled={!selectedProfessionalId || actionLoading !== null}>
-              {actionLoading ? 'Assigning...' : 'Assign & Confirm'}
+              {actionLoading ? tAdmin('appointments.assigning') : tAdmin('appointments.assignAndConfirm')}
             </Button>
           </div>
         </div>

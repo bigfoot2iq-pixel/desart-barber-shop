@@ -3,15 +3,19 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Service } from '@/lib/types/database';
+import type { Locale } from '@/lib/i18n/config';
 import { getAllServices, createService, updateService } from '@/lib/queries';
+import { formatMoney } from '@/lib/i18n/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Modal, ToggleButton, useToast } from './ui';
+import { useT } from '@/lib/i18n/client-dictionary';
 
 interface ServicesManagerProps {
+  lang: Locale;
   initialServices: Service[];
 }
 
@@ -23,7 +27,9 @@ const emptyForm = {
   is_active: true,
 };
 
-export default function ServicesManager({ initialServices }: ServicesManagerProps) {
+export default function ServicesManager({ lang, initialServices }: ServicesManagerProps) {
+  const tAdmin = useT('admin');
+  const tCommon = useT('common');
   const [services, setServices] = useState<Service[]>(initialServices);
   const [formOpen, setFormOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -37,9 +43,9 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
       const data = await getAllServices();
       setServices(data);
     } catch {
-      toast('Failed to refresh services', 'error');
+      toast(tAdmin('services.toastRefreshFailed'), 'error');
     }
-  }, [toast]);
+  }, [toast, tAdmin]);
 
   const openAddForm = () => {
     setEditingService(null);
@@ -63,9 +69,9 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
 
   const validate = () => {
     const errors: Record<string, string> = {};
-    if (!form.name.trim()) errors.name = 'Name is required';
-    if (form.duration_minutes <= 0) errors.duration_minutes = 'Must be greater than 0';
-    if (form.price_mad < 0) errors.price_mad = 'Must be 0 or more';
+    if (!form.name.trim()) errors.name = tAdmin('services.validationNameRequired');
+    if (form.duration_minutes <= 0) errors.duration_minutes = tAdmin('services.validationDurationPositive');
+    if (form.price_mad < 0) errors.price_mad = tAdmin('services.validationPriceNonNegative');
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -82,7 +88,7 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
           price_mad: form.price_mad,
           is_active: form.is_active,
         });
-        toast('Service updated');
+        toast(tAdmin('services.toastUpdated'));
       } else {
         await createService({
           name: form.name,
@@ -91,12 +97,12 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
           price_mad: form.price_mad,
           is_active: form.is_active,
         });
-        toast('Service created');
+        toast(tAdmin('services.toastCreated'));
       }
       setFormOpen(false);
       refresh();
     } catch (e) {
-      toast('Failed: ' + (e instanceof Error ? e.message : 'Unknown error'), 'error');
+      toast(tAdmin('services.toastFailed', { error: e instanceof Error ? e.message : 'Unknown error' }), 'error');
     } finally {
       setLoading(false);
     }
@@ -105,25 +111,25 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
   const toggleActive = async (s: Service) => {
     try {
       await updateService(s.id, { is_active: !s.is_active });
-      toast(s.is_active ? 'Service deactivated' : 'Service activated');
+      toast(s.is_active ? tAdmin('services.toastDeactivated') : tAdmin('services.toastActivated'));
       refresh();
     } catch {
-      toast('Failed to toggle service', 'error');
+      toast(tAdmin('services.toastToggleFailed'), 'error');
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-foreground font-semibold">Services</h2>
-        <Button onClick={openAddForm}>+ Add Service</Button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">{tAdmin('services.title')}</h2>
+        <Button onClick={openAddForm}>{tAdmin('services.addService')}</Button>
       </div>
 
       {services.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No services yet</p>
-            <Button onClick={openAddForm}>Add Service</Button>
+            <p className="text-muted-foreground mb-4">{tAdmin('services.noServices')}</p>
+            <Button onClick={openAddForm}>{tAdmin('services.addFirst')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -144,7 +150,7 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
                         <div className="flex items-center gap-3 mb-1">
                           <h3 className="text-foreground font-medium truncate">{s.name}</h3>
                           {!s.is_active && (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 font-medium">Inactive</span>
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 font-medium">{tAdmin('services.inactive')}</span>
                           )}
                         </div>
                         {s.description && (
@@ -152,17 +158,17 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
                         )}
                       </div>
                       <div className="hidden sm:flex items-center gap-6 text-sm flex-shrink-0">
-                        <span className="text-muted-foreground">{s.duration_minutes} min</span>
-                        <span className="text-primary font-semibold">{s.price_mad} MAD</span>
+                        <span className="text-muted-foreground">{s.duration_minutes} {tAdmin('services.minAbbr')}</span>
+                        <span className="text-primary font-semibold">{formatMoney(s.price_mad, lang)}</span>
                         <ToggleButton
                           enabled={s.is_active}
                           onChange={() => toggleActive(s)}
                         />
-                        <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>Edit</Button>
+                        <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>{tAdmin('services.edit')}</Button>
                       </div>
                       <div className="flex sm:hidden items-center gap-2">
-                        <span className="text-primary font-semibold text-sm">{s.price_mad} MAD</span>
-                        <button onClick={() => openEditForm(s)} className="text-primary text-xs font-medium">Edit</button>
+                        <span className="text-primary font-semibold text-sm">{formatMoney(s.price_mad, lang)}</span>
+                        <button onClick={() => openEditForm(s)} className="text-primary text-xs font-medium">{tAdmin('services.edit')}</button>
                       </div>
                     </div>
                   </CardContent>
@@ -176,11 +182,11 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editingService ? 'Edit Service' : 'Add Service'}
+        title={editingService ? tAdmin('services.modalEditTitle') : tAdmin('services.modalAddTitle')}
       >
         <div className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Name *</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldName')}</Label>
             <Input
               type="text"
               value={form.name}
@@ -191,7 +197,7 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Description</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldDescription')}</Label>
             <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -202,7 +208,7 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Duration (minutes) *</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldDuration')}</Label>
               <Input
                 type="number"
                 min={1}
@@ -213,7 +219,7 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
               {formErrors.duration_minutes && <p className="text-red-400 text-xs mt-1">{formErrors.duration_minutes}</p>}
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Price (MAD) *</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldPrice')}</Label>
               <Input
                 type="number"
                 min={0}
@@ -228,13 +234,13 @@ export default function ServicesManager({ initialServices }: ServicesManagerProp
           <ToggleButton
             enabled={form.is_active}
             onChange={(v) => setForm({ ...form, is_active: v })}
-            label="Active"
+            label={tAdmin('services.toggleActive')}
           />
 
           <div className="flex gap-3 justify-end pt-2">
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setFormOpen(false)}>{tCommon('cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Saving...' : editingService ? 'Update' : 'Create'}
+              {loading ? tCommon('loading') : editingService ? tCommon('save') : tCommon('create')}
             </Button>
           </div>
         </div>

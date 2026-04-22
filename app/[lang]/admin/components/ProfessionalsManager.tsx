@@ -12,16 +12,19 @@ import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { TimePicker, fmtTime } from '@/components/ui/time-picker';
 import { Modal, AdminBadge, ToggleButton, useToast } from './ui';
+import { formatDate, formatMoney } from '@/lib/i18n/format';
+import { useT } from '@/lib/i18n/client-dictionary';
+import type { Locale } from '@/lib/i18n/config';
 
 type ProfessionalWithSalon = Professional & { salon: Salon | null };
 
 interface ProfessionalsManagerProps {
+  lang: Locale;
   initialProfessionals: ProfessionalWithSalon[];
   initialSalons: Salon[];
 }
 
 const dayOrder = [1, 2, 3, 4, 5, 6, 0];
-const dayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const emptyForm = {
   display_name: '',
@@ -33,7 +36,9 @@ const emptyForm = {
   is_active: true,
 };
 
-export default function ProfessionalsManager({ initialProfessionals, initialSalons }: ProfessionalsManagerProps) {
+export default function ProfessionalsManager({ lang, initialProfessionals, initialSalons }: ProfessionalsManagerProps) {
+  const tAdmin = useT('admin');
+  const tCommon = useT('common');
   const [professionals, setProfessionals] = useState<ProfessionalWithSalon[]>(initialProfessionals);
   const [salons, setSalons] = useState<Salon[]>(initialSalons);
   const [allServices, setAllServices] = useState<Service[]>([]);
@@ -63,9 +68,9 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       setProfessionals(profs);
       setSalons(slns);
     } catch {
-      toast('Failed to refresh', 'error');
+      toast(tAdmin('professionals.toastRefreshFailed'), 'error');
     }
-  }, [toast]);
+  }, [toast, tAdmin]);
 
   const openAddForm = () => {
     setEditingProfessional(null);
@@ -91,9 +96,9 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
 
   const validate = () => {
     const errors: Record<string, string> = {};
-    if (!form.display_name.trim()) errors.display_name = 'Display name is required';
-    if (!form.phone.trim()) errors.phone = 'Phone is required';
-    if (form.years_of_experience < 0) errors.years_of_experience = 'Must be 0 or more';
+    if (!form.display_name.trim()) errors.display_name = tAdmin('professionals.validationDisplayNameRequired');
+    if (!form.phone.trim()) errors.phone = tAdmin('professionals.validationPhoneRequired');
+    if (form.years_of_experience < 0) errors.years_of_experience = tAdmin('professionals.validationYearsNonNegative');
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -112,7 +117,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           offers_home_visit: form.offers_home_visit,
           is_active: form.is_active,
         });
-        toast('Professional updated');
+        toast(tAdmin('professionals.toastUpdated'));
       } else {
         const res = await fetch('/api/professionals', {
           method: 'POST',
@@ -131,12 +136,12 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           const err = await res.json();
           throw new Error(err.error || 'Failed to create professional');
         }
-        toast('Professional created');
+        toast(tAdmin('professionals.toastCreated'));
       }
       setFormOpen(false);
       refresh();
     } catch (e) {
-      toast('Failed: ' + (e instanceof Error ? e.message : 'Unknown error'), 'error');
+      toast(tAdmin('professionals.toastFailed', { error: e instanceof Error ? e.message : 'Unknown error' }), 'error');
     } finally {
       setLoading(false);
     }
@@ -154,10 +159,10 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
     setLoading(true);
     try {
       await setProfessionalServices(selectedProfessional.id, professionalServiceIds);
-      toast('Services updated');
+      toast(tAdmin('professionals.toastServicesUpdated'));
       setServicesOpen(false);
     } catch {
-      toast('Failed to update services', 'error');
+      toast(tAdmin('professionals.toastServicesUpdateFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -179,9 +184,9 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
     setLoading(true);
     try {
       await saveWeeklyScheduleToDb(selectedProfessional.id, weeklySchedule.map(({ id: _id, ...rest }) => rest));
-      toast('Weekly schedule saved');
+      toast(tAdmin('professionals.toastScheduleSaved'));
     } catch {
-      toast('Failed to save schedule', 'error');
+      toast(tAdmin('professionals.toastScheduleSaveFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -201,9 +206,9 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       });
       setOverrides((prev) => [...prev, ov].sort((a, b) => a.override_date.localeCompare(b.override_date)));
       setOverrideForm({ override_date: '', start_time: '09:00', end_time: '17:00', is_available: false, reason: '' });
-      toast('Override added');
+      toast(tAdmin('professionals.toastOverrideAdded'));
     } catch {
-      toast('Failed to add override', 'error');
+      toast(tAdmin('professionals.toastOverrideAddFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -213,9 +218,9 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
     try {
       await deleteOverride(id);
       setOverrides((prev) => prev.filter((o) => o.id !== id));
-      toast('Override deleted');
+      toast(tAdmin('professionals.toastOverrideDeleted'));
     } catch {
-      toast('Failed to delete override', 'error');
+      toast(tAdmin('professionals.toastOverrideDeleteFailed'), 'error');
     }
   };
 
@@ -225,18 +230,28 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
     );
   };
 
+  const dayLabels = [
+    tAdmin('professionals.daySunday'),
+    tAdmin('professionals.dayMonday'),
+    tAdmin('professionals.dayTuesday'),
+    tAdmin('professionals.dayWednesday'),
+    tAdmin('professionals.dayThursday'),
+    tAdmin('professionals.dayFriday'),
+    tAdmin('professionals.daySaturday'),
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-foreground font-semibold">Professionals</h2>
-        <Button onClick={openAddForm}>+ Add Professional</Button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">{tAdmin('professionals.title')}</h2>
+        <Button onClick={openAddForm}>{tAdmin('professionals.addProfessional')}</Button>
       </div>
 
       {professionals.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No professionals yet</p>
-            <Button onClick={openAddForm}>Add Professional</Button>
+            <p className="text-muted-foreground mb-4">{tAdmin('professionals.noProfessionals')}</p>
+            <Button onClick={openAddForm}>{tAdmin('professionals.addFirst')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -269,32 +284,32 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                         <p className="text-muted-foreground text-xs">{p.phone}</p>
                       </div>
                       <AdminBadge variant={p.is_active ? 'active' : 'inactive'}>
-                        {p.is_active ? 'Active' : 'Inactive'}
+                        {p.is_active ? tAdmin('professionals.active') : tAdmin('professionals.inactive')}
                       </AdminBadge>
                     </div>
 
                     <div className="space-y-1 text-xs text-muted-foreground mb-3">
-                      <p>{p.years_of_experience} years experience</p>
-                      {p.offers_home_visit && <p className="text-neutral-400/80">Offers home visits</p>}
+                      <p>{tAdmin('professionals.yearsExperience', { count: p.years_of_experience })}</p>
+                      {p.offers_home_visit && <p className="text-neutral-400/80">{tAdmin('professionals.offersHomeVisits')}</p>}
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="xs" onClick={() => openEditForm(p)}>Edit</Button>
-                      <Button variant="outline" size="xs" onClick={() => openServicesPanel(p)}>Services</Button>
-                      <Button variant="outline" size="xs" onClick={() => openAvailabilityPanel(p)}>Availability</Button>
+                      <Button variant="outline" size="xs" onClick={() => openEditForm(p)}>{tAdmin('professionals.edit')}</Button>
+                      <Button variant="outline" size="xs" onClick={() => openServicesPanel(p)}>{tAdmin('professionals.services')}</Button>
+                      <Button variant="outline" size="xs" onClick={() => openAvailabilityPanel(p)}>{tAdmin('professionals.availability')}</Button>
                       <Button
                         variant="outline"
                         size="xs"
                         onClick={async () => {
                           setActionId(p.id);
                           await updateProfessional(p.id, { is_active: !p.is_active });
-                          toast(p.is_active ? 'Deactivated' : 'Activated');
+                          toast(p.is_active ? tAdmin('professionals.toastDeactivated') : tAdmin('professionals.toastActivated'));
                           refresh();
                           setActionId(null);
                         }}
                         disabled={actionId === p.id}
                       >
-                        {p.is_active ? 'Deactivate' : 'Activate'}
+                        {p.is_active ? tAdmin('professionals.deactivate') : tAdmin('professionals.activate')}
                       </Button>
                     </div>
                   </CardContent>
@@ -308,11 +323,11 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editingProfessional ? 'Edit Professional' : 'Add Professional'}
+        title={editingProfessional ? tAdmin('professionals.modalEditTitle') : tAdmin('professionals.modalAddTitle')}
       >
         <div className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Display Name *</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldDisplayName')}</Label>
             <Input
               type="text"
               value={form.display_name}
@@ -323,7 +338,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Phone *</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldPhone')}</Label>
             <Input
               type="tel"
               value={form.phone}
@@ -335,7 +350,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Years of Experience</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldYearsExperience')}</Label>
               <Input
                 type="number"
                 min={0}
@@ -345,7 +360,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Profession</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldProfession')}</Label>
               <Input
                 type="text"
                 value={form.profession}
@@ -356,13 +371,13 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Profile Image URL</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldProfileImageUrl')}</Label>
             <Input
               type="url"
               value={form.profile_image_url}
               onChange={(e) => setForm({ ...form, profile_image_url: e.target.value })}
               className="mt-1"
-              placeholder="https://..."
+              placeholder={tAdmin('professionals.fieldProfileImageUrlPlaceholder')}
             />
           </div>
 
@@ -370,19 +385,19 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
             <ToggleButton
               enabled={form.offers_home_visit}
               onChange={(v) => setForm({ ...form, offers_home_visit: v })}
-              label="Offers Home Visits"
+              label={tAdmin('professionals.toggleOffersHomeVisits')}
             />
             <ToggleButton
               enabled={form.is_active}
               onChange={(v) => setForm({ ...form, is_active: v })}
-              label="Active"
+              label={tAdmin('professionals.toggleActive')}
             />
           </div>
 
           <div className="flex gap-3 justify-end pt-2">
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setFormOpen(false)}>{tCommon('cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Saving...' : editingProfessional ? 'Update' : 'Create'}
+              {loading ? tAdmin('professionals.saving') : editingProfessional ? tCommon('save') : tCommon('create')}
             </Button>
           </div>
         </div>
@@ -391,7 +406,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       <Modal
         open={servicesOpen}
         onClose={() => setServicesOpen(false)}
-        title={`Services — ${selectedProfessional?.display_name}`}
+        title={tAdmin('professionals.servicesModalTitle', { name: selectedProfessional?.display_name || '' })}
         maxWidth="sm:max-w-xl"
       >
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
@@ -405,16 +420,16 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               />
               <div className="flex-1">
                 <p className="text-foreground/85 text-sm font-medium">{s.name}</p>
-                <p className="text-muted-foreground text-xs">{s.duration_minutes} min</p>
+                <p className="text-muted-foreground text-xs">{s.duration_minutes} {tAdmin('services.minAbbr')}</p>
               </div>
-              <span className="text-primary text-sm font-semibold">{s.price_mad} MAD</span>
+              <span className="text-primary text-sm font-semibold">{formatMoney(s.price_mad, lang)}</span>
             </label>
           ))}
         </div>
         <div className="flex gap-3 justify-end pt-4">
-          <Button variant="outline" onClick={() => setServicesOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setServicesOpen(false)}>{tCommon('cancel')}</Button>
           <Button onClick={saveServices} disabled={loading}>
-            {loading ? 'Saving...' : 'Save Services'}
+            {loading ? tAdmin('professionals.saving') : tAdmin('professionals.saveServices')}
           </Button>
         </div>
       </Modal>
@@ -422,12 +437,12 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
       <Modal
         open={availabilityOpen}
         onClose={() => setAvailabilityOpen(false)}
-        title={`Availability — ${selectedProfessional?.display_name}`}
+        title={tAdmin('professionals.availabilityModalTitle', { name: selectedProfessional?.display_name || '' })}
         maxWidth="sm:max-w-3xl"
       >
         <div className="space-y-6">
           <div>
-            <h3 className="text-sm text-primary font-semibold mb-3">Weekly Schedule</h3>
+            <h3 className="text-sm text-primary font-semibold mb-3">{tAdmin('professionals.weeklySchedule')}</h3>
             <div className="grid grid-cols-2 gap-2">
               {dayOrder.map((di) => {
                 const day = dayLabels[di];
@@ -450,7 +465,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                             });
                           }}
                         />
-                        <span className="text-muted-foreground">to</span>
+                        <span className="text-muted-foreground">{tAdmin('appointments.timeRangeSeparator')}</span>
                         <TimePicker
                           value={entry?.end_time || '17:00'}
                           onChange={(v) => {
@@ -484,37 +499,37 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               })}
               <div className="flex items-center justify-center rounded-lg">
                 <Button onClick={saveWeeklySchedule} disabled={loading}>
-                  {loading ? 'Saving...' : 'Save Weekly Schedule'}
+                  {loading ? tAdmin('professionals.saving') : tAdmin('professionals.saveWeeklySchedule')}
                 </Button>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm text-primary font-semibold mb-3">Holidays & Time Off</h3>
+            <h3 className="text-sm text-primary font-semibold mb-3">{tAdmin('professionals.holidaysTimeOff')}</h3>
 
             {overrides.length > 0 && (
               <div className="space-y-2 mb-4">
                 {overrides.map((o) => (
                   <div key={o.id} className="flex items-center justify-between rounded-lg p-3 border border-border">
                     <div>
-                      <p className="text-foreground/85 text-sm">{o.override_date}</p>
+                      <p className="text-foreground/85 text-sm">{formatDate(new Date(o.override_date + 'T00:00:00'), lang)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {o.is_available ? `${fmtTime(o.start_time)} - ${fmtTime(o.end_time)}` : 'Unavailable'}
+                        {o.is_available ? `${fmtTime(o.start_time)} ${tAdmin('appointments.timeRangeSeparator')} ${fmtTime(o.end_time)}` : tAdmin('professionals.unavailable')}
                         {o.reason && ` — ${o.reason}`}
                       </p>
                     </div>
-                    <button onClick={() => handleDeleteOverride(o.id)} className="text-red-400 text-xs hover:text-red-300 transition-colors">Delete</button>
+                    <button onClick={() => handleDeleteOverride(o.id)} className="text-red-400 text-xs hover:text-red-300 transition-colors">{tAdmin('professionals.delete')}</button>
                   </div>
                 ))}
               </div>
             )}
 
             <div className="rounded-lg p-4 border border-border space-y-3">
-              <h4 className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Add Override</h4>
+              <h4 className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.addOverride')}</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Date</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldDate')}</Label>
                   <div className="mt-1">
                     <DatePicker
                       value={overrideForm.override_date}
@@ -524,7 +539,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Available?</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldAvailable')}</Label>
                   <div className="mt-2">
                     <ToggleButton
                       enabled={overrideForm.is_available}
@@ -536,7 +551,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
               {overrideForm.is_available && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Start Time</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldStartTime')}</Label>
                     <div className="mt-1">
                       <TimePicker
                         value={overrideForm.start_time}
@@ -545,7 +560,7 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">End Time</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldEndTime')}</Label>
                     <div className="mt-1">
                       <TimePicker
                         value={overrideForm.end_time}
@@ -556,17 +571,17 @@ export default function ProfessionalsManager({ initialProfessionals, initialSalo
                 </div>
               )}
               <div>
-                <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Reason (optional)</Label>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldReasonOptional')}</Label>
                 <Input
                   type="text"
                   value={overrideForm.reason}
                   onChange={(e) => setOverrideForm({ ...overrideForm, reason: e.target.value })}
                   className="mt-1"
-                  placeholder="Holiday, sick leave..."
+                  placeholder={tAdmin('professionals.fieldReasonPlaceholder')}
                 />
               </div>
               <Button onClick={handleSaveOverride} disabled={loading || !overrideForm.override_date}>
-                Add Override
+                {tAdmin('professionals.addOverride')}
               </Button>
             </div>
           </div>

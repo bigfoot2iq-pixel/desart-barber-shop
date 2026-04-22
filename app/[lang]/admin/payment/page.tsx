@@ -5,7 +5,9 @@ import { ToastProvider } from '../components/ui';
 import PaymentSettingsManager from '../components/PaymentSettingsManager';
 import { hasLocale } from '@/lib/i18n/config';
 import { localeHref } from '@/lib/i18n/href';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 import type { PaymentSettings } from '@/lib/types/database';
+import { DictionaryProvider } from '@/lib/i18n/client-dictionary';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,17 +37,18 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
     throw new Error('Payment settings not found. Run migration 018.');
   }
 
+  const [adminDict, commonDict] = await Promise.all([
+    getDictionary(lang, 'admin'),
+    getDictionary(lang, 'common'),
+  ]);
+
   return (
-    <ToastProvider>
-      <div className="max-w-2xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="font-playfair text-2xl text-foreground">Payment Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Configure bank transfer details shown during booking.
-          </p>
+    <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
+      <ToastProvider>
+        <div className="max-w-2xl mx-auto py-8 px-4">
+          <PaymentSettingsManager initialSettings={settings as PaymentSettings} />
         </div>
-        <PaymentSettingsManager initialSettings={settings as PaymentSettings} />
-      </div>
-    </ToastProvider>
+      </ToastProvider>
+    </DictionaryProvider>
   );
 }

@@ -7,9 +7,11 @@ import { getPendingAppointments, getTodayAppointmentsCount, getActiveProfessiona
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { localeHref } from '@/lib/i18n/href';
 import type { Locale } from '@/lib/i18n/config';
+import { formatDate, formatTimeFromHHMM, formatMoney } from '@/lib/i18n/format';
+import { DictionaryProvider, useT } from '@/lib/i18n/client-dictionary';
 import Sidebar, { type Section } from './Sidebar';
 import StatsCards from './StatsCards';
 import AppointmentsManager from './AppointmentsManager';
@@ -21,15 +23,18 @@ import PaymentSettingsManager from './PaymentSettingsManager';
 import { ToastProvider } from './ui';
 
 interface AdminDashboardProps {
+  lang: Locale;
   initialPendingCount: number;
   adminName: string;
   adminEmail: string;
+  adminDict: Record<string, unknown>;
+  commonDict: Record<string, unknown>;
 }
 
-export default function AdminDashboard({ initialPendingCount, adminName, adminEmail }: AdminDashboardProps) {
+function AdminDashboardInner({ lang, initialPendingCount, adminName, adminEmail }: Omit<AdminDashboardProps, 'adminDict' | 'commonDict'>) {
   const router = useRouter();
-  const params = useParams();
-  const lang = (params?.lang as Locale) ?? 'fr';
+  const tAdmin = useT('admin');
+  const tCommon = useT('common');
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(initialPendingCount);
@@ -94,21 +99,11 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
     .slice(0, 5);
 
   const stats = [
-    { label: 'Pending', value: pendingCount, icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-white/10 text-white' },
-    { label: "Today's Appointments", value: todayCount, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-neutral-400/15 text-neutral-300' },
-    { label: 'Active Professionals', value: activeProfsCount, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', color: 'bg-neutral-400/15 text-neutral-300' },
-    { label: 'Active Services', value: activeServicesCount, icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652', color: 'bg-neutral-400/15 text-neutral-300' },
+    { label: tAdmin('stats.pending'), value: pendingCount, icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-white/10 text-white' },
+    { label: tAdmin('stats.todayAppointments'), value: todayCount, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-neutral-400/15 text-neutral-300' },
+    { label: tAdmin('stats.activeProfessionals'), value: activeProfsCount, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', color: 'bg-neutral-400/15 text-neutral-300' },
+    { label: tAdmin('stats.activeServices'), value: activeServicesCount, icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652', color: 'bg-neutral-400/15 text-neutral-300' },
   ];
-
-  const formatDate = (date: string) => {
-    return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  const formatTime = (time: string) => {
-    const [h, m] = time.split(':');
-    const hour = parseInt(h);
-    return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
-  };
 
   const renderSection = () => {
     switch (activeSection) {
@@ -118,11 +113,11 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
             <StatsCards stats={stats} loading={statsLoading} />
 
             <div>
-              <h3 className="font-playfair text-lg text-foreground mb-4">Recent Pending Appointments</h3>
+              <h3 className="font-playfair text-lg text-foreground mb-4">{tAdmin('dashboard.recentPending')}</h3>
               {recentPending.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">No pending appointments</p>
+                    <p className="text-muted-foreground">{tAdmin('dashboard.noPending')}</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -140,18 +135,18 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                               {apt.customer?.first_name} {apt.customer?.last_name}
                             </p>
                             <p className="text-muted-foreground text-xs mt-0.5">
-                              {formatDate(apt.appointment_date)} at {formatTime(apt.start_time)}
+                              {formatDate(new Date(apt.appointment_date + 'T00:00:00'), lang)} {tAdmin('appointments.dateTimeSeparator')} {formatTimeFromHHMM(apt.start_time, lang)}
                             </p>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-primary text-sm font-semibold">{apt.total_price_mad} MAD</span>
+                            <span className="text-primary text-sm font-semibold">{formatMoney(apt.total_price_mad, lang)}</span>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                               apt.status === 'pending' ? 'bg-white/10 text-neutral-300 border-white/20' :
                               apt.status === 'confirmed' ? 'bg-neutral-400/15 text-neutral-300 border-neutral-400/30' :
                               apt.status === 'completed' ? 'bg-neutral-500/15 text-neutral-400 border-neutral-500/30' :
                               'bg-red-500/20 text-red-400 border-red-500/40'
                             }`}>
-                              {apt.status}
+                              {tAdmin(`status.${apt.status}`)}
                             </span>
                           </div>
                         </div>
@@ -167,20 +162,20 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                   onClick={() => setActiveSection('appointments')}
                   className="mt-4 text-primary hover:text-primary/80"
                 >
-                  View all appointments &rarr;
+                  {tAdmin('dashboard.viewAll')}
                 </Button>
               )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { section: 'appointments' as Section, label: 'Appointments', desc: 'Manage bookings', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-                { section: 'professionals' as Section, label: 'Professionals', desc: 'Manage barbers', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-                { section: 'services' as Section, label: 'Services', desc: 'Manage catalog', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
-                { section: 'salons' as Section, label: 'Salons', desc: 'Manage locations', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-                { section: 'notifications' as Section, label: 'Notifications', desc: 'Alerts & channels', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-                { section: 'payment' as Section, label: 'Payment', desc: 'Bank transfer settings', icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z' },
-              ].map(({ section, label, desc, icon }) => (
+              {([
+                { section: 'appointments' as Section, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+                { section: 'professionals' as Section, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+                { section: 'services' as Section, icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
+                { section: 'salons' as Section, icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+                { section: 'notifications' as Section, icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+                { section: 'payment' as Section, icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z' },
+              ] as const).map(({ section, icon }) => (
                 <Card
                   key={section}
                   className="cursor-pointer group hover:border-primary/30 transition-colors"
@@ -190,8 +185,8 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                     <svg className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                     </svg>
-                    <p className="text-foreground font-medium text-sm">{label}</p>
-                    <p className="text-muted-foreground text-xs mt-0.5">{desc}</p>
+                    <p className="text-foreground font-medium text-sm">{tAdmin(`nav.${section}`)}</p>
+                    <p className="text-muted-foreground text-xs mt-0.5">{tAdmin(`quickCards.${section}.desc`)}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -199,21 +194,15 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
           </div>
         );
       case 'appointments':
-        return <AppointmentsManager initialAppointments={appointments} />;
+        return <AppointmentsManager lang={lang} initialAppointments={appointments} />;
       case 'professionals':
-        return <ProfessionalsManager initialProfessionals={professionals} initialSalons={salons} />;
+        return <ProfessionalsManager lang={lang} initialProfessionals={professionals} initialSalons={salons} />;
       case 'services':
-        return <ServicesManager initialServices={services} />;
+        return <ServicesManager lang={lang} initialServices={services} />;
       case 'salons':
         return <SalonsManager initialSalons={salons} />;
       case 'notifications':
-        return <NotificationsManager />;
-      case 'payment':
-        return (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>Payment settings are available at <a href={localeHref(lang, '/admin/payment')} className="text-primary underline">/admin/payment</a>.</p>
-          </div>
-        );
+        return <NotificationsManager lang={lang} />;
     }
   };
 
@@ -242,7 +231,7 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>
-            <h2 className="font-playfair text-lg text-foreground capitalize font-semibold">{activeSection}</h2>
+            <h2 className="font-playfair text-lg text-foreground font-semibold">{tAdmin(`nav.${activeSection}`)}</h2>
             <div className="ml-auto flex items-center gap-3 lg:hidden">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">
                 {adminName?.charAt(0)?.toUpperCase() || 'A'}
@@ -266,5 +255,13 @@ export default function AdminDashboard({ initialPendingCount, adminName, adminEm
         </main>
       </div>
     </ToastProvider>
+  );
+}
+
+export default function AdminDashboard(props: AdminDashboardProps) {
+  return (
+    <DictionaryProvider value={{ admin: props.adminDict, common: props.commonDict }}>
+      <AdminDashboardInner {...props} />
+    </DictionaryProvider>
   );
 }

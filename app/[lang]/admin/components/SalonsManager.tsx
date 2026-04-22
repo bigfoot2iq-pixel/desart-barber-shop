@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LocationPicker, type LocationValue } from '@/components/location-picker';
 import { Modal, ToggleButton, useToast } from './ui';
+import { useT } from '@/lib/i18n/client-dictionary';
 
 interface SalonsManagerProps {
   initialSalons: Salon[];
@@ -25,6 +26,8 @@ const emptyForm = {
 };
 
 export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
+  const tAdmin = useT('admin');
+  const tCommon = useT('common');
   const [salons, setSalons] = useState<Salon[]>(initialSalons);
   const [formOpen, setFormOpen] = useState(false);
   const [editingSalon, setEditingSalon] = useState<Salon | null>(null);
@@ -38,9 +41,9 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
       const data = await getAllSalons();
       setSalons(data);
     } catch {
-      toast('Failed to refresh salons', 'error');
+      toast(tAdmin('salons.toastRefreshFailed'), 'error');
     }
-  }, [toast]);
+  }, [toast, tAdmin]);
 
   const openAddForm = () => {
     setEditingSalon(null);
@@ -65,8 +68,8 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
 
   const validate = () => {
     const errors: Record<string, string> = {};
-    if (!form.name.trim()) errors.name = 'Name is required';
-    if (!form.latitude || !form.longitude) errors.address = 'Location is required';
+    if (!form.name.trim()) errors.name = tAdmin('salons.validationNameRequired');
+    if (!form.latitude || !form.longitude) errors.address = tAdmin('salons.validationLocationRequired');
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -84,7 +87,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           image_url: form.image_url || null,
           is_active: form.is_active,
         });
-        toast('Salon updated');
+        toast(tAdmin('salons.toastUpdated'));
       } else {
         await createSalon({
           name: form.name,
@@ -94,12 +97,12 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           image_url: form.image_url || null,
           is_active: form.is_active,
         });
-        toast('Salon created');
+        toast(tAdmin('salons.toastCreated'));
       }
       setFormOpen(false);
       refresh();
     } catch (e) {
-      toast('Failed: ' + (e instanceof Error ? e.message : 'Unknown error'), 'error');
+      toast(tAdmin('salons.toastFailed', { error: e instanceof Error ? e.message : 'Unknown error' }), 'error');
     } finally {
       setLoading(false);
     }
@@ -108,25 +111,25 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
   const toggleActive = async (s: Salon) => {
     try {
       await updateSalon(s.id, { is_active: !s.is_active });
-      toast(s.is_active ? 'Salon deactivated' : 'Salon activated');
+      toast(s.is_active ? tAdmin('salons.toastDeactivated') : tAdmin('salons.toastActivated'));
       refresh();
     } catch {
-      toast('Failed to toggle salon', 'error');
+      toast(tAdmin('salons.toastToggleFailed'), 'error');
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="font-playfair text-xl text-foreground font-semibold">Salons</h2>
-        <Button onClick={openAddForm}>+ Add Salon</Button>
+        <h2 className="font-playfair text-xl text-foreground font-semibold">{tAdmin('salons.title')}</h2>
+        <Button onClick={openAddForm}>{tAdmin('salons.addSalon')}</Button>
       </div>
 
       {salons.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No salons yet</p>
-            <Button onClick={openAddForm}>Add Salon</Button>
+            <p className="text-muted-foreground mb-4">{tAdmin('salons.noSalons')}</p>
+            <Button onClick={openAddForm}>{tAdmin('salons.addFirst')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -172,7 +175,7 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
                       {s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}
                     </p>
                     <div className="mt-3 flex gap-2">
-                      <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>Edit</Button>
+                      <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>{tAdmin('salons.edit')}</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -185,11 +188,11 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editingSalon ? 'Edit Salon' : 'Add Salon'}
+        title={editingSalon ? tAdmin('salons.modalEditTitle') : tAdmin('salons.modalAddTitle')}
       >
         <div className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Name *</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldName')}</Label>
             <Input
               type="text"
               value={form.name}
@@ -200,18 +203,18 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Image URL</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldImageUrl')}</Label>
             <Input
               type="url"
               value={form.image_url}
               onChange={(e) => setForm({ ...form, image_url: e.target.value })}
               className="mt-1"
-              placeholder="https://..."
+              placeholder={tAdmin('salons.fieldImageUrlPlaceholder')}
             />
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Location *</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldLocation')}</Label>
             <div className="mt-1">
               <LocationPicker
                 defaultLocation={form.latitude || form.longitude ? { lat: form.latitude, lng: form.longitude } : undefined}
@@ -230,13 +233,13 @@ export default function SalonsManager({ initialSalons }: SalonsManagerProps) {
           <ToggleButton
             enabled={form.is_active}
             onChange={(v) => setForm({ ...form, is_active: v })}
-            label="Active"
+            label={tAdmin('salons.toggleActive')}
           />
 
           <div className="flex gap-3 justify-end pt-2">
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setFormOpen(false)}>{tCommon('cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Saving...' : editingSalon ? 'Update' : 'Create'}
+              {loading ? tCommon('loading') : editingSalon ? tCommon('save') : tCommon('create')}
             </Button>
           </div>
         </div>
