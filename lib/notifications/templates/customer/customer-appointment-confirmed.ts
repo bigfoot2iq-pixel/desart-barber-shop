@@ -1,62 +1,85 @@
+import 'server-only';
 import type { AppointmentWithDetails } from '@/lib/types/database';
 import type { RenderedMessage } from '../../types';
 import { formatDate, formatTime } from '../../types';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
+import type { Locale } from '@/lib/i18n/config';
 
-function buildPlainText(apt: AppointmentWithDetails): string {
-  const firstName = apt.customer?.first_name ?? 'there';
-  const services = apt.services.map((s) => s.name).join(', ');
-  const locationName = apt.location_type === 'home'
-    ? (apt.home_address ?? 'Home visit')
-    : (apt.salon?.name ?? 'Salon');
-
-  return [
-    `Hi ${firstName},`,
-    '',
-    'Good news — your appointment is confirmed.',
-    '',
-    `Date: ${formatDate(apt.appointment_date)}`,
-    `Time: ${formatTime(apt.start_time)} – ${formatTime(apt.end_time)}`,
-    `Services: ${services}`,
-    `Location: ${locationName}`,
-    `Payment: ${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD`,
-    '',
-    'See you soon!',
-    '',
-    '— DesArt Barber Shop',
-  ].join('\n');
+function interpolate(template: string, values: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? `{${key}}`);
 }
 
-function buildHtml(apt: AppointmentWithDetails): string {
-  const firstName = apt.customer?.first_name ?? 'there';
-  const services = apt.services.map((s) => s.name).join(', ');
-  const locationName = apt.location_type === 'home'
-    ? (apt.home_address ?? 'Home visit')
-    : (apt.salon?.name ?? 'Salon');
+export async function buildCustomerAppointmentConfirmedMessage(
+  apt: AppointmentWithDetails,
+  locale: Locale,
+): Promise<RenderedMessage> {
+  const dict = await getDictionary(locale, 'notifications') as Record<string, unknown>;
+  const confirmed = dict.confirmed as Record<string, string>;
 
-  return `
+  const firstName = apt.customer?.first_name ?? '';
+  const services = apt.services.map((s) =>
+    locale === 'fr' ? (s.name_fr ?? s.name) : s.name,
+  ).join(', ');
+
+  const locationName = apt.location_type === 'home'
+    ? (apt.home_address ?? (dict.homeVisit as string))
+    : (locale === 'fr' ? (apt.salon?.name_fr ?? apt.salon?.name) : apt.salon?.name)
+    ?? (dict.homeVisit as string);
+
+  const paymentLabel = apt.payment_method === 'bank_transfer'
+    ? (dict.paymentBankTransfer as string)
+    : (dict.paymentCash as string);
+
+  const dateStr = formatDate(apt.appointment_date, locale);
+  const startTimeStr = formatTime(apt.start_time, locale);
+  const endTimeStr = formatTime(apt.end_time, locale);
+
+  const interp = {
+    name: firstName,
+    date: dateStr,
+  };
+
+  const subject = interpolate(confirmed.subject, interp);
+  const greeting = interpolate(confirmed.greeting, interp);
+
+  const plainText = [
+    greeting,
+    '',
+    confirmed.body,
+    '',
+    `${confirmed.dateLabel}: ${dateStr}`,
+    `${confirmed.timeLabel}: ${startTimeStr} – ${endTimeStr}`,
+    `${confirmed.servicesLabel}: ${services}`,
+    `${confirmed.locationLabel}: ${locationName}`,
+    `${confirmed.paymentLabel}: ${paymentLabel} • ${apt.total_price_mad} MAD`,
+    '',
+    confirmed.signoff,
+    '',
+    confirmed.brand,
+  ].join('\n');
+
+  const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #f5f5f5;">
       <div style="background: #ffffff; border-radius: 8px; padding: 32px 24px; border: 1px solid #e0e0e0; border-left: 4px solid #22c55e;">
-        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">You're all set!</h2>
-        <p style="margin: 0 0 24px; color: #555; font-size: 15px;">Hi ${firstName}, your appointment is confirmed.</p>
+        <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 22px;">${locale === 'fr' ? 'Tout est confirmé !' : "You're all set!"}</h2>
+        <p style="margin: 0 0 24px; color: #555; font-size: 15px;">${greeting} ${confirmed.body}</p>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #333;">
-          <tr><td style="padding: 8px 0; color: #888; width: 100px;">Date</td><td style="padding: 8px 0; font-weight: 600;">${formatDate(apt.appointment_date)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #888;">Time</td><td style="padding: 8px 0;">${formatTime(apt.start_time)} – ${formatTime(apt.end_time)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #888;">Services</td><td style="padding: 8px 0;">${services}</td></tr>
-          <tr><td style="padding: 8px 0; color: #888;">Location</td><td style="padding: 8px 0;">${locationName}</td></tr>
-          <tr><td style="padding: 8px 0; color: #888;">Payment</td><td style="padding: 8px 0;">${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD</td></tr>
+          <tr><td style="padding: 8px 0; color: #888; width: 100px;">${confirmed.dateLabel}</td><td style="padding: 8px 0; font-weight: 600;">${dateStr}</td></tr>
+          <tr><td style="padding: 8px 0; color: #888;">${confirmed.timeLabel}</td><td style="padding: 8px 0;">${startTimeStr} – ${endTimeStr}</td></tr>
+          <tr><td style="padding: 8px 0; color: #888;">${confirmed.servicesLabel}</td><td style="padding: 8px 0;">${services}</td></tr>
+          <tr><td style="padding: 8px 0; color: #888;">${confirmed.locationLabel}</td><td style="padding: 8px 0;">${locationName}</td></tr>
+          <tr><td style="padding: 8px 0; color: #888;">${confirmed.paymentLabel}</td><td style="padding: 8px 0;">${paymentLabel} • ${apt.total_price_mad} MAD</td></tr>
         </table>
-        <p style="margin: 24px 0 0; color: #555; font-size: 14px;">See you soon!</p>
-        <p style="margin: 8px 0 0; color: #999; font-size: 13px;">— DesArt Barber Shop</p>
+        <p style="margin: 24px 0 0; color: #555; font-size: 14px;">${confirmed.signoff}</p>
+        <p style="margin: 8px 0 0; color: #999; font-size: 13px;">${confirmed.brand}</p>
       </div>
     </div>
   `;
-}
 
-export function buildCustomerAppointmentConfirmedMessage(apt: AppointmentWithDetails): RenderedMessage {
   return {
-    subject: `Your appointment is confirmed — ${formatDate(apt.appointment_date)}`,
-    plainText: buildPlainText(apt),
-    html: buildHtml(apt),
+    subject,
+    plainText,
+    html,
     telegramHtml: '',
     whatsAppCloudParams: [],
   };
