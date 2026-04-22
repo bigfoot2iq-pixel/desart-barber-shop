@@ -26,6 +26,7 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
       last_name: 'Ben',
       email: 'ali@example.com',
       phone: '+212600000000',
+      locale: 'fr',
       role: 'customer',
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-01-01T00:00:00Z',
