@@ -1,1 +1,26 @@
-{}
+{
+  "confirmed": {
+    "subject": "Your appointment is confirmed — {date}",
+    "greeting": "Hi {name},",
+    "body": "Good news — your appointment is confirmed.",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "servicesLabel": "Services",
+    "locationLabel": "Location",
+    "paymentLabel": "Payment",
+    "signoff": "See you soon!",
+    "brand": "— DesArt Barber Shop"
+  },
+  "cancelled": {
+    "subject": "Your appointment has been cancelled — {date}",
+    "greeting": "Hi {name},",
+    "body": "Your appointment has been cancelled.",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "signoff": "We hope to see you again soon.",
+    "brand": "— DesArt Barber Shop"
+  },
+  "homeVisit": "Home visit",
+  "paymentCash": "Cash",
+  "paymentBankTransfer": "Bank transfer"
+}
