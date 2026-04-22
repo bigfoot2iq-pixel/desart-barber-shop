@@ -1,4 +1,9 @@
 import type { AppointmentWithDetails } from '@/lib/types/database';
+import {
+  formatDate as i18nFormatDate,
+  formatTimeFromHHMM,
+} from '@/lib/i18n/format';
+import type { Locale } from '@/lib/i18n/config';
 
 export type NotificationEventType =
   | 'appointment.created'
@@ -72,15 +77,12 @@ export function formatPhone(phone: string | null | undefined): string {
   return phone;
 }
 
-export function formatDate(date: string): string {
-  const d = new Date(date + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+export function formatDate(date: string, locale: Locale = 'fr'): string {
+  return i18nFormatDate(new Date(date + 'T12:00:00Z'), locale);
 }
 
-export function formatTime(time: string): string {
-  const [h, m] = time.split(':');
-  const hour = parseInt(h);
-  return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+export function formatTime(time: string, locale: Locale = 'fr'): string {
+  return formatTimeFromHHMM(time.slice(0, 5), locale);
 }
 
 export interface CustomerNotificationSettings {
