@@ -11,24 +11,31 @@ type Loaders = {
   };
 };
 
+function resolveModule<T>(m: unknown): T {
+  if (m && typeof m === 'object' && 'default' in m) {
+    return (m as { default: T }).default;
+  }
+  return m as T;
+}
+
 const loaders: Loaders = {
   fr: {
-    common: () => import('./dictionaries/fr/common.json').then(m => m.default as Record<string, unknown>),
-    booking: () => import('./dictionaries/fr/booking.json').then(m => m.default as Record<string, unknown>),
-    admin: () => import('./dictionaries/fr/admin.json').then(m => m.default as Record<string, unknown>),
-    userPanel: () => import('./dictionaries/fr/userPanel.json').then(m => m.default as Record<string, unknown>),
-    notifications: () => import('./dictionaries/fr/notifications.json').then(m => m.default as Record<string, unknown>),
-    dashboard: () => import('./dictionaries/fr/dashboard.json').then(m => m.default as Record<string, unknown>),
-    staffNotifications: () => import('./dictionaries/fr/staffNotifications.json').then(m => m.default as Record<string, unknown>),
+    common: () => import('./dictionaries/fr/common.json').then(resolveModule<Record<string, unknown>>),
+    booking: () => import('./dictionaries/fr/booking.json').then(resolveModule<Record<string, unknown>>),
+    admin: () => import('./dictionaries/fr/admin.json').then(resolveModule<Record<string, unknown>>),
+    userPanel: () => import('./dictionaries/fr/userPanel.json').then(resolveModule<Record<string, unknown>>),
+    notifications: () => import('./dictionaries/fr/notifications.json').then(resolveModule<Record<string, unknown>>),
+    dashboard: () => import('./dictionaries/fr/dashboard.json').then(resolveModule<Record<string, unknown>>),
+    staffNotifications: () => import('./dictionaries/fr/staffNotifications.json').then(resolveModule<Record<string, unknown>>),
   },
   en: {
-    common: () => import('./dictionaries/en/common.json').then(m => m.default as Record<string, unknown>),
-    booking: () => import('./dictionaries/en/booking.json').then(m => m.default as Record<string, unknown>),
-    admin: () => import('./dictionaries/en/admin.json').then(m => m.default as Record<string, unknown>),
-    userPanel: () => import('./dictionaries/en/userPanel.json').then(m => m.default as Record<string, unknown>),
-    notifications: () => import('./dictionaries/en/notifications.json').then(m => m.default as Record<string, unknown>),
-    dashboard: () => import('./dictionaries/en/dashboard.json').then(m => m.default as Record<string, unknown>),
-    staffNotifications: () => import('./dictionaries/en/staffNotifications.json').then(m => m.default as Record<string, unknown>),
+    common: () => import('./dictionaries/en/common.json').then(resolveModule<Record<string, unknown>>),
+    booking: () => import('./dictionaries/en/booking.json').then(resolveModule<Record<string, unknown>>),
+    admin: () => import('./dictionaries/en/admin.json').then(resolveModule<Record<string, unknown>>),
+    userPanel: () => import('./dictionaries/en/userPanel.json').then(resolveModule<Record<string, unknown>>),
+    notifications: () => import('./dictionaries/en/notifications.json').then(resolveModule<Record<string, unknown>>),
+    dashboard: () => import('./dictionaries/en/dashboard.json').then(resolveModule<Record<string, unknown>>),
+    staffNotifications: () => import('./dictionaries/en/staffNotifications.json').then(resolveModule<Record<string, unknown>>),
   },
 };
 
