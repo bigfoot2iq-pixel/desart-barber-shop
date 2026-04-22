@@ -3,14 +3,15 @@
 import { useRef, useState } from "react";
 
 export const HERO_VIDEOS = [
-  "/videos/hero-1.mp4",
-  "/videos/hero-2.mp4",
-  "/videos/hero-3.mp4",
-  "/videos/hero-4.mp4",
-  "/videos/hero-1.mp4",
-  "/videos/hero-2.mp4",
-  "/videos/hero-3.mp4",
-  "/videos/hero-4.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-1.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-2.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-3.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-4.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-5.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-6.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-7.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-8.mp4",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-9.mp4",
 ];
 
 export const VIDEO_META: {
@@ -75,6 +76,13 @@ export const VIDEO_META: {
     style: "Bespoke Grooming",
     likes: "2.9K",
     views: "16.5K",
+  },
+  {
+    src: HERO_VIDEOS[8],
+    title: "The Master's Touch — Where Art Meets Craft",
+    style: "Elite Grooming",
+    likes: "3.4K",
+    views: "19.8K",
   },
 ];
 
@@ -226,11 +234,9 @@ export function DesktopVideoGrid() {
             HERO_VIDEOS[0],
             HERO_VIDEOS[1],
             HERO_VIDEOS[2],
-            HERO_VIDEOS[3],
             HERO_VIDEOS[0],
             HERO_VIDEOS[1],
             HERO_VIDEOS[2],
-            HERO_VIDEOS[3],
           ].map((src, i) => (
             <VideoCell key={`c1-${i}`} src={src} index={i} />
           ))}
@@ -239,14 +245,12 @@ export function DesktopVideoGrid() {
       <div className="group overflow-hidden relative h-full">
         <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-up group-hover:[animation-play-state:paused]">
           {[
-            HERO_VIDEOS[1],
             HERO_VIDEOS[3],
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[2],
-            HERO_VIDEOS[1],
+            HERO_VIDEOS[4],
+            HERO_VIDEOS[5],
             HERO_VIDEOS[3],
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[2],
+            HERO_VIDEOS[4],
+            HERO_VIDEOS[5],
           ].map((src, i) => (
             <VideoCell key={`c2-${i}`} src={src} index={i} />
           ))}
@@ -255,14 +259,12 @@ export function DesktopVideoGrid() {
       <div className="group overflow-hidden relative h-full">
         <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
           {[
-            HERO_VIDEOS[2],
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[3],
-            HERO_VIDEOS[1],
-            HERO_VIDEOS[2],
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[3],
-            HERO_VIDEOS[1],
+            HERO_VIDEOS[6],
+            HERO_VIDEOS[7],
+            HERO_VIDEOS[8],
+            HERO_VIDEOS[6],
+            HERO_VIDEOS[7],
+            HERO_VIDEOS[8],
           ].map((src, i) => (
             <VideoCell key={`c3-${i}`} src={src} index={i} />
           ))}

@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import { LocationPicker, type LocationValue } from '@/components/location-picker';
 import { Modal, ToggleButton, useToast } from './ui';
 import { useT } from '@/lib/i18n/client-dictionary';
@@ -227,13 +228,13 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldImageUrl')}</Label>
-            <Input
-              type="url"
+            <ImageUploader
+              lang={lang}
               value={form.image_url}
-              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-              className="mt-1"
-              placeholder={tAdmin('salons.fieldImageUrlPlaceholder')}
+              onChange={(url) => setForm({ ...form, image_url: url || '' })}
+              folder="salons"
+              entityId={editingSalon?.id}
+              label={tAdmin('salons.fieldImageUrl')}
             />
           </div>
 
