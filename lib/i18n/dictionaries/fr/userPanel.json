@@ -1,1 +1,51 @@
-{}
+{
+  "panel": {
+    "myBookings": "Mes réservations",
+    "account": "Compte",
+    "manageAppointments": "Gérez vos rendez-vous",
+    "signInToManage": "Connectez-vous pour gérer vos réservations",
+    "guest": "Invité",
+    "openMenu": "Ouvrir le menu"
+  },
+  "signIn": {
+    "heading": "Se connecter",
+    "description": "Utilisez votre compte Google pour gérer vos réservations",
+    "googleButton": "Continuer avec Google",
+    "cookiesNote": "En continuant, vous acceptez notre utilisation des cookies pour l'authentification et la gestion des sessions.",
+    "signInFailed": "Échec de connexion"
+  },
+  "appointments": {
+    "upcoming": "à venir",
+    "past": "passés",
+    "loading": "Chargement des rendez-vous…",
+    "noUpcoming": "Aucun rendez-vous à venir",
+    "noPast": "Aucun rendez-vous passé"
+  },
+  "status": {
+    "pending": "En attente",
+    "confirmed": "Confirmé",
+    "completed": "Terminé",
+    "cancelled": "Annulé"
+  },
+  "rateDialog": {
+    "title": "Évaluez votre expérience",
+    "subtitle": "Comment s'est passée votre visite ?",
+    "placeholder": "Ajoutez un commentaire (facultatif)",
+    "skip": "Passer",
+    "submit": "Envoyer",
+    "submitting": "Envoi en cours…",
+    "starAria": "Donner {count} étoiles"
+  },
+  "card": {
+    "unassigned": "Non attribué",
+    "homeVisit": "Intervention à domicile",
+    "salonFallback": "Salon",
+    "rate": "Noter"
+  },
+  "toast": {
+    "signedIn": "Connecté avec succès",
+    "appointmentCancelled": "Rendez-vous annulé",
+    "thanksForRating": "Merci pour votre avis !",
+    "signedOut": "Déconnecté avec succès"
+  }
+}
