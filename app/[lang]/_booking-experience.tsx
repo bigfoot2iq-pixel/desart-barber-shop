@@ -109,7 +109,7 @@ export interface BookingExperienceProps {
   userPanel: Record<string, unknown>;
 }
 
-export function BookingExperience({ locale, common, booking, userPanel }: BookingExperienceProps) {
+function BookingExperienceInner({ locale, common, booking, userPanel }: BookingExperienceProps) {
   const tBooking = useT('booking');
   const tCommon = useT('common');
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
@@ -936,7 +936,6 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
       };
 
   return (
-    <DictionaryProvider value={{ common, booking, userPanel }}>
     <>
       <nav id="main-nav" className={`fixed top-0 left-0 right-0 z-[300] flex items-center justify-between lg:px-[100px] px-[56px] py-5 transition-[background,padding] duration-300 ${isScrolled ? "bg-[rgb(10_8_0/90%)] [backdrop-filter:blur(18px)] py-[14px] border-b border-[rgb(254_251_243/10%)]" : ""}`}>
         <div className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3">
@@ -2347,6 +2346,13 @@ export function BookingExperience({ locale, common, booking, userPanel }: Bookin
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+export function BookingExperience(props: BookingExperienceProps) {
+  return (
+    <DictionaryProvider value={{ common: props.common, booking: props.booking, userPanel: props.userPanel }}>
+      <BookingExperienceInner {...props} />
     </DictionaryProvider>
   );
 }
