@@ -38,6 +38,8 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
+  const [addrTab, setAddrTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
 
   const refresh = useCallback(async () => {
@@ -53,6 +55,8 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
     setEditingSalon(null);
     setForm(emptyForm);
     setFormErrors({});
+    setNameTab('en');
+    setAddrTab('en');
     setFormOpen(true);
   };
 
@@ -87,7 +91,9 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
       if (editingSalon) {
         await updateSalon(editingSalon.id, {
           name: form.name,
+          name_fr: form.name_fr || null,
           address: form.address,
+          address_fr: form.address_fr || null,
           latitude: form.latitude,
           longitude: form.longitude,
           image_url: form.image_url || null,
@@ -97,7 +103,9 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
       } else {
         await createSalon({
           name: form.name,
+          name_fr: form.name_fr || null,
           address: form.address,
+          address_fr: form.address_fr || null,
           latitude: form.latitude,
           longitude: form.longitude,
           image_url: form.image_url || null,
@@ -170,7 +178,12 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
                   )}
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-foreground font-medium">{s.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-foreground font-medium">{s.name}</h3>
+                        {s.name_fr == null && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/40 text-zinc-400 border border-zinc-600/40 font-medium">{tAdmin('salons.translationMissing')}</span>
+                        )}
+                      </div>
                       <ToggleButton
                         enabled={s.is_active}
                         onChange={() => toggleActive(s)}
@@ -198,14 +211,19 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
       >
         <div className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldName')}</Label>
-            <Input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="mt-1"
-            />
-            {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
+            <div className="flex items-center gap-2 mb-1">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldName')}</Label>
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button type="button" onClick={() => setNameTab('en')} className={`px-2 py-0.5 text-[10px] ${nameTab === 'en' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('english')}</button>
+                <button type="button" onClick={() => setNameTab('fr')} className={`px-2 py-0.5 text-[10px] ${nameTab === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('french')}</button>
+              </div>
+            </div>
+            {nameTab === 'en' ? (
+              <Input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1" />
+            ) : (
+              <Input type="text" value={form.name_fr} onChange={(e) => setForm({ ...form, name_fr: e.target.value })} placeholder={tAdmin('salons.fieldNameFr')} className="mt-1" />
+            )}
+            {nameTab === 'en' && formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
           </div>
 
           <div>
@@ -220,20 +238,36 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldLocation')}</Label>
-            <div className="mt-1">
-              <LocationPicker
-                defaultLocation={form.latitude || form.longitude ? { lat: form.latitude, lng: form.longitude } : undefined}
-                onConfirm={(loc: LocationValue) => setForm({ ...form, latitude: loc.lat, longitude: loc.lng, address: loc.label })}
-              />
+            <div className="flex items-center gap-2 mb-1">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('salons.fieldLocation')}</Label>
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button type="button" onClick={() => setAddrTab('en')} className={`px-2 py-0.5 text-[10px] ${addrTab === 'en' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('english')}</button>
+                <button type="button" onClick={() => setAddrTab('fr')} className={`px-2 py-0.5 text-[10px] ${addrTab === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('french')}</button>
+              </div>
             </div>
-            {form.address && (
-              <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
-                {form.address}
-              </p>
+            {addrTab === 'en' ? (
+              <div className="mt-1">
+                <LocationPicker
+                  defaultLocation={form.latitude || form.longitude ? { lat: form.latitude, lng: form.longitude } : undefined}
+                  onConfirm={(loc: LocationValue) => setForm({ ...form, latitude: loc.lat, longitude: loc.lng, address: loc.label })}
+                />
+                {form.address && (
+                  <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+                    {form.address}
+                  </p>
+                )}
+                {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
+              </div>
+            ) : (
+              <Input
+                type="text"
+                value={form.address_fr}
+                onChange={(e) => setForm({ ...form, address_fr: e.target.value })}
+                placeholder={tAdmin('salons.fieldAddressFr')}
+                className="mt-1"
+              />
             )}
-            {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
           </div>
 
           <ToggleButton

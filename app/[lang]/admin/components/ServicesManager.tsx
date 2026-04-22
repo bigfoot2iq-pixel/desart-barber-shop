@@ -21,7 +21,9 @@ interface ServicesManagerProps {
 
 const emptyForm = {
   name: '',
+  name_fr: '',
   description: '',
+  description_fr: '',
   duration_minutes: 30,
   price_mad: 0,
   is_active: true,
@@ -36,6 +38,8 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
+  const [descTab, setDescTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
 
   const refresh = useCallback(async () => {
@@ -51,6 +55,8 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
     setEditingService(null);
     setForm(emptyForm);
     setFormErrors({});
+    setNameTab('en');
+    setDescTab('en');
     setFormOpen(true);
   };
 
@@ -58,7 +64,9 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
     setEditingService(s);
     setForm({
       name: s.name,
+      name_fr: s.name_fr ?? '',
       description: s.description || '',
+      description_fr: s.description_fr ?? '',
       duration_minutes: s.duration_minutes,
       price_mad: s.price_mad,
       is_active: s.is_active,
@@ -83,7 +91,9 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
       if (editingService) {
         await updateService(editingService.id, {
           name: form.name,
+          name_fr: form.name_fr || null,
           description: form.description || null,
+          description_fr: form.description_fr || null,
           duration_minutes: form.duration_minutes,
           price_mad: form.price_mad,
           is_active: form.is_active,
@@ -92,7 +102,9 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
       } else {
         await createService({
           name: form.name,
+          name_fr: form.name_fr || null,
           description: form.description || null,
+          description_fr: form.description_fr || null,
           duration_minutes: form.duration_minutes,
           price_mad: form.price_mad,
           is_active: form.is_active,
@@ -152,6 +164,9 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
                           {!s.is_active && (
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 font-medium">{tAdmin('services.inactive')}</span>
                           )}
+                          {s.name_fr == null && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/40 text-zinc-400 border border-zinc-600/40 font-medium">{tAdmin('services.translationMissing')}</span>
+                          )}
                         </div>
                         {s.description && (
                           <p className="text-muted-foreground text-sm line-clamp-1">{s.description}</p>
@@ -186,24 +201,34 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
       >
         <div className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldName')}</Label>
-            <Input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="mt-1"
-            />
-            {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
+            <div className="flex items-center gap-2 mb-1">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldName')}</Label>
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button type="button" onClick={() => setNameTab('en')} className={`px-2 py-0.5 text-[10px] ${nameTab === 'en' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('english')}</button>
+                <button type="button" onClick={() => setNameTab('fr')} className={`px-2 py-0.5 text-[10px] ${nameTab === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('french')}</button>
+              </div>
+            </div>
+            {nameTab === 'en' ? (
+              <Input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1" />
+            ) : (
+              <Input type="text" value={form.name_fr} onChange={(e) => setForm({ ...form, name_fr: e.target.value })} placeholder={tAdmin('services.fieldNameFr')} className="mt-1" />
+            )}
+            {nameTab === 'en' && formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldDescription')}</Label>
-            <Textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              className="mt-1"
-            />
+            <div className="flex items-center gap-2 mb-1">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('services.fieldDescription')}</Label>
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button type="button" onClick={() => setDescTab('en')} className={`px-2 py-0.5 text-[10px] ${descTab === 'en' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('english')}</button>
+                <button type="button" onClick={() => setDescTab('fr')} className={`px-2 py-0.5 text-[10px] ${descTab === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground'}`}>{tCommon('french')}</button>
+              </div>
+            </div>
+            {descTab === 'en' ? (
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="mt-1" />
+            ) : (
+              <Textarea value={form.description_fr} onChange={(e) => setForm({ ...form, description_fr: e.target.value })} placeholder={tAdmin('services.fieldDescriptionFr')} rows={3} className="mt-1" />
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

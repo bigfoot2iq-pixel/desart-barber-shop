@@ -15,6 +15,8 @@
   "signOut": "Sign Out",
   "dashboard": "Dashboard",
   "admin": "Admin",
+  "english": "English",
+  "french": "French",
   "login": {
     "welcomeBack": "Welcome back",
     "signInSubtitle": "Sign in to your account to continue booking premium grooming services.",

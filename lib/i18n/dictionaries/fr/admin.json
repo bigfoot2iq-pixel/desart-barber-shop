@@ -173,7 +173,11 @@
     "modalAddTitle": "Ajouter un service",
     "modalEditTitle": "Modifier un service",
     "fieldName": "Nom *",
+    "fieldNameFr": "Nom français",
     "fieldDescription": "Description",
+    "fieldDescriptionFr": "Description française",
+    "tabEnglish": "English",
+    "tabFrench": "Français",
     "fieldDuration": "Durée (minutes) *",
     "fieldPrice": "Prix (MAD) *",
     "toggleActive": "Actif",
@@ -186,7 +190,8 @@
     "toastRefreshFailed": "Échec de l'actualisation des services",
     "toastDeactivated": "Service désactivé",
     "toastActivated": "Service activé",
-    "toastToggleFailed": "Échec du changement d'état du service"
+    "toastToggleFailed": "Échec du changement d'état du service",
+    "translationMissing": "FR manquant"
   },
   "salons": {
     "title": "Salons",
@@ -198,6 +203,10 @@
     "modalAddTitle": "Ajouter un salon",
     "modalEditTitle": "Modifier un salon",
     "fieldName": "Nom *",
+    "fieldNameFr": "Nom français",
+    "fieldAddressFr": "Adresse française",
+    "tabEnglish": "English",
+    "tabFrench": "Français",
     "fieldImageUrl": "URL de l'image",
     "fieldImageUrlPlaceholder": "https://...",
     "fieldLocation": "Emplacement *",
@@ -209,7 +218,8 @@
     "toastRefreshFailed": "Échec de l'actualisation des salons",
     "toastDeactivated": "Salon désactivé",
     "toastActivated": "Salon activé",
-    "toastToggleFailed": "Échec du changement d'état du salon"
+    "toastToggleFailed": "Échec du changement d'état du salon",
+    "translationMissing": "FR manquant"
   },
   "notifications": {
     "channels": {
