@@ -17,3 +17,8 @@ export function setLocaleCookie(response: { cookies: { set(name: string, value: 
     sameSite: 'lax',
   });
 }
+
+export function setLocaleCookieClient(locale: Locale): void {
+  const maxAge = 60 * 60 * 24 * 365;
+  document.cookie = `${COOKIE_NAME}=${locale}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}

@@ -3,6 +3,7 @@ import type { AppointmentWithDetails } from '@/lib/types/database';
 import type { NotificationEventType, CustomerNotificationSettings, CustomerDispatchResult } from './types';
 import { CUSTOMER_TEMPLATE_MAP } from './templates/customer';
 import { sendEmail } from './channels/email-resend';
+import type { Locale } from '@/lib/i18n/config';
 
 export async function dispatchCustomerEvent(
   eventType: NotificationEventType,
@@ -96,7 +97,10 @@ export async function dispatchCustomerEvent(
   }
 
   try {
-    const message = templateFn(appointment);
+    const locale: Locale =
+      appointment.customer?.locale === 'en' ? 'en' : 'fr';
+
+    const message = await templateFn(appointment, locale);
 
     await sendEmail(
       { api_key: settings.resend_api_key, from: settings.from_address, to: customerEmail },

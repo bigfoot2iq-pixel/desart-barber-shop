@@ -3,7 +3,7 @@ import * as path from 'path';
 
 const dictionariesPath = path.join(__dirname, '../../lib/i18n/dictionaries');
 const locales = ['en', 'fr'];
-const namespaces = ['common', 'booking', 'admin', 'userPanel', 'notifications', 'dashboard'];
+const namespaces = ['common', 'booking', 'admin', 'userPanel', 'notifications', 'dashboard', 'staffNotifications'];
 
 function getKeys(obj: unknown, prefix = ''): string[] {
   if (obj === null || obj === undefined) return [];

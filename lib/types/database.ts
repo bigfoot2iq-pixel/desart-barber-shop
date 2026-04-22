@@ -9,6 +9,7 @@ export interface Profile {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
+  locale: 'fr' | 'en';
   email: string | null;
   created_at: string;
   updated_at: string;

@@ -8,6 +8,7 @@ import { sendTelegram } from '@/lib/notifications/channels/telegram-bot';
 import { sendEmail } from '@/lib/notifications/channels/email-resend';
 import { sendWhatsAppCallMeBot } from '@/lib/notifications/channels/whatsapp-callmebot';
 import { sendWhatsAppCloud } from '@/lib/notifications/channels/whatsapp-cloud';
+import type { Locale } from '@/lib/i18n/config';
 
 export async function POST(
   _request: Request,
@@ -49,7 +50,7 @@ export async function POST(
     }
 
     const eventType = delivery.event_type as import('@/lib/notifications/types').NotificationEventType;
-    const message = TEMPLATE_MAP[eventType](appointment);
+    const message = await TEMPLATE_MAP[eventType](appointment, 'fr' as Locale);
 
     switch (channel.provider) {
       case 'telegram_bot':
@@ -62,7 +63,7 @@ export async function POST(
         await sendWhatsAppCallMeBot(channel.config as unknown as CallMeBotConfig, message);
         break;
       case 'whatsapp_cloud':
-        await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message);
+        await sendWhatsAppCloud(channel.config as unknown as WhatsAppCloudConfig, message, 'fr' as Locale);
         break;
       default:
         throw new Error(`Unsupported provider: ${channel.provider}`);

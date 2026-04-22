@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
+import type { Locale } from '@/lib/i18n/config';
 
-export const metadata: Metadata = {
-  title: 'DESART — Admin',
-};
+export async function generateMetadata({ params }: LayoutProps<'/[lang]'>) {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale, 'admin');
+  const strapline = (dict.strapline ?? 'Admin') as string;
+
+  return {
+    title: `DESART — ${strapline}`,
+  } satisfies Metadata;
+}
 
 const adminThemeVars: Record<string, string> = {
   '--background': '#000000',

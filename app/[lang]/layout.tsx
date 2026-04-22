@@ -5,6 +5,7 @@ import '../globals.css';
 import { cn } from '@/lib/utils';
 import { hasLocale, type Locale } from '@/lib/i18n/config';
 import { notFound } from 'next/navigation';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -28,13 +29,26 @@ const fraunces = Fraunces({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'DESART — Premium Barbershop',
-  description: 'Premium barbershop landing page for Desart in Agadir.',
-  icons: {
-    icon: '/logo.jpg',
-  },
-};
+export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale, 'common');
+  const meta = (dict.meta ?? {}) as Record<string, string>;
+
+  return {
+    title: meta.title ?? 'DESART',
+    description: meta.description ?? '',
+    icons: {
+      icon: '/logo.jpg',
+    },
+    alternates: {
+      languages: {
+        fr: '/fr',
+        en: '/en',
+        'x-default': '/',
+      },
+    },
+  };
+}
 
 export const viewport = {
   width: 'device-width',
