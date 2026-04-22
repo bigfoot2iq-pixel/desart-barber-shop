@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
     const preferred = getPreferredLocale(request);
     const redirectUrl = new URL(`/${preferred}${pathname === '/' ? '' : pathname}`, request.url);
     const supabaseResponse = await updateSession(request);
-    const redirectResponse = NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl, 301);
 
     // Preserve Supabase session cookies on the redirect response
     supabaseResponse.cookies.getAll().forEach(({ name, value }) => {

@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "DESART — Salon de Coiffure Premium",
-    "description": "Page d'accueil du salon de coiffure premium Desart à Agadir."
+    "title": "DESART — Salon de Coiffure & Barbier Premium à Agadir | Réserver",
+    "description": "Salon de coiffure premium à Agadir. Coupes dégradées, taille de barbe, rasage à l'ancienne. Réservez votre barbier en ligne. Ouvert sam-jeu 9h-17h."
   },
   "navigate": "Naviguer",
   "services": "Services",
@@ -31,5 +31,92 @@
     "createAccount": "Créer un compte",
     "termsAgree": "En continuant, vous acceptez les Conditions d'utilisation et la Politique de confidentialité de DESART.",
     "backToHome": "Retour à l'accueil"
+  },
+  "homeVisitPage": {
+    "meta": {
+      "title": "Coiffeur à Domicile Agadir — DESART | Coupe & Barbier Chez Vous",
+      "description": "Réservez votre coiffeur professionnel à domicile à Agadir. Coupes de cheveux, taille de barbe, rasage — nos barbiers se déplacent chez vous. +30 MAD de déplacement."
+    },
+    "hero": {
+      "eyebrow": "Service à Domicile",
+      "title": "Coiffeur à Domicile Agadir",
+      "subtitle": "Coupe & Barbier Chez Vous, Sans Déplacement",
+      "description": "Réservez votre coiffeur professionnel à domicile à Agadir. Coupes de cheveux, taille de barbe, rasage — nos barbiers se déplacent chez vous avec tout le nécessaire. +30 MAD de frais de déplacement.",
+      "cta": "Réserver à Domicile"
+    },
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "step1": {
+        "title": "Choisissez vos services",
+        "description": "Sélectionnez les coupes et soins que vous souhaitez parmi notre gamme complète."
+      },
+      "step2": {
+        "title": "Nous venons chez vous",
+        "description": "Notre barbier professionnel se déplace à votre adresse avec tout l'équipement nécessaire."
+      },
+      "step3": {
+        "title": "Profitez du résultat",
+        "description": "Recevez une coupe premium dans le confort de votre domicile. Paiement en espèces sur place."
+      }
+    },
+    "pricing": {
+      "title": "Tarif",
+      "fee": "Frais de déplacement : +30 MAD",
+      "note": "Paiement en espèces le jour J. Pas de carte requise."
+    },
+    "faq": {
+      "title": "Questions Fréquentes",
+      "q1": {
+        "question": "Quels quartiers desservez-vous à Agadir ?",
+        "answer": "Nous desservons tout Agadir et ses environs. Contactez-nous si vous êtes en dehors de la zone standard."
+      },
+      "q2": {
+        "question": "Comment puis-je payer ?",
+        "answer": "Paiement en espèces uniquement, à la fin de la prestation."
+      },
+      "q3": {
+        "question": "Combien de temps à l'avance dois-je réserver ?",
+        "answer": "Vous pouvez réserver le jour même. Pour les créneaux du soir, réservez quelques heures à l'avance."
+      },
+      "q4": {
+        "question": "Que se passe-t-il si je dois annuler ?",
+        "answer": "Les annulations sont gratuites. Prévenez-nous simplement à l'avance."
+      }
+    },
+    "cta": {
+      "title": "Prêt pour votre coupe à domicile ?",
+      "button": "Réserver Maintenant"
+    }
+  },
+  "servicesPage": {
+    "meta": {
+      "title": "Nos Services — Coiffure & Barbier Agadir | DESART",
+      "description": "Découvrez nos services de coiffure et barbier à Agadir. Coupes dégradées, taille de barbe, rasage à l'ancienne et plus. Réservez en ligne."
+    },
+    "hero": {
+      "eyebrow": "Ce Que Nous Faisons",
+      "title": "Nos Services",
+      "subtitle": "Coupes, Barbes & Rasages Premium à Agadir",
+      "description": "Des coupes dégradées précises aux rasages à l'ancienne, chaque service est exécuté avec l'attention et le soin que vous méritez."
+    },
+    "faq": {
+      "title": "Questions Fréquentes",
+      "q1": {
+        "question": "Acceptez-vous les visites sans rendez-vous ?",
+        "answer": "Oui, les visites sans rendez-vous sont acceptées selon disponibilité. Nous recommandons de réserver pour garantir votre créneau."
+      },
+      "q2": {
+        "question": "Quels sont vos horaires ?",
+        "answer": "Nous sommes ouverts du samedi au jeudi, de 9h00 à 17h00. Fermé le vendredi."
+      },
+      "q3": {
+        "question": "Proposez-vous un service à domicile ?",
+        "answer": "Oui ! Nous venons chez vous pour +30 MAD de frais de déplacement. Réservez sur notre page dédiée."
+      }
+    },
+    "cta": {
+      "title": "Prêt pour une nouvelle coupe ?",
+      "button": "Réserver Maintenant"
+    }
   }
 }

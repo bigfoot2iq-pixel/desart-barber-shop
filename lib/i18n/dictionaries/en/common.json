@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "DESART — Premium Barbershop",
-    "description": "Premium barbershop landing page for Desart in Agadir."
+    "title": "DESART — Premium Barbershop & Haircut in Agadir | Book Now",
+    "description": "Premium barbershop in Agadir. Precision fades, beard sculpting, hot towel shaves. Book your barber online. Open Sat-Thu 9AM-5PM."
   },
   "navigate": "Navigate",
   "services": "Services",
@@ -31,5 +31,92 @@
     "createAccount": "Create an account",
     "termsAgree": "By continuing, you agree to DESART's Terms of Service and Privacy Policy.",
     "backToHome": "Back to home"
+  },
+  "homeVisitPage": {
+    "meta": {
+      "title": "Home Haircut Agadir — DESART | Barber at Your Doorstep",
+      "description": "Book a professional barber for home service in Agadir. Haircuts, beard trims, hot towel shaves — our barbers come to you. +30 MAD travel fee."
+    },
+    "hero": {
+      "eyebrow": "Home Visit Service",
+      "title": "Home Haircut Agadir",
+      "subtitle": "Professional Barber at Your Doorstep",
+      "description": "Book a professional barber for home service in Agadir. Haircuts, beard trims, hot towel shaves — our barbers come to you with everything needed. +30 MAD travel fee.",
+      "cta": "Book Home Visit"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Choose Your Services",
+        "description": "Select the cuts and treatments you want from our full range of services."
+      },
+      "step2": {
+        "title": "We Come to You",
+        "description": "Our professional barber travels to your address with all necessary equipment."
+      },
+      "step3": {
+        "title": "Enjoy the Result",
+        "description": "Get a premium haircut in the comfort of your home. Cash payment on the day."
+      }
+    },
+    "pricing": {
+      "title": "Pricing",
+      "fee": "Travel fee: +30 MAD",
+      "note": "Cash payment on the day. No card required."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "Which areas in Agadir do you cover?",
+        "answer": "We cover all of Agadir and surrounding areas. Contact us if you're outside the standard zone."
+      },
+      "q2": {
+        "question": "How can I pay?",
+        "answer": "Cash only, at the end of the service."
+      },
+      "q3": {
+        "question": "How far in advance should I book?",
+        "answer": "You can book the same day. For evening slots, book a few hours in advance."
+      },
+      "q4": {
+        "question": "What if I need to cancel?",
+        "answer": "Cancellations are free. Just let us know in advance."
+      }
+    },
+    "cta": {
+      "title": "Ready for your home haircut?",
+      "button": "Book Now"
+    }
+  },
+  "servicesPage": {
+    "meta": {
+      "title": "Our Services — Haircut & Barber Agadir | DESART",
+      "description": "Discover our barbershop services in Agadir. Precision fades, beard sculpting, hot towel shaves and more. Book online today."
+    },
+    "hero": {
+      "eyebrow": "What We Do",
+      "title": "Our Services",
+      "subtitle": "Premium Cuts, Beards & Shaves in Agadir",
+      "description": "From precision fades to hot towel shaves, every service is delivered with the attention and care you deserve."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "Do you accept walk-ins?",
+        "answer": "Yes, walk-ins are accepted based on availability. We recommend booking to guarantee your slot."
+      },
+      "q2": {
+        "question": "What are your hours?",
+        "answer": "We're open Saturday to Thursday, 9:00 AM to 5:00 PM. Closed on Friday."
+      },
+      "q3": {
+        "question": "Do you offer home visits?",
+        "answer": "Yes! We come to you for a +30 MAD travel fee. Book on our dedicated page."
+      }
+    },
+    "cta": {
+      "title": "Ready for a new look?",
+      "button": "Book Now"
+    }
   }
 }

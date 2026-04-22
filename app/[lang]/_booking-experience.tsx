@@ -1219,7 +1219,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">+212 600 000 000</p>
+                <p className="text-sm leading-[1.7] opacity-70">+212 6 1221-3324</p>
               </div>
               <div className="flex flex-col gap-0 mt-[18px]">
                 <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
@@ -1291,6 +1291,12 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                   <a href="#locations" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('locations')}</a>
                 </li>
                 <li>
+                  <a href={`/${locale}/services`} className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('servicesPage.hero.title')}</a>
+                </li>
+                <li>
+                  <a href={`/${locale}/a-domicile`} className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tCommon('homeVisitPage.hero.eyebrow')}</a>
+                </li>
+                <li>
                   <button type="button" className="text-sm text-[rgb(254_251_243/40%)] p-0 transition-colors duration-200 hover:text-white open-booking" onClick={openModal}>
                     {tCommon('bookNow')}
                   </button>
@@ -1302,7 +1308,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
               <ul className="list-none flex flex-col gap-3">
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.address')}</li>
                 <li>
-                  <a href="tel:+212600000000" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 600 000 000</a>
+                  <a href="tel:+212612213324" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 6 1221-3324</a>
                 </li>
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursSatThu')}</li>
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursFriday')}</li>
