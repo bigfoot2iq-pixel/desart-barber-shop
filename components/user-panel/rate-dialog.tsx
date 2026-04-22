@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client-dictionary";
 
 interface RateDialogProps {
   onClose: () => void;
@@ -9,6 +10,7 @@ interface RateDialogProps {
 }
 
 export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
+  const tUser = useT('userPanel');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -40,8 +42,8 @@ export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 250 }}
       >
-        <h3 className="font-playfair text-[22px] font-medium text-brand-black mb-1 text-center">Rate your experience</h3>
-        <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center mb-5">How was your appointment?</p>
+        <h3 className="font-playfair text-[22px] font-medium text-brand-black mb-1 text-center">{tUser('rateDialog.title')}</h3>
+        <p className="text-[12px] text-[rgb(10_8_0/45%)] text-center mb-5">{tUser('rateDialog.subtitle')}</p>
 
         <div className="flex justify-center gap-1.5 mb-5">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -52,7 +54,7 @@ export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
               className="p-0.5 cursor-pointer bg-none border-none"
-              aria-label={`${star} star${star > 1 ? "s" : ""}`}
+              aria-label={tUser('rateDialog.starAria', { count: star })}
             >
               <svg viewBox="0 0 24 24" width="36" height="36" className={`transition-colors duration-150 ${
                 star <= (hoverRating || rating) ? "fill-gold text-gold" : "fill-none text-[rgb(10_8_0/15%)]"
@@ -66,7 +68,7 @@ export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Add a comment (optional)"
+          placeholder={tUser('rateDialog.placeholder')}
           rows={3}
           className="w-full bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-3 text-sm text-brand-black outline-none transition-[border-color] duration-200 placeholder:text-[rgb(10_8_0/25%)] focus:border-gold resize-none [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]"
         />
@@ -77,7 +79,7 @@ export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
             onClick={onClose}
             className="flex-1 border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl py-3 text-sm font-semibold text-brand-black transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/3%)]"
           >
-            Skip
+            {tUser('rateDialog.skip')}
           </button>
           <button
             type="button"
@@ -85,7 +87,7 @@ export function RateDialog({ onClose, onSubmit }: RateDialogProps) {
             disabled={rating === 0 || submitting}
             className="flex-1 bg-brand-black text-white rounded-xl py-3 text-sm font-semibold transition-[background,opacity] duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-ink"
           >
-            {submitting ? "Submitting…" : "Submit"}
+            {submitting ? tUser('rateDialog.submitting') : tUser('rateDialog.submit')}
           </button>
         </div>
       </motion.div>

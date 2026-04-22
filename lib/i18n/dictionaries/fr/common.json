@@ -1,0 +1,31 @@
+{
+  "navigate": "Naviguer",
+  "services": "Services",
+  "ourTeam": "Notre Équipe",
+  "locations": "Emplacements",
+  "bookNow": "Réserver",
+  "loading": "Chargement…",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "create": "Créer",
+  "continue": "Continuer",
+  "back": "Retour",
+  "close": "Fermer",
+  "signIn": "Se connecter",
+  "signOut": "Se déconnecter",
+  "dashboard": "Tableau de bord",
+  "admin": "Admin",
+  "english": "English",
+  "french": "Français",
+  "login": {
+    "welcomeBack": "Bon retour",
+    "signInSubtitle": "Connectez-vous à votre compte pour continuer à réserver des services de toilettage premium.",
+    "continueWithGoogle": "Continuer avec Google",
+    "failedToSignIn": "Échec de connexion avec Google. Veuillez réessayer.",
+    "or": "ou",
+    "newToDesart": "Nouveau sur DESART ?",
+    "createAccount": "Créer un compte",
+    "termsAgree": "En continuant, vous acceptez les Conditions d'utilisation et la Politique de confidentialité de DESART.",
+    "backToHome": "Retour à l'accueil"
+  }
+}

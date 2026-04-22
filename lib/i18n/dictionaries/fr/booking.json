@@ -1,0 +1,167 @@
+{
+  "hero": {
+    "tagline": "Agadir · Depuis 2019",
+    "headline1": "Coupes précises.",
+    "headline2": "Style plus tranchant.",
+    "subheadline": "Toilettage premium pour ceux qui connaissent la différence. Entrez, asseyez-vous, sortez plus élégant — sur rendez-vous ou à l'improviste.",
+    "reserveCta": "Réserver une place",
+    "viewMenuCta": "Voir le menu",
+    "hours": "9h00 — 17h00",
+    "closed": "Vendredi",
+    "cashOnly": "Cash uniquement",
+    "locationDescription": "Intervention à Domicile (+30 MAD)"
+  },
+  "services": {
+    "eyebrow": "Ce Que Nous Faisons",
+    "title": "Services"
+  },
+  "team": {
+    "eyebrow": "Les Artisans",
+    "headline": "Rencontrez Notre",
+    "highlight": "Équipe"
+  },
+  "locations": {
+    "eyebrow": "Trouvez-Nous",
+    "headline": "Nos",
+    "highlight": "Emplacements",
+    "salonName": "Salon Desart",
+    "flagship": "Salon Principal",
+    "homeVisit": "Intervention à Domicile",
+    "homeVisitName": "Je me déplace",
+    "homeVisitDescription": "Intervention à Domicile (+30 MAD)",
+    "homeVisitCashNote": "Paiement en espèces le jour J. Pas de carte requise.",
+    "homeVisitCta": "Réserver à Domicile",
+    "closedOnFriday": "Fermé"
+  },
+  "payment": {
+    "cashInstructions": "Payez {total} en espèces lors de votre rendez-vous. Les annulations sont gratuites ; prévenez-nous à l'avance."
+  },
+  "marquee": [
+    "Coupes Dégradées Précises",
+    "Coupes Classiques",
+    "Sculptage de Barbe",
+    "Rasages à Hot Towel",
+    "Cash Uniquement · Sans Tracas",
+    "Réservation le Jour Même",
+    "Le Meilleur d'Agadir"
+  ],
+  "nav": {
+    "services": "Services",
+    "ourTeam": "Notre Équipe",
+    "locations": "Emplacements",
+    "bookNow": "Réserver"
+  },
+  "steps": {
+    "location": {
+      "title": "Choisir un Lieu",
+      "nearby": "À proximité",
+      "comeToMe": "Je me déplace",
+      "nearbyLocating": "Localisation…",
+      "loadingSalons": "Chargement des salons…",
+      "flagshipLocation": "Salon Principal",
+      "homeVisit": "Intervention à Domicile",
+      "homeVisitFee": "+30 MAD Frais de Déplacement",
+      "bookLocation": "Réserver Ce Salon",
+      "bookHomeVisit": "Réserver à Domicile"
+    },
+    "barber": {
+      "title": "Choisir un Barbier",
+      "loadingTeam": "Chargement de l'équipe…",
+      "next": "Prochain",
+      "unavailable": "Indisponible",
+      "noServices": "Ce barbier n'a pas de services répertoriés pour le moment."
+    },
+    "service": {
+      "title": "Choisir un Service",
+      "pickOneOrMore": "Sélectionnez un ou plusieurs services, puis appuyez sur Continuer.",
+      "thisBarberNoServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
+      "continue": "Continuer",
+      "services_one": "1 service",
+      "services_other": "%d services"
+    },
+    "time": {
+      "title": "Choisir une Heure",
+      "selectDate": "Sélectionner la Date",
+      "selectTime": "Sélectionner l'Heure",
+      "noSlotsAvailable": "Aucun créneau disponible ce jour — essayez une autre date.",
+      "pickDateFirst": "Sélectionnez d'abord une date.",
+      "timeUnavailable": "Cet horaire vient d'être réservé"
+    },
+    "details": {
+      "title": "Vos Coordonnées",
+      "contactInfo": "Informations de Contact",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Numéro de Téléphone",
+      "phonePlaceholder": "+212 6XX XXX XXX",
+      "phoneFormat": "Format : +212 6XX XXX XXX ou 06XX XXX XXX",
+      "paymentMethod": "Mode de Paiement",
+      "cash": "Espèces",
+      "payAtAppointment": "Payer sur place",
+      "bankTransfer": "Virement Bancaire",
+      "payInAdvance": "Payer d'avance",
+      "accountHolder": "Titulaire du compte :",
+      "bank": "Banque :",
+      "rib": "RIB :",
+      "iban": "IBAN :",
+      "reference": "Référence :",
+      "copy": "Copier",
+      "copied": "Copié ✓",
+      "paymentPhoneFallback": "au salon",
+      "afterTransferPrefix": "Après votre virement, envoyez le reçu par WhatsApp à",
+      "afterTransferSuffix": "Votre réservation restera en attente jusqu'à confirmation du paiement.",
+      "afterTransfer": "Après votre virement, envoyez le reçu par WhatsApp à {phone}. Votre réservation restera en attente jusqu'à confirmation du paiement.",
+      "confirmBooking": "Confirmer la Réservation",
+      "continueWithGoogle": "Continuer avec Google",
+      "saving": "Enregistrement…",
+      "waitingForGoogle": "Attente de Google…",
+"discardConfirm": "Abandonner les détails de votre réservation ?"
+    },
+    "summary": {
+      "total": "Total"
+    },
+    "confirmation": {
+      "title": "Réservation Confirmée",
+      "headline": "Tout est prêt !",
+      "message": "Votre rendez-vous a bien été reçu. Nous vous contacterons pour confirmation dans les prochaines heures.",
+      "dontForgetReceipt": "N'oubliez pas d'envoyer votre reçu de virement par WhatsApp à {phone}."
+    }
+  },
+  "validation": {
+    "phoneRequired": "Veuillez entrer un numéro de téléphone marocain valide.",
+    "phoneInvalid": "Veuillez entrer un numéro de téléphone marocain valide.",
+    "bankTransferUnavailable": "Le virement bancaire n'est pas disponible actuellement. Veuillez choisir les espèces.",
+    "slotTaken": "Cet horaire vient d'être réservé. Veuillez choisir un autre créneau.",
+    "saveFailed": "Impossible d'enregistrer votre réservation. Veuillez réessayer."
+  },
+  "toast": {
+    "locationDenied": "Accès à la localisation refusé. Veuillez activer la localisation dans les paramètres de votre navigateur.",
+    "genericError": "Une erreur s'est produite. Veuillez réessayer."
+  },
+  "homePanel": {
+    "yourLocation": "Votre Position",
+    "tapMapHint": "Appuyez sur la carte ou déplacez le marqueur vers votre adresse",
+    "useMyLocation": "Utiliser ma position",
+    "detecting": "Détection en cours…",
+    "resolvingAddress": "Identification de l'adresse…",
+    "saveLocation": "Enregistrer la Position"
+  },
+  "footer": {
+    "navigate": "Navigation",
+    "services": "Services",
+    "ourTeam": "Notre Équipe",
+    "locations": "Emplacements",
+    "bookNow": "Réserver",
+    "contact": "Contact",
+    "address": "14 Rue Mohammed V, Agadir",
+    "hoursSatThu": "Sam–Jeu : 9h00 – 17h00",
+    "hoursFriday": "Vendredi : Fermé",
+    "copyright": "© 2026 Desart. Cash uniquement · Agadir, Maroc"
+  },
+  "misc": {
+    "menu": "Menu",
+    "loadingTeam": "Chargement de l'équipe…",
+    "loadingMap": "Chargement de la carte…",
+    "comeToMe": "Je me déplace"
+  }
+}

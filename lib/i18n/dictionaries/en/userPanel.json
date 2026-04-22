@@ -1,0 +1,51 @@
+{
+  "panel": {
+    "myBookings": "My Bookings",
+    "account": "Account",
+    "manageAppointments": "Manage your appointments",
+    "signInToManage": "Sign in to manage your bookings",
+    "guest": "Guest",
+    "openMenu": "Open menu"
+  },
+  "signIn": {
+    "heading": "Sign in",
+    "description": "Use your Google account to manage your bookings",
+    "googleButton": "Continue with Google",
+    "cookiesNote": "By continuing, you agree to our use of cookies for authentication and session management.",
+    "signInFailed": "Sign-in failed"
+  },
+  "appointments": {
+    "upcoming": "upcoming",
+    "past": "past",
+    "loading": "Loading appointments…",
+    "noUpcoming": "No upcoming appointments",
+    "noPast": "No past appointments"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "rateDialog": {
+    "title": "Rate your experience",
+    "subtitle": "How was your appointment?",
+    "placeholder": "Add a comment (optional)",
+    "skip": "Skip",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "starAria": "Rate {count} stars"
+  },
+  "card": {
+    "unassigned": "Unassigned",
+    "homeVisit": "Home visit",
+    "salonFallback": "Salon",
+    "rate": "Rate"
+  },
+  "toast": {
+    "signedIn": "Signed in successfully",
+    "appointmentCancelled": "Appointment cancelled",
+    "thanksForRating": "Thanks for rating!",
+    "signedOut": "Signed out successfully"
+  }
+}

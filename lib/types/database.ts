@@ -17,7 +17,9 @@ export interface Profile {
 export interface Salon {
   id: string;
   name: string;
+  name_fr?: string | null;
   address: string;
+  address_fr?: string | null;
   latitude: number;
   longitude: number;
   image_url: string | null;
@@ -43,7 +45,9 @@ export interface Professional {
 export interface Service {
   id: string;
   name: string;
+  name_fr?: string | null;
   description: string | null;
+  description_fr?: string | null;
   duration_minutes: number;
   price_mad: number;
   is_active: boolean;

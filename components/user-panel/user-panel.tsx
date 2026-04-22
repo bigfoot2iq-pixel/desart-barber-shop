@@ -2,16 +2,20 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/lib/i18n/client-dictionary";
 import { SignInView } from "./sign-in-view";
 import { AppointmentsView } from "./appointments-view";
 
 interface UserPanelProps {
   onClose: () => void;
   showToast: (kind: "success" | "error", text: string) => void;
+  locale: string;
 }
 
-export function UserPanel({ onClose, showToast }: UserPanelProps) {
+export function UserPanel({ onClose, showToast, locale }: UserPanelProps) {
   const { user } = useAuth();
+  const tUser = useT('userPanel');
+  const tCommon = useT('common');
 
   return (
     <>
@@ -33,17 +37,17 @@ export function UserPanel({ onClose, showToast }: UserPanelProps) {
         <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-[rgb(10_8_0/11%)]">
           <div>
             <h3 className="text-[15px] font-bold text-brand-black tracking-[-0.01em]">
-              {user ? "My Bookings" : "Account"}
+              {user ? tUser('panel.myBookings') : tUser('panel.account')}
             </h3>
             <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">
-              {user ? "Manage your appointments" : "Sign in to manage your bookings"}
+              {user ? tUser('panel.manageAppointments') : tUser('panel.signInToManage')}
             </p>
           </div>
           <button
             type="button"
             className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgb(10_8_0/20%)] cursor-pointer transition-[background,border-color] duration-200 hover:bg-[rgb(10_8_0/5%)] hover:border-[rgb(10_8_0/30%)]"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tCommon('close')}
           >
             <svg viewBox="0 0 10 10" width="10" height="10">
               <path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
@@ -52,9 +56,9 @@ export function UserPanel({ onClose, showToast }: UserPanelProps) {
         </div>
 
         {user ? (
-          <AppointmentsView onSignOut={onClose} showToast={showToast} />
+          <AppointmentsView onSignOut={onClose} showToast={showToast} locale={locale} />
         ) : (
-          <SignInView onSignedIn={() => showToast("success", "Signed in successfully")} showToast={showToast} />
+          <SignInView onSignedIn={() => showToast("success", tUser('toast.signedIn'))} showToast={showToast} />
         )}
       </motion.div>
     </>
