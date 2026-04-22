@@ -112,7 +112,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
     } finally {
       setLoading(false);
     }
-  }, [toast, tAdmin]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast]);
 
   useEffect(() => {
     loadData();
