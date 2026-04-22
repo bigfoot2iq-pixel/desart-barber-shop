@@ -961,7 +961,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
           </span>
           <h1 className="font-fraunces font-normal text-[clamp(48px,5.5vw,76px)] leading-[.92] tracking-[-0.035em]">
             {tBooking('hero.headline1')}<br />
-            {tBooking('hero.headline2')}
+            {tBooking('hero.headline2')} <em className="italic font-normal text-gold3">{tBooking('hero.headline2Em')}</em>
           </h1>
           <p className="mt-7 text-brand-white/60 text-base leading-[1.7] max-w-[440px] font-light">
             {tBooking('hero.subheadline')}
