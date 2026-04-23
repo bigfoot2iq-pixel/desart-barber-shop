@@ -325,7 +325,7 @@ export async function assignProfessionalToAppointment(appointmentId: string, pro
   const supabase = createClient();
   const { data, error } = await supabase
     .from('appointments')
-    .update({ professional_id: professionalId })
+    .update({ professional_id: professionalId, status: 'confirmed' })
     .eq('id', appointmentId)
     .select()
     .single();
