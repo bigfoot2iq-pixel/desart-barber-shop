@@ -48,10 +48,11 @@ export default function AppointmentsManager({ lang, initialAppointments }: Appoi
     getActiveProfessionals(lang).then(setProfessionals).catch(() => {});
   }, [lang]);
 
-  const refreshAppointments = useCallback(async () => {
+  const refreshAppointments = useCallback(async (filter?: StatusFilter) => {
     setLoading(true);
     try {
-      const data = await getAllAppointments(statusFilter === 'all' ? undefined : statusFilter);
+      const activeFilter = filter ?? statusFilter;
+      const data = await getAllAppointments(activeFilter === 'all' ? undefined : activeFilter);
       setAppointments(data);
     } catch {
       toast(tAdmin('appointments.toastLoadFailed'), 'error');
@@ -62,7 +63,7 @@ export default function AppointmentsManager({ lang, initialAppointments }: Appoi
 
   useEffect(() => {
     refreshAppointments();
-  }, [refreshAppointments]);
+  }, []);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery && !dateRange.from && !dateRange.to) {
@@ -166,7 +167,10 @@ export default function AppointmentsManager({ lang, initialAppointments }: Appoi
             key={s}
             variant={statusFilter === s ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setStatusFilter(s)}
+            onClick={() => {
+              setStatusFilter(s);
+              refreshAppointments(s);
+            }}
           >
             {s === 'all' ? tAdmin('appointments.filterAll') : tAdmin(`status.${s}`)}
           </Button>
