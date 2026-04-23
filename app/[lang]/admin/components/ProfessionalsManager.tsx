@@ -63,6 +63,12 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
     getAllServices(lang).then(setAllServices).catch(() => {});
   }, [lang]);
 
+  useEffect(() => {
+    if (initialProfessionals.length === 0) {
+      refresh();
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     try {
       const [profs, slns] = await Promise.all([getAllProfessionals(lang), getAllSalons(lang)]);

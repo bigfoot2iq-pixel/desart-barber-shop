@@ -1,16 +1,18 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { getRole } from '@/lib/roles';
-import { getPendingAppointments } from '@/lib/queries';
+import { getAllServices, getPendingAppointments } from '@/lib/queries';
+import type { Service } from '@/lib/types/database';
 import { hasLocale } from '@/lib/i18n/config';
 import { localeHref } from '@/lib/i18n/href';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { DictionaryProvider } from '@/lib/i18n/client-dictionary';
-import AdminDashboard from './components/AdminDashboard';
+import AdminShell from '../components/AdminShell';
+import ServicesManager from '../components/ServicesManager';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPage({ params }: PageProps<'/[lang]'>) {
+export default async function AdminServicesPage({ params }: PageProps<'/[lang]'>) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const supabase = await createClient();
@@ -36,9 +38,14 @@ export default async function AdminPage({ params }: PageProps<'/[lang]'>) {
   const adminEmail = profile?.email || user.email || '';
 
   let pendingCount = 0;
+  let services: Service[] = [];
   try {
-    const pendingApts = await getPendingAppointments();
+    const [pendingApts, servs] = await Promise.all([
+      getPendingAppointments(),
+      getAllServices(lang),
+    ]);
     pendingCount = pendingApts.length;
+    services = servs;
   } catch {
     // Will be loaded client-side
   }
@@ -50,12 +57,15 @@ export default async function AdminPage({ params }: PageProps<'/[lang]'>) {
 
   return (
     <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
-      <AdminDashboard
+      <AdminShell
         lang={lang}
-        initialPendingCount={pendingCount}
+        section="services"
+        pendingCount={pendingCount}
         adminName={adminName}
         adminEmail={adminEmail}
-      />
+      >
+        <ServicesManager lang={lang} initialServices={services} />
+      </AdminShell>
     </DictionaryProvider>
   );
 }

@@ -7,13 +7,11 @@ import { localeHref } from '@/lib/i18n/href';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { DictionaryProvider } from '@/lib/i18n/client-dictionary';
 import AdminShell from '../components/AdminShell';
-import PaymentSettingsManager from '../components/PaymentSettingsManager';
-import PaymentBankAccountsManager from '../components/PaymentBankAccountsManager';
-import type { PaymentSettings, PaymentBankAccount } from '@/lib/types/database';
+import NotificationsManager from '../components/NotificationsManager';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>) {
+export default async function AdminNotificationsPage({ params }: PageProps<'/[lang]'>) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const supabase = await createClient();
@@ -38,22 +36,6 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
   const adminName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'Admin';
   const adminEmail = profile?.email || user.email || '';
 
-  const { data: settings, error: settingsError } = await supabase
-    .from('payment_settings')
-    .select('*')
-    .eq('singleton', true)
-    .single();
-
-  if (settingsError || !settings) {
-    throw new Error('Payment settings not found. Run migration 018+.');
-  }
-
-  const { data: accounts } = await supabase
-    .from('payment_bank_accounts')
-    .select('*')
-    .order('sort_order', { ascending: true })
-    .order('id', { ascending: true });
-
   let pendingCount = 0;
   try {
     const pendingApts = await getPendingAppointments();
@@ -68,22 +50,16 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
   ]);
 
   return (
-    <AdminShell
-      lang={lang}
-      section="payment"
-      pendingCount={pendingCount}
-      adminName={adminName}
-      adminEmail={adminEmail}
-    >
-      <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
-        <div className="max-w-2xl mx-auto py-8 px-4 space-y-10">
-          <PaymentSettingsManager
-            initialSettings={settings as PaymentSettings}
-            initialAccounts={(accounts ?? []) as PaymentBankAccount[]}
-          />
-          <PaymentBankAccountsManager initialAccounts={(accounts ?? []) as PaymentBankAccount[]} />
-        </div>
-      </DictionaryProvider>
-    </AdminShell>
+    <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
+      <AdminShell
+        lang={lang}
+        section="notifications"
+        pendingCount={pendingCount}
+        adminName={adminName}
+        adminEmail={adminEmail}
+      >
+        <NotificationsManager lang={lang} />
+      </AdminShell>
+    </DictionaryProvider>
   );
 }

@@ -9,55 +9,47 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import Link from 'next/link';
 
 
 export type Section = 'dashboard' | 'appointments' | 'professionals' | 'services' | 'salons' | 'notifications' | 'payment';
 
 interface SidebarProps {
   active: Section;
-  onChange: (section: Section) => void;
   pendingCount: number;
   adminName: string;
   adminEmail: string;
   onSignOut: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onNavigateToPayment?: () => void;
   lang: Locale;
 }
 
-const navItems: { key: Section; icon: string }[] = [
-  { key: 'dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1' },
-  { key: 'appointments', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-  { key: 'professionals', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-  { key: 'services', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652' },
-  { key: 'salons', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-  { key: 'notifications', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-  { key: 'payment', icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z' },
+const navItems: { key: Section; icon: string; href: string }[] = [
+  { key: 'dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1', href: '/admin' },
+  { key: 'appointments', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', href: '/admin/appointments' },
+  { key: 'professionals', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', href: '/admin/professionals' },
+  { key: 'services', icon: 'M14.121 14.121L19 19m-4.879-4.879l-2.652 2.652a3 3 0 01-4.243 0l-.59-.59a3 3 0 010-4.243l2.652-2.652m4.833 4.833L9.9 9.9m4.833 4.833l2.652-2.652a3 3 0 000-4.243l-.59-.59a3 3 0 00-4.243 0l-2.652 2.652', href: '/admin/services' },
+  { key: 'salons', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', href: '/admin/salons' },
+  { key: 'notifications', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', href: '/admin/notifications' },
+  { key: 'payment', icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z', href: '/admin/payment' },
 ];
 
-function SidebarNav({ active, onChange, pendingCount, onNavigate, onNavigateToPayment }: {
+function SidebarNav({ active, lang, pendingCount, onNavigate }: {
   active: Section;
-  onChange: (section: Section) => void;
+  lang: Locale;
   pendingCount: number;
   onNavigate?: () => void;
-  onNavigateToPayment?: () => void;
 }) {
   const tAdmin = useT('admin');
 
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">
       {navItems.map((item) => (
-        <button
+        <Link
           key={item.key}
-          onClick={() => {
-            if (item.key === 'payment') {
-              onNavigateToPayment?.();
-            } else {
-              onChange(item.key);
-            }
-            onNavigate?.();
-          }}
+          href={`/${lang}${item.href}`}
+          onClick={onNavigate}
           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             active === item.key
               ? 'bg-primary/15 text-primary border-l-2 border-primary rounded-l-none rounded-r-lg'
@@ -73,19 +65,19 @@ function SidebarNav({ active, onChange, pendingCount, onNavigate, onNavigateToPa
               {pendingCount}
             </span>
           )}
-        </button>
+        </Link>
       ))}
     </nav>
   );
 }
 
-export default function Sidebar({ active, onChange, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, onNavigateToPayment, lang }: SidebarProps) {
+export default function Sidebar({ active, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, lang }: SidebarProps) {
   const tAdmin = useT('admin');
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen sticky top-0">
         <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
-        <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigateToPayment={onNavigateToPayment} />
+        <SidebarNav active={active} lang={lang} pendingCount={pendingCount} />
         <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
       </aside>
 
@@ -98,7 +90,7 @@ export default function Sidebar({ active, onChange, pendingCount, adminName, adm
               <LocaleSwitcher locale={lang} variant="dark" />
             </div>
           </SheetHeader>
-          <SidebarNav active={active} onChange={onChange} pendingCount={pendingCount} onNavigate={onMobileClose} onNavigateToPayment={onNavigateToPayment} />
+          <SidebarNav active={active} lang={lang} pendingCount={pendingCount} onNavigate={onMobileClose} />
           <div className="px-6 py-4 border-t border-border">
             <LocaleSwitcher locale={lang} variant="dark" />
           </div>
