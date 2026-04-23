@@ -524,8 +524,9 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
     {
       key: 'last_error',
       label: tAdmin('notifications.columnError'),
+      className: 'max-w-[180px]',
       render: (item: DeliveryRow) => (
-        <span className="text-red-400 text-xs truncate max-w-[200px]" title={item.last_error ?? ''}>
+        <span className="text-red-400 text-xs inline-block truncate max-w-full" title={item.last_error ?? ''}>
           {item.last_error ?? '—'}
         </span>
       ),
