@@ -78,7 +78,7 @@
       "thisBarberNoServices": "This barber has no services listed yet.",
       "continue": "Continue",
       "services_one": "1 service",
-      "services_other": "%d services"
+      "services_other": "{count} services"
     },
     "time": {
       "title": "Choose a Time",
@@ -92,7 +92,9 @@
       "title": "Your Details",
       "contactInfo": "Contact Information",
       "firstName": "First Name",
+      "firstNamePlaceholder": "First name",
       "lastName": "Last Name",
+      "lastNamePlaceholder": "Last name",
       "phone": "Phone Number",
       "phonePlaceholder": "+212 6XX XXX XXX",
       "phoneFormat": "Format: +212 6XX XXX XXX or 06XX XXX XXX",

@@ -78,7 +78,7 @@
       "thisBarberNoServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
       "continue": "Continuer",
       "services_one": "1 service",
-      "services_other": "%d services"
+      "services_other": "{count} services"
     },
     "time": {
       "title": "Choisir une Heure",
@@ -92,7 +92,9 @@
       "title": "Vos Coordonnées",
       "contactInfo": "Informations de Contact",
       "firstName": "Prénom",
+      "firstNamePlaceholder": "Prénom",
       "lastName": "Nom",
+      "lastNamePlaceholder": "Nom",
       "phone": "Numéro de Téléphone",
       "phonePlaceholder": "+212 6XX XXX XXX",
       "phoneFormat": "Format : +212 6XX XXX XXX ou 06XX XXX XXX",

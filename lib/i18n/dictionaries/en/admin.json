@@ -22,6 +22,15 @@
     "completed": "Completed",
     "cancelled": "Cancelled"
   },
+  "pending": {
+    "single": "pending appointment",
+    "plural": "pending appointments",
+    "allDone": "All caught up!",
+    "allDoneDesc": "No pending appointments right now",
+    "wants": "Customer wants",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
   "dashboard": {
     "recentPending": "Recent Pending Appointments",
     "noPending": "No pending appointments",
@@ -95,7 +104,12 @@
     "toastProfessionalAssigned": "Professional assigned & appointment confirmed",
     "toastAssignFailed": "Failed to assign professional",
     "toastStatusUpdated": "Appointment {status}",
-    "toastStatusUpdateFailed": "Failed to update status"
+    "toastStatusUpdateFailed": "Failed to update status",
+    "toastPhoneCopied": "Phone number copied",
+    "modalCancelTitle": "Confirm Cancellation",
+    "cancelConfirmMessage": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+    "confirmCancel": "Cancel Appointment",
+    "cancelling": "Cancelling…"
   },
   "professionals": {
     "title": "Professionals",

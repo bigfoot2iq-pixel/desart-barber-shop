@@ -1938,7 +1938,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
-                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                  <div className={`w-4 h-4 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
                                     paymentMethod === "cash" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
                                   }`}>
                                     {paymentMethod === "cash" && (
@@ -1978,7 +1978,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                      <div className={`w-4 h-4 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
                                         paymentMethod === "bank_transfer" ? "border-gold" : "border-[rgb(10_8_0/25%)]"
                                       }`}>
                                         {paymentMethod === "bank_transfer" && (
@@ -2102,15 +2102,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                               </div>
                             )}
 
-                            {paymentMethod === "cash" && (
-                              <div className="text-xs text-[rgb(10_8_0/45%)] leading-relaxed flex items-start gap-2 px-4 py-3 bg-[rgb(192_154_90/5%)] rounded-xl border border-[rgb(192_154_90/22%)]">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0 mt-px opacity-40 text-gold">
-                                  <circle cx="12" cy="12" r="10" />
-                                  <path d="M12 16v-4M12 8h.01" />
-                                </svg>
-                                {tBooking('payment.cashInstructions', { total: formatMoney(total, locale as import('@/lib/i18n/config').Locale) })}
-                              </div>
-                            )}
+
                           </div>
 
                           <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden">

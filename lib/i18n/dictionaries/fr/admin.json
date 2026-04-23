@@ -22,6 +22,15 @@
     "completed": "Terminé",
     "cancelled": "Annulé"
   },
+  "pending": {
+    "single": "rendez-vous en attente",
+    "plural": "rendez-vous en attente",
+    "allDone": "Tout est en ordre !",
+    "allDoneDesc": "Aucun rendez-vous en attente pour le moment",
+    "wants": "Client veut",
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
+  },
   "dashboard": {
     "recentPending": "Rendez-vous en attente récents",
     "noPending": "Aucun rendez-vous en attente",
@@ -95,7 +104,12 @@
     "toastProfessionalAssigned": "Professionnel affecté et rendez-vous confirmé",
     "toastAssignFailed": "Échec de l'affectation du professionnel",
     "toastStatusUpdated": "Rendez-vous {status}",
-    "toastStatusUpdateFailed": "Échec de la mise à jour du statut"
+    "toastStatusUpdateFailed": "Échec de la mise à jour du statut",
+    "toastPhoneCopied": "Numéro de téléphone copié",
+    "modalCancelTitle": "Confirmer l'annulation",
+    "cancelConfirmMessage": "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible.",
+    "confirmCancel": "Annuler le rendez-vous",
+    "cancelling": "Annulation…"
   },
   "professionals": {
     "title": "Professionnels",
