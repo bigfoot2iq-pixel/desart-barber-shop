@@ -39,7 +39,7 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
   const [addrTab, setAddrTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();

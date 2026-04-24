@@ -43,8 +43,8 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
   const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PaymentBankAccount | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [togglingId, setTogglingId] = useState<number | null>(null);
-  const [movingId, setMovingId] = useState<number | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [movingId, setMovingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const refresh = useCallback(async () => {
