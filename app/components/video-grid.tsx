@@ -14,8 +14,21 @@ export const HERO_VIDEOS = [
   "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-9.mp4",
 ];
 
+export const HERO_POSTERS = [
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/541260030_18059495783608146_4856252116259725248_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/542452496_18059495792608146_6421732188312726390_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero_image1.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero_image2.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534722343_18057781862608146_7959853147981792687_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534556051_18057781871608146_1254431213968927712_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534204638_18057781697608146_721036477502845430_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/533069458_18057781676608146_3800107074629042768_n.jpg",
+  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534456039_18057884639608146_912865595270611338_n.jpg",
+];
+
 export const VIDEO_META: {
   src: string;
+  poster: string;
   title: string;
   style: string;
   likes: string;
@@ -23,6 +36,7 @@ export const VIDEO_META: {
 }[] = [
   {
     src: HERO_VIDEOS[0],
+    poster: HERO_POSTERS[0],
     title: "The Classic Cut — Where Tradition Meets Modern Elegance",
     style: "Timeless Precision",
     likes: "2.4K",
@@ -30,6 +44,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[1],
+    poster: HERO_POSTERS[1],
     title: "Skin Fade Mastery — Clean Lines, Bold Statements",
     style: "Sharp & Refined",
     likes: "3.1K",
@@ -37,6 +52,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[2],
+    poster: HERO_POSTERS[2],
     title: "Beard Sculpting — Artistry in Every Detail",
     style: "Precision Crafted",
     likes: "1.9K",
@@ -44,6 +60,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[3],
+    poster: HERO_POSTERS[3],
     title: "Hot Towel Ritual — The Ultimate Grooming Experience",
     style: "Pure Luxury",
     likes: "2.7K",
@@ -51,6 +68,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[4],
+    poster: HERO_POSTERS[4],
     title: "Textured Flow — Effortless Style, Expert Execution",
     style: "Modern Edge",
     likes: "2.1K",
@@ -58,6 +76,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[5],
+    poster: HERO_POSTERS[5],
     title: "Straight Razor Finish — Old School, New Standard",
     style: "Heritage Craft",
     likes: "1.6K",
@@ -65,6 +84,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[6],
+    poster: HERO_POSTERS[6],
     title: "The Full Transformation — From Rough to Refined",
     style: "Complete Makeover",
     likes: "3.8K",
@@ -72,6 +92,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[7],
+    poster: HERO_POSTERS[7],
     title: "Signature Styling — Your Look, Elevated",
     style: "Bespoke Grooming",
     likes: "2.9K",
@@ -79,6 +100,7 @@ export const VIDEO_META: {
   },
   {
     src: HERO_VIDEOS[8],
+    poster: HERO_POSTERS[8],
     title: "The Master's Touch — Where Art Meets Craft",
     style: "Elite Grooming",
     likes: "3.4K",
@@ -89,6 +111,7 @@ export const VIDEO_META: {
 export function getVideoMeta(src: string) {
   return (
     VIDEO_META.find((m) => m.src === src) || {
+      poster: "",
       title: "",
       style: "",
       likes: "",
@@ -113,6 +136,7 @@ export function VideoCell({ src, index }: { src: string; index: number }) {
         loop
         playsInline
         preload="metadata"
+        poster={meta.poster}
         aria-hidden="true"
         className="w-full h-full object-cover block [filter:brightness(0.65)_contrast(1.1)_saturate(1.1)] transition-[filter,transform] duration-500 ease-out group-hover:[filter:brightness(0.75)_contrast(1.05)_saturate(1.15)] group-hover:scale-105"
       >
@@ -178,6 +202,7 @@ export function MobileVideoCarousel() {
       >
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
           <video autoPlay muted loop playsInline
+            poster={getVideoMeta(leftVideo).poster}
             className="w-full h-full object-cover block"
             src={leftVideo}
           />
@@ -185,6 +210,7 @@ export function MobileVideoCarousel() {
 
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[58%] aspect-[9/14] transition-[transform] duration-300 scale-100">
           <video autoPlay muted loop playsInline
+            poster={getVideoMeta(centerVideo).poster}
             className="w-full h-full object-cover block"
             src={centerVideo}
           />
@@ -201,6 +227,7 @@ export function MobileVideoCarousel() {
 
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
           <video autoPlay muted loop playsInline
+            poster={getVideoMeta(rightVideo).poster}
             className="w-full h-full object-cover block"
             src={rightVideo}
           />
