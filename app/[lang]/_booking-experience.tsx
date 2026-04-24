@@ -122,52 +122,24 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </nav>
 
-      <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-8 max-sm:gap-4 items-center py-12 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 lg:pt-[110px] lg:pb-0 lg:pr-0">
+      <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-6 max-sm:gap-5 items-center pt-24 pb-10 max-sm:pt-28 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 lg:pt-[110px] lg:pb-0 lg:pr-0">
 
-        {/* Left column */}
-        <div className="relative z-[3] pb-6 max-sm:pb-2 max-w-[560px] lg:pl-[100px] lg:pb-20">
-          <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
+        {/* Header text — mobile row 1, desktop col 1 row 1 */}
+        <div className="relative z-[3] max-w-[560px] order-1 lg:order-none lg:col-start-1 lg:row-start-1 lg:pl-[100px]">
+          <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 max-sm:mb-4 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
             {tBooking('hero.tagline')}
           </span>
-          <h1 className="font-fraunces font-normal text-[clamp(48px,5.5vw,76px)] leading-[.92] tracking-[-0.035em]">
+          <h1 className="font-fraunces font-normal text-[clamp(40px,5.5vw,76px)] leading-[.95] tracking-[-0.035em]">
             {tBooking('hero.headline1')}<br />
             {tBooking('hero.headline2')} <em className="italic font-normal text-gold3">{tBooking('hero.headline2Em')}</em>
           </h1>
-          <p className="mt-7 text-brand-white/60 text-base leading-[1.7] max-w-[440px] font-light">
+          <p className="mt-6 max-sm:mt-4 text-brand-white/60 text-base max-sm:text-[15px] leading-[1.7] max-w-[440px] font-light">
             {tBooking('hero.subheadline')}
           </p>
-          <div className="flex gap-3.5 items-center mt-10 flex-wrap max-sm:flex-col max-sm:items-stretch">
-            <button
-              type="button"
-              onClick={openModal}
-              onMouseEnter={prefetchModal}
-              className="open-booking inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3 max-sm:w-full max-sm:justify-center"
-              data-testid="btn:open-booking"
-            >
-              {tBooking('hero.reserveCta')}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-            </button>
-            <a
-              href="#services"
-              className="inline-flex items-center gap-2.5 px-[22px] py-[15px] text-brand-white border border-brand-white/25 text-[11px] tracking-[.16em] uppercase font-semibold transition-[border-color] duration-150 hover:border-brand-white max-sm:w-full max-sm:justify-center"
-            >
-              {tBooking('hero.viewMenuCta')}
-            </a>
-          </div>
-          <div className="flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50 max-sm:gap-5 max-sm:mt-10">
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.hours')}</span>
-              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.hours')}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.payment')}</span>
-              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.cashOnly')}</span>
-            </div>
-          </div>
         </div>
 
-        {/* Right column — carousel on mobile, scrolling grid on desktop */}
-        <div className="relative z-[2] overflow-hidden h-auto lg:h-svh lg:-mt-[120px]">
+        {/* Videos — mobile row 3, desktop col 2 spanning both rows */}
+        <div className="relative z-[2] overflow-hidden h-auto order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-svh lg:-mt-[120px]">
           {/* Mobile carousel */}
           <div className="lg:hidden">
             <MobileVideoCarousel />
@@ -177,6 +149,38 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
             <div className="absolute inset-x-0 top-0 h-[140px] z-[5] pointer-events-none bg-gradient-to-b from-brand-black to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-[140px] z-[5] pointer-events-none bg-gradient-to-t from-brand-black to-transparent" />
             <DesktopVideoGrid />
+          </div>
+        </div>
+
+        {/* CTAs + hours — mobile row 2 (above videos), desktop col 1 row 2 */}
+        <div className="relative z-[3] max-w-[560px] order-2 lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-[100px] lg:pb-20">
+          <div className="flex gap-2.5 items-center flex-nowrap">
+            <button
+              type="button"
+              onClick={openModal}
+              onMouseEnter={prefetchModal}
+              className="open-booking inline-flex items-center justify-center gap-2 px-[22px] py-[15px] max-sm:px-4 max-sm:py-[13px] bg-brand-white text-brand-black text-[11px] max-sm:text-[10px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3 whitespace-nowrap"
+              data-testid="btn:open-booking"
+            >
+              {tBooking('hero.reserveCta')}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5 max-sm:w-3 max-sm:h-3"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </button>
+            <a
+              href="#services"
+              className="inline-flex items-center justify-center gap-2 px-[22px] py-[15px] max-sm:px-4 max-sm:py-[13px] text-brand-white border border-brand-white/25 text-[11px] max-sm:text-[10px] tracking-[.16em] uppercase font-semibold transition-[border-color,color] duration-150 hover:border-gold3 hover:text-gold3 whitespace-nowrap"
+            >
+              {tBooking('hero.viewMenuCta')}
+            </a>
+          </div>
+          <div className="hidden lg:flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.hours')}</span>
+              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.hours')}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.payment')}</span>
+              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.cashOnly')}</span>
+            </div>
           </div>
         </div>
 

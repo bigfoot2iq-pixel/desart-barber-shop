@@ -38,6 +38,7 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
   const [descTab, setDescTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
@@ -128,12 +129,16 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
   };
 
   const toggleActive = async (s: Service) => {
+    if (togglingId === s.id) return;
+    setTogglingId(s.id);
     try {
       await updateService(s.id, { is_active: !s.is_active });
       toast(s.is_active ? tAdmin('services.toastDeactivated') : tAdmin('services.toastActivated'));
-      refresh();
+      await refresh();
     } catch {
       toast(tAdmin('services.toastToggleFailed'), 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -185,6 +190,7 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
                         <ToggleButton
                           enabled={s.is_active}
                           onChange={() => toggleActive(s)}
+                          disabled={togglingId === s.id}
                         />
                         <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>{tAdmin('services.edit')}</Button>
                       </div>

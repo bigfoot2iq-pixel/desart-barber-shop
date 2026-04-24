@@ -42,6 +42,9 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PaymentBankAccount | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [movingId, setMovingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const refresh = useCallback(async () => {
@@ -121,29 +124,38 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
   };
 
   const toggleActive = async (a: PaymentBankAccount) => {
+    if (togglingId === a.id) return;
+    setTogglingId(a.id);
     try {
       await updateBankAccount(a.id, { is_active: !a.is_active });
       toast(a.is_active ? 'Bank account deactivated' : 'Bank account activated');
-      refresh();
+      await refresh();
     } catch {
       toast('Failed to toggle bank account', 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
   const handleDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
     try {
       await deleteBankAccount(deleteTarget.id);
       toast('Bank account deleted');
       setDeleteTarget(null);
-      refresh();
+      await refresh();
     } catch {
       toast('Failed to delete bank account', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
   const moveUp = async (index: number) => {
-    if (index <= 0) return;
+    if (index <= 0 || movingId !== null) return;
+    const accountId = accounts[index].id;
+    setMovingId(accountId);
     const next = [...accounts];
     const temp = next[index];
     next[index] = next[index - 1];
@@ -154,11 +166,15 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
     } catch {
       toast('Failed to reorder bank accounts', 'error');
       refresh();
+    } finally {
+      setMovingId(null);
     }
   };
 
   const moveDown = async (index: number) => {
-    if (index >= accounts.length - 1) return;
+    if (index >= accounts.length - 1 || movingId !== null) return;
+    const accountId = accounts[index].id;
+    setMovingId(accountId);
     const next = [...accounts];
     const temp = next[index];
     next[index] = next[index + 1];
@@ -169,6 +185,8 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
     } catch {
       toast('Failed to reorder bank accounts', 'error');
       refresh();
+    } finally {
+      setMovingId(null);
     }
   };
 
@@ -219,7 +237,7 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
                           <button
                             type="button"
                             aria-label={`Move ${a.bank_name} up`}
-                            disabled={idx === 0}
+                            disabled={idx === 0 || movingId !== null}
                             onClick={() => moveUp(idx)}
                             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
                           >
@@ -230,7 +248,7 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
                           <button
                             type="button"
                             aria-label={`Move ${a.bank_name} down`}
-                            disabled={idx === accounts.length - 1}
+                            disabled={idx === accounts.length - 1 || movingId !== null}
                             onClick={() => moveDown(idx)}
                             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
                           >
@@ -241,6 +259,7 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
                           <ToggleButton
                             enabled={a.is_active}
                             onChange={() => toggleActive(a)}
+                            disabled={togglingId === a.id}
                           />
                           <Button variant="outline" size="xs" onClick={() => openEditForm(a)}>Edit</Button>
                           <button
@@ -367,8 +386,10 @@ export default function PaymentBankAccountsManager({ initialAccounts }: PaymentB
             Delete <span className="text-foreground font-medium">{deleteTarget?.bank_name}</span>? This can&apos;t be undone.
           </p>
           <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
           </div>
         </div>
       </Modal>

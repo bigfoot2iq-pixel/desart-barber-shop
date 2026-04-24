@@ -51,6 +51,7 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [deletingOverrideId, setDeletingOverrideId] = useState<string | null>(null);
 
   const [selectedProfessional, setSelectedProfessional] = useState<ProfessionalWithSalon | null>(null);
   const [professionalServiceIds, setProfessionalServiceIds] = useState<string[]>([]);
@@ -222,12 +223,16 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
   };
 
   const handleDeleteOverride = async (id: string) => {
+    if (deletingOverrideId === id) return;
+    setDeletingOverrideId(id);
     try {
       await deleteOverride(id);
       setOverrides((prev) => prev.filter((o) => o.id !== id));
       toast(tAdmin('professionals.toastOverrideDeleted'));
     } catch {
       toast(tAdmin('professionals.toastOverrideDeleteFailed'), 'error');
+    } finally {
+      setDeletingOverrideId(null);
     }
   };
 
@@ -526,7 +531,13 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
                         {o.reason && ` — ${o.reason}`}
                       </p>
                     </div>
-                    <button onClick={() => handleDeleteOverride(o.id)} className="text-red-400 text-xs hover:text-red-300 transition-colors">{tAdmin('professionals.delete')}</button>
+                    <button
+                      onClick={() => handleDeleteOverride(o.id)}
+                      disabled={deletingOverrideId === o.id}
+                      className="text-red-400 text-xs hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deletingOverrideId === o.id ? tAdmin('professionals.deleting') : tAdmin('professionals.delete')}
+                    </button>
                   </div>
                 ))}
               </div>

@@ -75,7 +75,7 @@ export default function Sidebar({ active, pendingCount, adminName, adminEmail, o
   const tAdmin = useT('admin');
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen sticky top-0 self-start">
+      <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen fixed top-0 left-0 z-40">
         <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
         <SidebarNav active={active} lang={lang} pendingCount={pendingCount} />
         <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />

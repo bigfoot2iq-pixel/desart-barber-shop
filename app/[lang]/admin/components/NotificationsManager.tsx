@@ -80,6 +80,11 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
   const [creatingChannel, setCreatingChannel] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState<string | null>(null);
   const [retryLoading, setRetryLoading] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [savingChannel, setSavingChannel] = useState(false);
+  const [savingCustomer, setSavingCustomer] = useState(false);
+  const [togglingCustomer, setTogglingCustomer] = useState(false);
   const [formConfig, setFormConfig] = useState<Record<string, string>>({});
   const [formEvents, setFormEvents] = useState<string[]>(ALL_EVENTS);
   const [formProvider, setFormProvider] = useState<string>('callmebot');
@@ -156,7 +161,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
 
   const handleSave = async () => {
     const channel = creatingChannel ?? editingChannel?.channel;
-    if (!channel) return;
+    if (!channel || savingChannel) return;
+    setSavingChannel(true);
 
     const sanitizedConfig = { ...formConfig };
     if (editingChannel) {
@@ -209,10 +215,14 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
       loadData();
     } catch {
       toast(tAdmin('notifications.toastChannelSaveFailed'), 'error');
+    } finally {
+      setSavingChannel(false);
     }
   };
 
   const handleDelete = async (channel: ChannelRow) => {
+    if (deletingId === channel.id) return;
+    setDeletingId(channel.id);
     try {
       const res = await fetch(`/api/notifications/channels/${channel.id}`, {
         method: 'DELETE',
@@ -226,10 +236,14 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
       loadData();
     } catch {
       toast(tAdmin('notifications.toastChannelDeleteFailed'), 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleToggle = async (channel: ChannelRow) => {
+    if (togglingId === channel.id) return;
+    setTogglingId(channel.id);
     try {
       const res = await fetch(`/api/notifications/channels/${channel.id}`, {
         method: 'PATCH',
@@ -244,6 +258,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
       loadData();
     } catch {
       toast(tAdmin('notifications.toastToggleFailed'), 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -304,6 +320,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
   };
 
   const handleCustomerSave = async () => {
+    if (savingCustomer) return;
+    setSavingCustomer(true);
     const body: Record<string, unknown> = {
       is_enabled: customerForm.is_enabled,
       from_address: customerForm.from_address,
@@ -329,6 +347,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
       loadData();
     } catch {
       toast(tAdmin('notifications.toastCustomerSaveFailed'), 'error');
+    } finally {
+      setSavingCustomer(false);
     }
   };
 
@@ -359,6 +379,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
   };
 
   const handleCustomerToggle = async () => {
+    if (togglingCustomer) return;
+    setTogglingCustomer(true);
     try {
       const res = await fetch('/api/notifications/customer-settings', {
         method: 'PUT',
@@ -373,6 +395,8 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
       loadData();
     } catch {
       toast(tAdmin('notifications.toastToggleFailed'), 'error');
+    } finally {
+      setTogglingCustomer(false);
     }
   };
 
@@ -623,15 +647,19 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
                         size="sm"
                         variant="outline"
                         onClick={() => handleToggle(existing)}
+                        disabled={togglingId === existing.id}
                       >
-                        {existing.is_enabled ? tAdmin('notifications.disable') : tAdmin('notifications.enable')}
+                        {togglingId === existing.id
+                          ? tAdmin('notifications.toggling')
+                          : existing.is_enabled ? tAdmin('notifications.disable') : tAdmin('notifications.enable')}
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDelete(existing)}
+                        disabled={deletingId === existing.id}
                       >
-                        {tAdmin('notifications.delete')}
+                        {deletingId === existing.id ? tAdmin('notifications.deleting') : tAdmin('notifications.delete')}
                       </Button>
                     </div>
                   </div>
@@ -663,10 +691,12 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
               size="sm"
               variant="outline"
               onClick={handleCustomerToggle}
-              disabled={!customerSettings?.has_api_key && !customerForm.resend_api_key}
+              disabled={togglingCustomer || (!customerSettings?.has_api_key && !customerForm.resend_api_key)}
               title={!customerSettings?.has_api_key && !customerForm.resend_api_key ? tAdmin('notifications.customerToggleDisabled') : ''}
             >
-              {customerForm.is_enabled ? tAdmin('notifications.disable') : tAdmin('notifications.enable')}
+              {togglingCustomer
+                ? tAdmin('notifications.toggling')
+                : customerForm.is_enabled ? tAdmin('notifications.disable') : tAdmin('notifications.enable')}
             </Button>
 
             <div>
@@ -740,7 +770,9 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
               </div>
             </div>
 
-            <Button size="sm" onClick={handleCustomerSave}>{tAdmin('notifications.save')}</Button>
+            <Button size="sm" onClick={handleCustomerSave} disabled={savingCustomer}>
+              {savingCustomer ? tAdmin('notifications.saving') : tAdmin('notifications.save')}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -787,7 +819,9 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
           >
             {tAdmin('notifications.cancel')}
           </Button>
-          <Button onClick={handleSave}>{tAdmin('notifications.save')}</Button>
+          <Button onClick={handleSave} disabled={savingChannel}>
+            {savingChannel ? tAdmin('notifications.saving') : tAdmin('notifications.save')}
+          </Button>
         </div>
       </Modal>
     </div>

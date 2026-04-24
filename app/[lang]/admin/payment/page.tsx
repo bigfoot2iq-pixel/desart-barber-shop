@@ -76,12 +76,16 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
         adminName={adminName}
         adminEmail={adminEmail}
       >
-        <div className="max-w-2xl mx-auto py-8 px-4 space-y-10">
-          <PaymentSettingsManager
-            initialSettings={settings as PaymentSettings}
-            initialAccounts={(accounts ?? []) as PaymentBankAccount[]}
-          />
-          <PaymentBankAccountsManager initialAccounts={(accounts ?? []) as PaymentBankAccount[]} />
+        <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:grid lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <PaymentSettingsManager
+              initialSettings={settings as PaymentSettings}
+              initialAccounts={(accounts ?? []) as PaymentBankAccount[]}
+            />
+          </div>
+          <div className="lg:col-span-8">
+            <PaymentBankAccountsManager initialAccounts={(accounts ?? []) as PaymentBankAccount[]} />
+          </div>
         </div>
       </AdminShell>
     </DictionaryProvider>

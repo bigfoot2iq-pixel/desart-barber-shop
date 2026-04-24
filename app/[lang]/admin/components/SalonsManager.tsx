@@ -39,6 +39,7 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
   const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
   const [addrTab, setAddrTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
@@ -131,12 +132,16 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
   };
 
   const toggleActive = async (s: Salon) => {
+    if (togglingId === s.id) return;
+    setTogglingId(s.id);
     try {
       await updateSalon(s.id, { is_active: !s.is_active });
       toast(s.is_active ? tAdmin('salons.toastDeactivated') : tAdmin('salons.toastActivated'));
-      refresh();
+      await refresh();
     } catch {
       toast(tAdmin('salons.toastToggleFailed'), 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -195,6 +200,7 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
                       <ToggleButton
                         enabled={s.is_active}
                         onChange={() => toggleActive(s)}
+                        disabled={togglingId === s.id}
                       />
                     </div>
                     <p className="text-muted-foreground text-sm mb-1">{s.address}</p>

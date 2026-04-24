@@ -34,7 +34,7 @@ export default function AdminShell({ lang, section, pendingCount, adminName, adm
         lang={lang}
       />
 
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 lg:ml-[260px]">
         <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border px-4 lg:px-8 py-4 flex items-center gap-4">
           <button
             onClick={() => setMobileMenuOpen(true)}

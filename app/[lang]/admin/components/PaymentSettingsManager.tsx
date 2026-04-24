@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from './ui';
 import { updatePaymentSettings } from '@/lib/queries/payment-settings';
 import { useT } from '@/lib/i18n/client-dictionary';
@@ -67,19 +68,14 @@ export default function PaymentSettingsManager({ initialSettings, initialAccount
             <p className="text-sm font-medium text-foreground">{tAdmin('payment.acceptBankTransfers')}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{tAdmin('payment.acceptBankTransfersDesc')}</p>
           </div>
-          <label className={`relative inline-flex items-center ${hasAccounts ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
-            <input
-              type="checkbox"
-              checked={bankTransferEnabled}
-              onChange={(e) => {
-                if (!hasAccounts) return;
-                setBankTransferEnabled(e.target.checked);
-              }}
-              disabled={!hasAccounts}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
+          <Switch
+            checked={bankTransferEnabled}
+            onCheckedChange={(checked) => {
+              if (!hasAccounts) return;
+              setBankTransferEnabled(checked);
+            }}
+            disabled={!hasAccounts}
+          />
         </div>
 
         {!hasAccounts && (
