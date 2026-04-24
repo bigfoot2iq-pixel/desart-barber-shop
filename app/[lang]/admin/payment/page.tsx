@@ -68,14 +68,14 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
   ]);
 
   return (
-    <AdminShell
-      lang={lang}
-      section="payment"
-      pendingCount={pendingCount}
-      adminName={adminName}
-      adminEmail={adminEmail}
-    >
-      <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
+    <DictionaryProvider value={{ admin: adminDict, common: commonDict }}>
+      <AdminShell
+        lang={lang}
+        section="payment"
+        pendingCount={pendingCount}
+        adminName={adminName}
+        adminEmail={adminEmail}
+      >
         <div className="max-w-2xl mx-auto py-8 px-4 space-y-10">
           <PaymentSettingsManager
             initialSettings={settings as PaymentSettings}
@@ -83,7 +83,7 @@ export default async function AdminPaymentPage({ params }: PageProps<'/[lang]'>)
           />
           <PaymentBankAccountsManager initialAccounts={(accounts ?? []) as PaymentBankAccount[]} />
         </div>
-      </DictionaryProvider>
-    </AdminShell>
+      </AdminShell>
+    </DictionaryProvider>
   );
 }

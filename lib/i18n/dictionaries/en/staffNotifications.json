@@ -12,6 +12,7 @@
   "paymentLabel": "Payment",
   "notesLabel": "Notes",
   "professionalLabel": "Professional",
+  "adminLinkLabel": "View in admin dashboard",
   "created": {
     "subject": "New booking — {customerName} • {date}",
     "heading": "New {locationType} Booking — Pending",

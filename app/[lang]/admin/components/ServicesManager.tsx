@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Service } from '@/lib/types/database';
 import type { Locale } from '@/lib/i18n/config';
@@ -50,6 +50,13 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
       toast(tAdmin('services.toastRefreshFailed'), 'error');
     }
   }, [toast, tAdmin, lang]);
+
+  useEffect(() => {
+    if (initialServices.length === 0) {
+      refresh();
+    }
+
+  }, []);
 
   const openAddForm = () => {
     setEditingService(null);

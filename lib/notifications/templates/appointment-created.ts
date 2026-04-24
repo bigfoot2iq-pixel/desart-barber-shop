@@ -31,6 +31,10 @@ export async function buildAppointmentCreatedMessage(
   const startTimeStr = formatTime(apt.start_time, locale);
   const endTimeStr = formatTime(apt.end_time, locale);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+  const adminUrl = siteUrl ? `${siteUrl}/${locale}/admin` : '';
+  const adminLinkLabel = dict.adminLinkLabel as string;
+
   const interp = { customerName, date: dateStr, locationType, professionalName: '', serviceName: services };
   const subject = interpolate(created.subject, interp);
   const heading = interpolate(created.heading, interp);
@@ -46,6 +50,7 @@ export async function buildAppointmentCreatedMessage(
     `${dict.locationLabel as string}: ${locationName}`,
     `${dict.paymentLabel as string}: ${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD`,
     ...(apt.notes ? [`${dict.notesLabel as string}: ${apt.notes}`] : []),
+    ...(adminUrl ? ['', `${adminLinkLabel}: ${adminUrl}`] : []),
   ].join('\n');
 
   const html = `
@@ -62,6 +67,7 @@ export async function buildAppointmentCreatedMessage(
           <tr><td style="padding: 6px 0; color: #888;">${dict.paymentLabel as string}</td><td style="padding: 6px 0;">${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD</td></tr>
         </table>
         ${apt.notes ? `<div style="margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 4px; font-size: 13px; color: #555;"><strong>${dict.notesLabel as string}:</strong> ${apt.notes}</div>` : ''}
+        ${adminUrl ? `<div style="margin-top: 20px;"><a href="${adminUrl}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">${adminLinkLabel}</a></div>` : ''}
       </div>
     </div>
   `;
@@ -79,6 +85,9 @@ export async function buildAppointmentCreatedMessage(
   ];
   if (apt.notes) {
     telegramLines.push(`<b>${dict.notesLabel as string}:</b> ${apt.notes}`);
+  }
+  if (adminUrl) {
+    telegramLines.push('', `<a href="${adminUrl}">${adminLinkLabel}</a>`);
   }
 
   return {

@@ -12,6 +12,7 @@
   "paymentLabel": "Paiement",
   "notesLabel": "Notes",
   "professionalLabel": "Professionnel",
+  "adminLinkLabel": "Voir dans le tableau de bord admin",
   "created": {
     "subject": "Nouvelle réservation — {customerName} • {date}",
     "heading": "Nouvelle réservation {locationType} — En attente",
