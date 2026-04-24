@@ -198,6 +198,21 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   );
 
   useEffect(() => {
+    const { body, documentElement: html } = document;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+    body.style.overflow = "hidden";
+    html.style.overflow = "hidden";
+    body.style.overscrollBehavior = "contain";
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
     if (barbers.length === 0) return;
     const ids = barbers.map((b) => b.id);
     const today = new Date();
