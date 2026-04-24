@@ -5,7 +5,7 @@
     "headline2": "Style",
     "headline2Em": "affûté.",
     "subheadline": "Toilettage premium pour ceux qui connaissent la différence. Entrez, asseyez-vous, sortez plus élégant — sur rendez-vous ou à l'improviste.",
-    "reserveCta": "Réserver une place",
+    "reserveCta": "Réserver un fauteuil",
     "viewMenuCta": "Voir le menu",
     "hours": "9h00 — 17h00",
     "closed": "Vendredi",
@@ -14,12 +14,19 @@
   },
   "services": {
     "eyebrow": "Ce Que Nous Faisons",
-    "title": "Services"
+    "title": "Services",
+    "sublineCash": "Paiement en espèces uniquement. Réservation le jour même possible."
   },
   "team": {
     "eyebrow": "Les Artisans",
     "headline": "Rencontrez Notre",
-    "highlight": "Équipe"
+    "highlight": "Équipe",
+    "subline": "Chaque barbier a son style. Choisissez le vôtre, choisissez votre pro."
+  },
+  "closing": {
+    "quote1": "Votre fauteuil vous attend. Il ne vous manque qu'un",
+    "quote2": "rendez-vous.",
+    "cite": "Desart — Agadir, Depuis 2019"
   },
   "locations": {
     "eyebrow": "Trouvez-Nous",
@@ -31,8 +38,17 @@
     "homeVisitName": "Je me déplace",
     "homeVisitDescription": "Intervention à Domicile (+30 MAD)",
     "homeVisitCashNote": "Paiement en espèces le jour J. Pas de carte requise.",
-    "homeVisitCta": "Réserver à Domicile",
-    "closedOnFriday": "Fermé"
+    "homeVisitCta": "Réserver à domicile",
+    "closedOnFriday": "Fermé",
+    "subline": "Venez au salon ou faites-vous déplacer — à vous de choisir.",
+    "addressLine1": "14 Rue Mohammed V, Agadir Bay",
+    "addressLine2": "Agadir 40000, Maroc",
+    "hoursSatThuLabel": "Samedi – Jeudi",
+    "hoursFridayLabel": "Vendredi",
+    "bookLocationCta": "Réserver ce salon",
+    "homeVisitFee": "+30 MAD Frais de Déplacement",
+    "homeVisitBody": "Nous nous déplaçons partout à Agadir. Indiquez votre adresse lors de la réservation.",
+    "homeVisitHoursBody": "Sam–Jeu · 9h00 – 17h00. Mêmes barbiers, même qualité, chez vous."
   },
   "payment": {
     "cashInstructions": "Payez {total} en espèces lors de votre rendez-vous. Les annulations sont gratuites ; prévenez-nous à l'avance."
@@ -156,10 +172,47 @@
     "locations": "Emplacements",
     "bookNow": "Réserver",
     "contact": "Contact",
-    "address": "14 Rue Mohammed V, Agadir",
+    "address": "14 Rue Mohammed V, Agadir Bay",
     "hoursSatThu": "Sam–Jeu : 9h00 – 17h00",
     "hoursFriday": "Vendredi : Fermé",
-    "copyright": "© 2026 Desart. Cash uniquement · Agadir, Maroc"
+    "copyright": "© 2026 Desart. Cash uniquement · Agadir, Maroc",
+    "tagline": "Expérience barbier premium au cœur d'Agadir. Visites sans rendez-vous acceptées, rendez-vous recommandés. Paiement en espèces uniquement — toujours.",
+    "phone": "+212 612-21-33-24",
+    "phoneHref": "+212612213324"
+  },
+  "beforeAfter": {
+    "eyebrow": "La Preuve",
+    "headline": "Avant ·",
+    "headlineEm": "Après",
+    "subheadline": "Vrais fauteuils. Vrais clients. Glissez pour voir la différence d'une coupe Desart.",
+    "dragHint": "Glisser pour révéler",
+    "beforeLabel": "Avant",
+    "afterLabel": "Après",
+    "sliderAria": "Comparateur avant-après. Utilisez les flèches gauche et droite pour révéler davantage chaque image.",
+    "transformations": [
+      { "caption": "Dégradé & Barbe", "tag": "Dégradé Précision" },
+      { "caption": "Nouvelle Identité", "tag": "Transformation Totale" },
+      { "caption": "Coupe Classique", "tag": "Artisanat Traditionnel" },
+      { "caption": "Coupe Texturée", "tag": "Allure Moderne" },
+      { "caption": "Barbe Restructurée", "tag": "Soin Signature" }
+    ]
+  },
+  "reviews": {
+    "eyebrow": "Ce Que Disent les Clients",
+    "items": [
+      {
+        "quote": "Le meilleur dégradé que j'ai eu à Agadir. Lignes nettes, pas de précipitation, exactement ce que j'ai demandé.",
+        "name": "Youssef B."
+      },
+      {
+        "quote": "Entré sans rendez-vous et j'ai quand même eu le traitement complet. Professionnel du début à la fin.",
+        "name": "Karim E."
+      },
+      {
+        "quote": "La sculpture de barbe est d'un autre niveau. Je reviens toutes les deux semaines depuis 2022.",
+        "name": "Amine T."
+      }
+    ]
   },
   "misc": {
     "menu": "Menu",

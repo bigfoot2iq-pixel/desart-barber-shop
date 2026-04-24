@@ -3,9 +3,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { DictionaryProvider, useT } from "@/lib/i18n/client-dictionary";
 import { formatMoney } from "@/lib/i18n/format";
-import { HERO_VIDEOS, DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
+import { DesktopVideoGrid, MobileVideoCarousel } from "@/app/components/video-grid";
+import { BeforeAfterSection } from "@/app/components/before-after";
 import { LocaleSwitcher } from "@/app/components/locale-switcher";
 import { getActiveProfessionalsWithServices, getActiveServices } from "@/lib/queries";
 import type { ProfessionalWithServices } from "@/lib/queries/appointments";
@@ -16,8 +18,6 @@ import type { BarberOption, ServiceOption } from "./_booking/types";
 import type { BookingModalProps } from "./_booking/booking-modal";
 
 const BookingModal = dynamic<BookingModalProps>(() => import("./_booking/booking-modal").then((m) => m.BookingModal), { ssr: false });
-
-const REEL_DURATION_MS = 5000;
 
 export interface BookingExperienceProps {
   locale: Locale;
@@ -32,7 +32,6 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [slideIndex, setSlideIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [expandedTeamMember, setExpandedTeamMember] = useState<string | null>(null);
@@ -101,14 +100,6 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setSlideIndex((previous) => (previous + 1) % HERO_VIDEOS.length);
-    }, REEL_DURATION_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [slideIndex]);
-
   const openModal = () => {
     setIsModalOpen(true);
   };
@@ -123,16 +114,11 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
     <>
       <nav id="main-nav" className={`fixed top-0 left-0 right-0 z-[300] flex items-center justify-between lg:px-[100px] px-[56px] py-5 transition-[background,padding] duration-300 ${isScrolled ? "bg-[rgb(10_8_0/90%)] [backdrop-filter:blur(18px)] py-[14px] border-b border-[rgb(254_251_243/10%)]" : ""}`}>
         <div className="flex items-center gap-2.5 font-playfair text-2xl font-bold tracking-[0.14em] text-gold3">
-          <img src="/logo.jpg" alt="Desart" className="w-8 h-8 rounded-full object-cover shrink-0 md:w-9 md:h-9" />
+          <Image src="/logo.jpg" alt="Desart" width={36} height={36} className="rounded-full object-cover shrink-0 md:w-9 md:h-9" priority />
           DESART
         </div>
         <div className="flex items-center gap-4">
           <LocaleSwitcher locale={locale} variant="light" />
-          <button type="button" className="hidden flex-col gap-[5px] p-1" aria-label={tBooking('misc.menu')}>
-            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-            <span className="block w-[22px] h-[1.5px] bg-brand-white" />
-          </button>
         </div>
       </nav>
 
@@ -143,19 +129,19 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
           <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
             {tBooking('hero.tagline')}
           </span>
-          <h1 className="font-fraunces font-normal text-[clamp(48px,5.5vw,76px)] leading-[.92] tracking-[-0.035em] whitespace-nowrap">
+          <h1 className="font-fraunces font-normal text-[clamp(48px,5.5vw,76px)] leading-[.92] tracking-[-0.035em]">
             {tBooking('hero.headline1')}<br />
             {tBooking('hero.headline2')} <em className="italic font-normal text-gold3">{tBooking('hero.headline2Em')}</em>
           </h1>
           <p className="mt-7 text-brand-white/60 text-base leading-[1.7] max-w-[440px] font-light">
             {tBooking('hero.subheadline')}
           </p>
-          <div className="flex gap-3.5 items-center mt-10 flex-wrap max-sm:hidden">
+          <div className="flex gap-3.5 items-center mt-10 flex-wrap max-sm:flex-col max-sm:items-stretch">
             <button
               type="button"
               onClick={openModal}
               onMouseEnter={prefetchModal}
-              className="open-booking inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3"
+              className="open-booking inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3 max-sm:w-full max-sm:justify-center"
               data-testid="btn:open-booking"
             >
               {tBooking('hero.reserveCta')}
@@ -163,23 +149,19 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
             </button>
             <a
               href="#services"
-              className="inline-flex items-center gap-2.5 px-[22px] py-[15px] text-brand-white border border-brand-white/25 text-[11px] tracking-[.16em] uppercase font-semibold transition-[border-color] duration-150 hover:border-brand-white"
+              className="inline-flex items-center gap-2.5 px-[22px] py-[15px] text-brand-white border border-brand-white/25 text-[11px] tracking-[.16em] uppercase font-semibold transition-[border-color] duration-150 hover:border-brand-white max-sm:w-full max-sm:justify-center"
             >
               {tBooking('hero.viewMenuCta')}
             </a>
           </div>
-          <div className="flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50 max-sm:gap-5 max-sm:mt-10 max-sm:hidden">
+          <div className="flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50 max-sm:gap-5 max-sm:mt-10">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.hours')}</span>
-              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">9:00 — 17:00</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.closed')}</span>
-              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">Friday</span>
+              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.hours')}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.payment')}</span>
-              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">Cash only</span>
+              <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.cashOnly')}</span>
             </div>
           </div>
         </div>
@@ -200,6 +182,8 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
 
       </section>
 
+      <BeforeAfterSection />
+
       <section id="services" className="bg-gold-bg text-brand-black py-12 px-4">
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
@@ -207,7 +191,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
               <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">{tBooking('services.eyebrow')}</div>
               <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic">{tBooking('services.title')}</h2>
             </div>
-            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Cash only. Same-day booking available.</p>
+            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">{tBooking('services.sublineCash')}</p>
           </div>
 
           <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-[2px]">
@@ -260,7 +244,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
       </section>
 
       <div className="bg-gold overflow-hidden py-[22px] border-y border-[rgb(10_8_0/10%)]">
-        <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused]">
+        <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none">
           {[...Array(2)].flatMap((_, repeatIndex) =>
             Array.from({ length: 7 }, (_, i) => (
               <div
@@ -274,6 +258,27 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </div>
 
+      <section className="bg-brand-black text-brand-white py-12 px-4">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(254_251_243/50%)] mb-[14px]">{tBooking('reviews.eyebrow')}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-[rgb(254_251_243/5%)] border border-[rgb(254_251_243/10%)] rounded-[14px] p-7">
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(5)].map((_, s) => (
+                    <svg key={s} className="w-4 h-4 text-gold3 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                      <path d="M10 1l2.39 4.84 5.34.78-3.87 3.77.91 5.33L10 13.27l-4.77 2.51.91-5.33L2.27 6.68l5.34-.78L10 1z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-[15px] font-light leading-[1.75] text-[rgb(254_251_243/75%)] mb-5">{tBooking(`reviews.items.${i}.quote`)}</p>
+                <span className="text-[12px] font-medium tracking-[0.06em] uppercase text-gold3">{tBooking(`reviews.items.${i}.name`)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="team" className="bg-brand-black text-brand-white py-12 px-4">
         <div className="max-w-[1160px] mx-auto">
           <div className="flex flex-col items-start gap-3 mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:mb-14">
@@ -282,7 +287,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
               <h2 className="font-playfair text-[clamp(40px,5vw,66px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[14px] [&_em]:italic text-brand-white">
                 {tBooking('team.headline')} <em className="text-gold3">{tBooking('team.highlight')}</em>
               </h2>
-              <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60 text-[rgb(254_251_243/50%)]">Every one of our barbers brings a distinct edge. Pick your style, pick your pro.</p>
+              <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60 text-[rgb(254_251_243/50%)]">{tBooking('team.subline')}</p>
             </div>
           </div>
 
@@ -339,7 +344,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                   <div className="relative h-[300px] bg-[#161208] flex items-center justify-center overflow-hidden">
                     {barber.imageUrl ? (
                       <>
-                        <img src={barber.imageUrl} alt={barber.name} className="absolute inset-0 w-full h-full object-cover" />
+                        <Image src={barber.imageUrl} alt={barber.name} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" />
                         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(22_18_8)_0%,rgb(22_18_8/60%)_40%,transparent_70%)]" />
                       </>
                     ) : (
@@ -366,11 +371,18 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
       <div className="relative overflow-hidden bg-black2 border-t-2 border-gold/30 py-16 px-6 text-center md:py-24 md:px-14 lg:py-28">
         <div className="pointer-events-none absolute -top-[200px] left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(192,154,90,0.07)_0%,transparent_65%)]" />
         <div className="relative z-10 mx-auto max-w-[820px]">
-          
           <p className="mb-7 font-playfair text-[clamp(1.875rem,4.5vw,3.25rem)] font-normal italic leading-snug text-brand-white">
-            Your chair is waiting. Your best look is one appointment <em className="not-italic text-gold3">away.</em>
+            {tBooking('closing.quote1')} <em className="not-italic text-gold3">{tBooking('closing.quote2')}</em>
           </p>
-          <cite className="text-xs font-normal uppercase tracking-[0.18em] text-brand-white/30 not-italic">Desart — Agadir, Since 2019</cite>
+          <button
+            type="button"
+            onClick={openModal}
+            onMouseEnter={prefetchModal}
+            className="inline-flex items-center gap-2.5 px-[22px] py-[15px] bg-brand-white text-brand-black text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3 open-booking"
+          >
+            {tCommon('bookNow')}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+          </button>
         </div>
       </div>
 
@@ -383,7 +395,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                 {tBooking('locations.headline')} <em>{tBooking('locations.highlight')}</em>
               </h2>
             </div>
-            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">Visit us at the salon or let us come to you — your call.</p>
+            <p className="text-[17px] font-light leading-[1.8] max-w-[480px] opacity-60">{tBooking('locations.subline')}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
@@ -395,48 +407,48 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
                   <circle cx="12" cy="10" r="3" />
                 </svg>
                 <p className="text-sm leading-[1.7] opacity-70">
-                  14 Rue Mohammed V, Medína
+                  {tBooking('locations.addressLine1')}
                   <br />
-                  Agadir 40000, Morocco
+                  {tBooking('locations.addressLine2')}
                 </p>
               </div>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">+212 6 1221-3324</p>
+                <p className="text-sm leading-[1.7] opacity-70">{tBooking('footer.phone')}</p>
               </div>
               <div className="flex flex-col gap-0 mt-[18px]">
                 <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
-                  <span className="opacity-50">Saturday – Thursday</span>
-                  <span className="font-medium">9:00 – 17:00</span>
+                  <span className="opacity-50">{tBooking('locations.hoursSatThuLabel')}</span>
+                  <span className="font-medium">{tBooking('hero.hours')}</span>
                 </div>
                 <div className="flex justify-between text-[13px] py-2.5 border-b border-[rgb(10_8_0/10%)]">
-                  <span className="opacity-50">Friday</span>
+                  <span className="opacity-50">{tBooking('locations.hoursFridayLabel')}</span>
                   <span className="font-medium">{tBooking('locations.closedOnFriday')}</span>
                 </div>
               </div>
               <button type="button" className="mt-8 bg-brand-black text-white text-[11px] font-medium tracking-[0.1em] uppercase py-[13px] px-7 rounded-[3px] inline-block cursor-pointer transition-all duration-200 hover:bg-ink hover:-translate-y-px open-booking" onClick={openModal} onMouseEnter={prefetchModal}>
-                Book This Location →
+                {tBooking('locations.bookLocationCta')} →
               </button>
             </div>
 
             <div className="bg-[rgb(10_8_0/7%)] rounded-[18px] p-6 sm:p-11">
               <h3 className="font-playfair text-[30px] font-normal mb-[7px]">{tBooking('locations.homeVisit')}</h3>
-              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">+30 MAD Travel Fee</span>
+              <span className="text-[11px] tracking-[0.12em] uppercase text-[rgb(10_8_0/55%)] mb-7 block">{tBooking('locations.homeVisitFee')}</span>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">We travel anywhere within Agadir city limits. Just provide your address at booking.</p>
+                <p className="text-sm leading-[1.7] opacity-70">{tBooking('locations.homeVisitBody')}</p>
               </div>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <p className="text-sm leading-[1.7] opacity-70">Sat–Thu · 9:00 – 17:00. Same barbers, same quality, at your door.</p>
+                <p className="text-sm leading-[1.7] opacity-70">{tBooking('locations.homeVisitHoursBody')}</p>
               </div>
               <div className="flex items-start gap-3.5 mb-[18px]">
                 <svg className="w-[18px] h-[18px] shrink-0 mt-px opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -459,8 +471,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
             <div>
               <span className="font-playfair text-[28px] font-bold tracking-[0.14em] text-gold3 block mb-4">DESART</span>
               <p className="text-sm text-[rgb(254_251_243/40%)] leading-[1.85] max-w-[270px]">
-                Premium barbershop experience in the heart of Agadir. Walk-ins welcome, appointments preferred. Cash
-                only — always.
+                {tBooking('footer.tagline')}
               </p>
             </div>
             <div>
@@ -493,7 +504,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
               <ul className="list-none flex flex-col gap-3">
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.address')}</li>
                 <li>
-                  <a href="tel:+212612213324" className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">+212 6 1221-3324</a>
+                  <a href={`tel:${tBooking('footer.phoneHref')}`} className="text-sm text-[rgb(254_251_243/40%)] transition-colors duration-200 hover:text-white">{tBooking('footer.phone')}</a>
                 </li>
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursSatThu')}</li>
                 <li className="text-sm text-[rgb(254_251_243/40%)]">{tBooking('footer.hoursFriday')}</li>

@@ -5,7 +5,7 @@
     "headline2": "Sharper",
     "headline2Em": "style.",
     "subheadline": "Premium grooming for those who know the difference. Walk in, sit down, walk out sharper — by appointment or by chance.",
-    "reserveCta": "Reserve a chair",
+    "reserveCta": "Book a chair",
     "viewMenuCta": "View menu",
     "hours": "9:00 — 17:00",
     "closed": "Friday",
@@ -14,12 +14,19 @@
   },
   "services": {
     "eyebrow": "What We Do",
-    "title": "Services"
+    "title": "Services",
+    "sublineCash": "Cash only. Same-day booking available."
   },
   "team": {
     "eyebrow": "The Craftsmen",
     "headline": "Meet Our",
-    "highlight": "Team"
+    "highlight": "Team",
+    "subline": "Every one of our barbers brings a distinct edge. Pick your style, pick your pro."
+  },
+  "closing": {
+    "quote1": "Your chair is waiting. Your best look is one appointment",
+    "quote2": "away.",
+    "cite": "Desart — Agadir, Since 2019"
   },
   "locations": {
     "eyebrow": "Find Us",
@@ -31,8 +38,17 @@
     "homeVisitName": "Come To Me",
     "homeVisitDescription": "Home Visit (+30 MAD)",
     "homeVisitCashNote": "Cash payment on the day. No card required at booking.",
-    "homeVisitCta": "Book Home Visit",
-    "closedOnFriday": "Closed"
+    "homeVisitCta": "Book a home visit",
+    "closedOnFriday": "Closed",
+    "subline": "Visit us at the salon or let us come to you — your call.",
+    "addressLine1": "14 Rue Mohammed V, Agadir Bay",
+    "addressLine2": "Agadir 40000, Morocco",
+    "hoursSatThuLabel": "Saturday – Thursday",
+    "hoursFridayLabel": "Friday",
+    "bookLocationCta": "Book this location",
+    "homeVisitFee": "+30 MAD Travel Fee",
+    "homeVisitBody": "We travel anywhere within Agadir city limits. Just provide your address at booking.",
+    "homeVisitHoursBody": "Sat–Thu · 9:00 – 17:00. Same barbers, same quality, at your door."
   },
   "payment": {
     "cashInstructions": "Pay {total} in cash at your appointment. Cancellations are free; let us know in advance."
@@ -156,10 +172,47 @@
     "locations": "Locations",
     "bookNow": "Book Now",
     "contact": "Contact",
-    "address": "14 Rue Mohammed V, Agadir",
+    "address": "14 Rue Mohammed V, Agadir Bay",
     "hoursSatThu": "Sat–Thu: 9:00 – 17:00",
     "hoursFriday": "Friday: Closed",
-    "copyright": "© 2026 Desart. Cash only · Agadir, Morocco"
+    "copyright": "© 2026 Desart. Cash only · Agadir, Morocco",
+    "tagline": "Premium barbershop experience in the heart of Agadir. Walk-ins welcome, appointments preferred. Cash only — always.",
+    "phone": "+212 612-21-33-24",
+    "phoneHref": "+212612213324"
+  },
+  "beforeAfter": {
+    "eyebrow": "The Proof",
+    "headline": "Before ·",
+    "headlineEm": "After",
+    "subheadline": "Real chairs. Real clients. Drag to see the difference a Desart cut makes.",
+    "dragHint": "Drag to reveal",
+    "beforeLabel": "Before",
+    "afterLabel": "After",
+    "sliderAria": "Before-and-after comparison slider. Use left and right arrow keys to reveal more of each image.",
+    "transformations": [
+      { "caption": "Fade & Beard Sculpt", "tag": "Precision Fade" },
+      { "caption": "Full Restyle", "tag": "Complete Makeover" },
+      { "caption": "Classic Cut Refresh", "tag": "Heritage Craft" },
+      { "caption": "Textured Crop", "tag": "Modern Edge" },
+      { "caption": "Beard Reshape", "tag": "Signature Grooming" }
+    ]
+  },
+  "reviews": {
+    "eyebrow": "What Clients Say",
+    "items": [
+      {
+        "quote": "Best fade I've had in Agadir. Clean lines, no rush, exactly what I asked for.",
+        "name": "Youssef B."
+      },
+      {
+        "quote": "Walked in without an appointment and still got the full treatment. Professional from start to finish.",
+        "name": "Karim E."
+      },
+      {
+        "quote": "The beard sculpting is next level. I've been coming back every two weeks since 2022.",
+        "name": "Amine T."
+      }
+    ]
   },
   "misc": {
     "menu": "Menu",
