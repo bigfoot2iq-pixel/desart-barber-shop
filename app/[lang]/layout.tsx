@@ -4,9 +4,11 @@ import { Playfair_Display, DM_Sans, Geist, Fraunces } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import '../globals.css';
 import { cn } from '@/lib/utils';
-import { hasLocale, type Locale } from '@/lib/i18n/config';
+import { hasLocale, type Locale, i18n } from '@/lib/i18n/config';
 import { notFound } from 'next/navigation';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
+import { BASE_URL, BUSINESS_NAME, PHONE, ADDRESS_LOCALITY, ADDRESS_COUNTRY, GEO_LATITUDE, GEO_LONGITUDE, PRICE_RANGE, PAYMENT_ACCEPTED, OPENING_HOURS, LOGO_URL, OG_IMAGE_URL } from '@/lib/seo/constants';
+import { buildWebSiteJsonLd, buildLocalBusinessJsonLd } from '@/lib/seo/json-ld';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -35,35 +37,33 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
   const dict = await getDictionary(lang as Locale, 'common');
   const meta = (dict.meta ?? {}) as Record<string, string>;
 
-  const baseUrl = 'https://www.desart.ma';
-  const canonical = `${baseUrl}/${lang}`;
+  const canonical = `${BASE_URL}/${lang}`;
 
   return {
-    title: meta.title ?? 'DESART',
+    title: meta.title ?? BUSINESS_NAME,
     description: meta.description ?? '',
     icons: {
-      icon: '/logo.jpg',
+      icon: LOGO_URL,
     },
-    metadataBase: new URL(baseUrl),
+    metadataBase: new URL(BASE_URL),
     alternates: {
       canonical,
       languages: {
-        fr: '/fr',
-        en: '/en',
-        'x-default': '/',
+        ...Object.fromEntries(i18n.locales.map((l) => [l, `/${l}`])),
+        'x-default': `/${i18n.defaultLocale}`,
       },
     },
     openGraph: {
-      title: meta.title ?? 'DESART — Premium Barbershop',
+      title: meta.title ?? `${BUSINESS_NAME} — Premium Barbershop`,
       description: meta.description ?? '',
       url: canonical,
-      siteName: 'DESART',
+      siteName: BUSINESS_NAME,
       images: [
         {
-          url: '/og-image.jpg',
+          url: OG_IMAGE_URL,
           width: 1200,
           height: 630,
-          alt: 'DESART — Premium Barbershop in Agadir',
+          alt: `${BUSINESS_NAME} — Premium Barbershop in Agadir`,
         },
       ],
       locale: lang === 'fr' ? 'fr_MA' : 'en_US',
@@ -71,9 +71,9 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
     },
     twitter: {
       card: 'summary_large_image',
-      title: meta.title ?? 'DESART — Premium Barbershop',
+      title: meta.title ?? `${BUSINESS_NAME} — Premium Barbershop`,
       description: meta.description ?? '',
-      images: ['/og-image.jpg'],
+      images: [OG_IMAGE_URL],
     },
     robots: {
       index: true,
@@ -98,7 +98,7 @@ export const viewport = {
 };
 
 export async function generateStaticParams() {
-  return [{ lang: 'fr' }, { lang: 'en' }];
+  return i18n.locales.map((lang) => ({ lang }));
 }
 
 export default async function RootLayout({
@@ -111,53 +111,8 @@ export default async function RootLayout({
     notFound();
   }
 
-  const baseUrl = 'https://www.desart.ma';
-
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'DESART',
-    url: baseUrl,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${baseUrl}/${lang}?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
-  const localBusinessJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'HairSalon',
-    name: 'DESART',
-    image: `${baseUrl}/logo.jpg`,
-    url: `${baseUrl}/${lang}`,
-    telephone: '+212612213324',
-    priceRange: '$$',
-    paymentAccepted: 'Cash',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Agadir',
-      addressCountry: 'MA',
-    },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: 30.4278,
-      longitude: -9.5981,
-    },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday', 'Sunday'],
-        opens: '09:00',
-        closes: '17:00',
-      },
-    ],
-    areaServed: {
-      '@type': 'City',
-      name: 'Agadir',
-    },
-    sameAs: [],
-  };
+  const websiteJsonLd = buildWebSiteJsonLd(lang);
+  const localBusinessJsonLd = buildLocalBusinessJsonLd(lang);
 
   return (
     <html
