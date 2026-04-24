@@ -226,7 +226,6 @@ Nullable — existing rows keep English in the base column; `_fr` backfilled man
 ---
 
 ## 5. Risks & open questions
-
 | Risk | Mitigation |
 | --- | --- |
 | `app/page.tsx` is one 2293-line client component — splitting it to add a server wrapper may destabilize stateful behavior. | Do the split as a mechanical no-op commit first (Phase 2 step 2), verify booking still works, then extract strings in a second commit. |
