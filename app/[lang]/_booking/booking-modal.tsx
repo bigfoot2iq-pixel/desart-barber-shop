@@ -172,6 +172,14 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     [selectedTime, availableTimeSlots]
   );
 
+  const visibleBarbers = useMemo(
+    () =>
+      selectedLocation?.type === "home"
+        ? barbers.filter((b) => b.offersHomeVisit)
+        : barbers,
+    [barbers, selectedLocation]
+  );
+
   const nextAvailableByBarber = useMemo(() => {
     const map = new Map<string, DateSlot | null>();
     for (const barber of barbers) {
@@ -1185,22 +1193,26 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                             </div>
                           ))}
                         </>
-                      ) : barbers.map((barber) => {
-                        const isBarberSelected = selectedBarber?.id === barber.id;
-                        const nextAvailable = nextAvailableByBarber.get(barber.id);
-                        const hasAvailabilityData = barberWeekly.some((w) => w.professional_id === barber.id);
-                        return (
-                          <button
-                            key={barber.id}
-                            type="button"
-                            data-testid={`btn:barber-${barber.id}`}
-                            className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${
-                              isBarberSelected
-                                ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]"
-                                : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
-                            } focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
-                            onClick={() => setSelectedBarber(barber)}
-                          >
+                      ) : visibleBarbers.length === 0 ? (
+                          <p className="text-[13px] text-[rgb(10_8_0/55%)] text-center py-8">
+                            {tBooking("steps.barber.noHomeBarbers")}
+                          </p>
+                        ) : visibleBarbers.map((barber) => {
+                          const isBarberSelected = selectedBarber?.id === barber.id;
+                          const nextAvailable = nextAvailableByBarber.get(barber.id);
+                          const hasAvailabilityData = barberWeekly.some((w) => w.professional_id === barber.id);
+                          return (
+                            <button
+                              key={barber.id}
+                              type="button"
+                              data-testid={`btn:barber-${barber.id}`}
+                              className={`flex items-center gap-3.5 rounded-2xl px-[18px] py-4 text-left transition-all duration-250 relative ${
+                                isBarberSelected
+                                  ? "border-[1.5px] border-gold bg-gold shadow-[0_4px_16px_rgb(192_154_90/15%),0_2px_6px_rgb(0_0_0/4%)]"
+                                  : "bg-white border-[1.5px] border-[rgb(10_8_0/14%)] shadow-[0_1px_3px_rgb(0_0_0/4%)] hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgb(0_0_0/5%)]"
+                              } focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
+                              onClick={() => setSelectedBarber(barber)}
+                            >
                             <div className="relative flex items-center justify-center shrink-0">
                               {barber.imageUrl ? (
                                 <img

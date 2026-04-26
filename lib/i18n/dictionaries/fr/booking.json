@@ -86,7 +86,8 @@
       "loadingTeam": "Chargement de l'équipe…",
       "next": "Prochain",
       "unavailable": "Indisponible",
-      "noServices": "Ce barbier n'a pas de services répertoriés pour le moment."
+      "noServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
+      "noHomeBarbers": "[TRANSLATION NEEDED] No barbers are available for home visits. Please choose a salon location."
     },
     "service": {
       "title": "Choisir un Service",
