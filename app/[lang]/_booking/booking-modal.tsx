@@ -181,16 +181,24 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
         map.set(barber.id, null);
         continue;
       }
+      const barberServiceIds = new Set(barber.services.map((s) => s.id));
+      const compatibleDuration = selectedServices
+        .filter((s) => barberServiceIds.has(s.id))
+        .reduce((sum, s) => sum + s.duration, 0);
+      const maxBarberServiceDuration = barber.services.length > 0
+        ? Math.max(...barber.services.map((s) => s.duration))
+        : SLOT_STEP_MINUTES;
+      const durationToCheck = compatibleDuration > 0 ? compatibleDuration : maxBarberServiceDuration;
       const found = dateSlots.find((slot) => {
         const hours = getWorkingHoursForDate(slot.id, weekly, overrides);
         if (!hours) return false;
         const booked = bookingsByBarberDate.get(`${barber.id}:${slot.id}`) ?? [];
-        return buildTimeSlots(hours, SLOT_STEP_MINUTES, booked).length > 0;
+        return buildTimeSlots(hours, durationToCheck, booked).length > 0;
       }) ?? null;
       map.set(barber.id, found);
     }
     return map;
-  }, [barbers, barberWeekly, barberOverrides, dateSlots, bookingsByBarberDate]);
+  }, [barbers, barberWeekly, barberOverrides, dateSlots, bookingsByBarberDate, selectedServices]);
 
   const { label: homePinLabel, loading: homePinGeoLoading } = useReverseGeocode(
     homePin?.lat ?? null,
