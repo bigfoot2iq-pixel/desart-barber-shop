@@ -38,12 +38,14 @@ export function getWorkingHoursForDate(
 export function buildTimeSlots(
   hours: WorkingHours,
   durationMin: number,
-  booked: { start_time: string; end_time: string }[]
+  booked: { start_time: string; end_time: string }[],
+  nowMinutes?: number
 ): string[] {
   if (!hours || durationMin <= 0) return [];
   const slots: string[] = [];
   const bookedRanges = booked.map((b) => ({ start: toMinutes(b.start_time), end: toMinutes(b.end_time) }));
   for (let t = hours.start; t + durationMin <= hours.end; t += SLOT_STEP_MINUTES) {
+    if (nowMinutes !== undefined && t < nowMinutes) continue;
     const slotEnd = t + durationMin;
     const conflicts = bookedRanges.some((b) => t < b.end && slotEnd > b.start);
     if (!conflicts) slots.push(toHHMM(t));
@@ -56,12 +58,17 @@ export type TimeSlotStatus = { time: string; available: boolean };
 export function buildTimeSlotsWithStatus(
   hours: WorkingHours,
   durationMin: number,
-  booked: { start_time: string; end_time: string }[]
+  booked: { start_time: string; end_time: string }[],
+  nowMinutes?: number
 ): TimeSlotStatus[] {
   if (!hours || durationMin <= 0) return [];
   const slots: TimeSlotStatus[] = [];
   const bookedRanges = booked.map((b) => ({ start: toMinutes(b.start_time), end: toMinutes(b.end_time) }));
   for (let t = hours.start; t + durationMin <= hours.end; t += SLOT_STEP_MINUTES) {
+    if (nowMinutes !== undefined && t < nowMinutes) {
+      slots.push({ time: toHHMM(t), available: false });
+      continue;
+    }
     const slotEnd = t + durationMin;
     const conflicts = bookedRanges.some((b) => t < b.end && slotEnd > b.start);
     slots.push({ time: toHHMM(t), available: !conflicts });

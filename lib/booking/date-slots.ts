@@ -14,6 +14,7 @@ export function buildDateSlots(): DateSlot[] {
   const slots: DateSlot[] = [];
   const today = new Date();
 
+  // Same-day booking is disabled — start at i=1 (tomorrow).
   for (let i = 1; i <= BOOKING_WINDOW_DAYS; i += 1) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
