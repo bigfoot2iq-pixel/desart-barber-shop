@@ -87,7 +87,7 @@
       "next": "Prochain",
       "unavailable": "Indisponible",
       "noServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
-      "noHomeBarbers": "[TRANSLATION NEEDED] No barbers are available for home visits. Please choose a salon location."
+      "noHomeBarbers": "Aucun barbier ne propose de visite à domicile pour le moment. Veuillez choisir un salon."
     },
     "service": {
       "title": "Choisir un Service",
@@ -104,7 +104,7 @@
       "noSlotsAvailable": "Aucun créneau disponible ce jour — essayez une autre date.",
       "pickDateFirst": "Sélectionnez d'abord une date.",
       "timeUnavailable": "Cet horaire vient d'être réservé",
-      "noWindowAvailability": "[TRANSLATION NEEDED] No availability for this service in the next 30 days. Try a shorter service or a different barber."
+      "noWindowAvailability": "Aucune disponibilité pour ce service dans les 30 prochains jours. Essayez un service plus court ou un autre barbier."
     },
     "details": {
       "title": "Vos Coordonnées",

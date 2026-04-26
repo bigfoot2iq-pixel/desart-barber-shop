@@ -1,117 +1,41 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState } from "react";
 
-export const HERO_VIDEOS = [
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-1.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-2.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-3.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-4.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-5.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-6.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-7.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-8.mp4",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero-9.mp4",
-];
-
 export const HERO_POSTERS = [
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/541260030_18059495783608146_4856252116259725248_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/542452496_18059495792608146_6421732188312726390_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero_image1.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/hero_image2.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534722343_18057781862608146_7959853147981792687_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534556051_18057781871608146_1254431213968927712_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534204638_18057781697608146_721036477502845430_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/533069458_18057781676608146_3800107074629042768_n.jpg",
-  "https://ftqpkwbbrnvwpgcxiuli.supabase.co/storage/v1/object/public/desart-barber-shop/534456039_18057884639608146_912865595270611338_n.jpg",
+  "/hero/hero-1.jpg",
+  "/hero/hero-2.jpg",
+  "/hero/hero-3.jpg",
+  "/hero/hero-4.jpg",
+  "/hero/hero-5.jpg",
+  "/hero/hero-6.jpg",
+  "/hero/hero-7.jpg",
+  "/hero/hero-8.jpg",
+  "/hero/hero-9.jpg",
 ];
 
-export const VIDEO_META: {
+export const HERO_META: {
   src: string;
-  poster: string;
   title: string;
   style: string;
   likes: string;
   views: string;
 }[] = [
-  {
-    src: HERO_VIDEOS[0],
-    poster: HERO_POSTERS[0],
-    title: "The Classic Cut — Where Tradition Meets Modern Elegance",
-    style: "Timeless Precision",
-    likes: "2.4K",
-    views: "12.8K",
-  },
-  {
-    src: HERO_VIDEOS[1],
-    poster: HERO_POSTERS[1],
-    title: "Skin Fade Mastery — Clean Lines, Bold Statements",
-    style: "Sharp & Refined",
-    likes: "3.1K",
-    views: "18.2K",
-  },
-  {
-    src: HERO_VIDEOS[2],
-    poster: HERO_POSTERS[2],
-    title: "Beard Sculpting — Artistry in Every Detail",
-    style: "Precision Crafted",
-    likes: "1.9K",
-    views: "9.5K",
-  },
-  {
-    src: HERO_VIDEOS[3],
-    poster: HERO_POSTERS[3],
-    title: "Hot Towel Ritual — The Ultimate Grooming Experience",
-    style: "Pure Luxury",
-    likes: "2.7K",
-    views: "15.3K",
-  },
-  {
-    src: HERO_VIDEOS[4],
-    poster: HERO_POSTERS[4],
-    title: "Textured Flow — Effortless Style, Expert Execution",
-    style: "Modern Edge",
-    likes: "2.1K",
-    views: "11.4K",
-  },
-  {
-    src: HERO_VIDEOS[5],
-    poster: HERO_POSTERS[5],
-    title: "Straight Razor Finish — Old School, New Standard",
-    style: "Heritage Craft",
-    likes: "1.6K",
-    views: "8.7K",
-  },
-  {
-    src: HERO_VIDEOS[6],
-    poster: HERO_POSTERS[6],
-    title: "The Full Transformation — From Rough to Refined",
-    style: "Complete Makeover",
-    likes: "3.8K",
-    views: "22.1K",
-  },
-  {
-    src: HERO_VIDEOS[7],
-    poster: HERO_POSTERS[7],
-    title: "Signature Styling — Your Look, Elevated",
-    style: "Bespoke Grooming",
-    likes: "2.9K",
-    views: "16.5K",
-  },
-  {
-    src: HERO_VIDEOS[8],
-    poster: HERO_POSTERS[8],
-    title: "The Master's Touch — Where Art Meets Craft",
-    style: "Elite Grooming",
-    likes: "3.4K",
-    views: "19.8K",
-  },
+  { src: HERO_POSTERS[0], title: "The Classic Cut — Where Tradition Meets Modern Elegance", style: "Timeless Precision", likes: "2.4K", views: "12.8K" },
+  { src: HERO_POSTERS[1], title: "Skin Fade Mastery — Clean Lines, Bold Statements", style: "Sharp & Refined", likes: "3.1K", views: "18.2K" },
+  { src: HERO_POSTERS[2], title: "Beard Sculpting — Artistry in Every Detail", style: "Precision Crafted", likes: "1.9K", views: "9.5K" },
+  { src: HERO_POSTERS[3], title: "Hot Towel Ritual — The Ultimate Grooming Experience", style: "Pure Luxury", likes: "2.7K", views: "15.3K" },
+  { src: HERO_POSTERS[4], title: "Textured Flow — Effortless Style, Expert Execution", style: "Modern Edge", likes: "2.1K", views: "11.4K" },
+  { src: HERO_POSTERS[5], title: "Straight Razor Finish — Old School, New Standard", style: "Heritage Craft", likes: "1.6K", views: "8.7K" },
+  { src: HERO_POSTERS[6], title: "The Full Transformation — From Rough to Refined", style: "Complete Makeover", likes: "3.8K", views: "22.1K" },
+  { src: HERO_POSTERS[7], title: "Signature Styling — Your Look, Elevated", style: "Bespoke Grooming", likes: "2.9K", views: "16.5K" },
+  { src: HERO_POSTERS[8], title: "The Master's Touch — Where Art Meets Craft", style: "Elite Grooming", likes: "3.4K", views: "19.8K" },
 ];
 
-export function getVideoMeta(src: string) {
+export function getHeroMeta(src: string) {
   return (
-    VIDEO_META.find((m) => m.src === src) || {
-      poster: "",
+    HERO_META.find((m) => m.src === src) || {
       title: "",
       style: "",
       likes: "",
@@ -120,8 +44,10 @@ export function getVideoMeta(src: string) {
   );
 }
 
-export function VideoCell({ src, index }: { src: string; index: number }) {
-  const meta = getVideoMeta(src);
+const CELL_SIZES = "(max-width: 1024px) 33vw, 22vw";
+
+export function HeroCell({ src, eager = false }: { src: string; eager?: boolean }) {
+  const meta = getHeroMeta(src);
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -130,18 +56,15 @@ export function VideoCell({ src, index }: { src: string; index: number }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        poster={meta.poster}
-        aria-hidden="true"
-        className="w-full h-full object-cover block [filter:brightness(0.65)_contrast(1.1)_saturate(1.1)] transition-[filter,transform] duration-500 ease-out group-hover:[filter:brightness(0.75)_contrast(1.05)_saturate(1.15)] group-hover:scale-105"
-      >
-        <source src={src} type="video/mp4" />
-      </video>
+      <Image
+        src={src}
+        alt={meta.title || "Hero"}
+        fill
+        sizes={CELL_SIZES}
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
+        className="object-cover [filter:brightness(0.65)_contrast(1.1)_saturate(1.1)] transition-[filter,transform] duration-500 ease-out group-hover:[filter:brightness(0.75)_contrast(1.05)_saturate(1.15)] group-hover:scale-105"
+      />
       <span className="absolute top-2 left-2 lg:top-2.5 lg:left-2.5 inline-flex items-center gap-1 px-2 py-1 lg:px-2.5 lg:py-1 bg-[rgb(0_0_0/0.75)] border border-[rgb(212_175_55/0.5)] text-[#fefbe3] text-[8px] lg:text-[9px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(8px)] z-[2] pointer-events-none shadow-[0_2px_8px_rgb(0_0_0/0.4)] before:content-[''] before:w-1 before:h-1 lg:before:w-1.5 lg:before:h-1.5 before:rounded-full before:bg-gold3 before:shrink-0">
         {meta.style}
       </span>
@@ -161,12 +84,12 @@ export function VideoCell({ src, index }: { src: string; index: number }) {
 export function MobileVideoCarousel() {
   const [activeIndex, setActiveIndex] = useState(3);
   const touchStartX = useRef<number | null>(null);
-  const videos = HERO_VIDEOS.slice(0, 6);
-  const count = videos.length;
+  const images = HERO_POSTERS.slice(0, 6);
+  const count = images.length;
 
-  const leftVideo = videos[(activeIndex - 1 + count) % count];
-  const centerVideo = videos[activeIndex];
-  const rightVideo = videos[(activeIndex + 1) % count];
+  const leftImage = images[(activeIndex - 1 + count) % count];
+  const centerImage = images[activeIndex];
+  const rightImage = images[(activeIndex + 1) % count];
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -186,61 +109,57 @@ export function MobileVideoCarousel() {
   return (
     <div className="flex flex-col items-center gap-4 w-full">
       <div
-        className="absolute w-0 h-0 overflow-hidden pointer-events-none"
-        aria-hidden="true"
-      >
-        {videos.map((src) => (
-          <video key={src} preload="auto" src={src} muted />
-        ))}
-      </div>
-
-      {/* Cards */}
-      <div
         className="flex items-center justify-center gap-2 w-full [touch-action:pan-y] px-3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
-          <video autoPlay muted loop playsInline
-            poster={getVideoMeta(leftVideo).poster}
-            className="w-full h-full object-cover block"
-            src={leftVideo}
+          <Image
+            src={leftImage}
+            alt=""
+            fill
+            sizes="28vw"
+            className="object-cover"
           />
         </div>
 
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[58%] aspect-[9/14] transition-[transform] duration-300 scale-100">
-          <video autoPlay muted loop playsInline
-            poster={getVideoMeta(centerVideo).poster}
-            className="w-full h-full object-cover block"
-            src={centerVideo}
+          <Image
+            src={centerImage}
+            alt={getHeroMeta(centerImage).title}
+            fill
+            sizes="58vw"
+            loading="eager"
+            fetchPriority="high"
+            className="object-cover"
           />
           <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[rgb(0_0_0/0.7)] border border-[rgb(212_175_55/0.4)] text-[#fefbe3] text-[9px] max-sm:text-[7px] font-semibold tracking-[0.1em] uppercase [backdrop-filter:blur(6px)] z-[2] pointer-events-none before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:bg-gold3 before:shrink-0">
-            {getVideoMeta(centerVideo).style}
+            {getHeroMeta(centerImage).style}
           </span>
-          {/* Bottom title on center card */}
           <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-8 bg-gradient-to-t from-[rgb(10_8_0/0.85)] to-transparent pointer-events-none">
             <span className="text-[11px] font-light text-brand-white/70 leading-snug line-clamp-2">
-              {getVideoMeta(centerVideo).title}
+              {getHeroMeta(centerImage).title}
             </span>
           </div>
         </div>
 
         <div className="relative shrink-0 rounded-xl overflow-hidden bg-[#151515] w-[28%] aspect-[9/13] transition-[opacity,transform] duration-300 opacity-40 scale-[0.96]">
-          <video autoPlay muted loop playsInline
-            poster={getVideoMeta(rightVideo).poster}
-            className="w-full h-full object-cover block"
-            src={rightVideo}
+          <Image
+            src={rightImage}
+            alt=""
+            fill
+            sizes="28vw"
+            className="object-cover"
           />
         </div>
       </div>
 
-      {/* Dot indicators */}
       <div className="flex items-center gap-1.5">
-        {videos.map((_, i) => (
+        {images.map((_, i) => (
           <button
             key={i}
             type="button"
-            aria-label={`Go to video ${i + 1}`}
+            aria-label={`Go to image ${i + 1}`}
             onClick={() => setActiveIndex(i)}
             className={`h-1 rounded-full transition-[width,background-color] duration-300 ${
               i === activeIndex ? "w-5 bg-gold3" : "w-1 bg-brand-white/30"
@@ -258,42 +177,42 @@ export function DesktopVideoGrid() {
       <div className="group overflow-hidden relative h-full">
         <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
           {[
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[1],
-            HERO_VIDEOS[2],
-            HERO_VIDEOS[0],
-            HERO_VIDEOS[1],
-            HERO_VIDEOS[2],
+            HERO_POSTERS[0],
+            HERO_POSTERS[1],
+            HERO_POSTERS[2],
+            HERO_POSTERS[0],
+            HERO_POSTERS[1],
+            HERO_POSTERS[2],
           ].map((src, i) => (
-            <VideoCell key={`c1-${i}`} src={src} index={i} />
+            <HeroCell key={`c1-${i}`} src={src} eager={i === 0} />
           ))}
         </div>
       </div>
       <div className="group overflow-hidden relative h-full">
         <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-up group-hover:[animation-play-state:paused]">
           {[
-            HERO_VIDEOS[3],
-            HERO_VIDEOS[4],
-            HERO_VIDEOS[5],
-            HERO_VIDEOS[3],
-            HERO_VIDEOS[4],
-            HERO_VIDEOS[5],
+            HERO_POSTERS[3],
+            HERO_POSTERS[4],
+            HERO_POSTERS[5],
+            HERO_POSTERS[3],
+            HERO_POSTERS[4],
+            HERO_POSTERS[5],
           ].map((src, i) => (
-            <VideoCell key={`c2-${i}`} src={src} index={i} />
+            <HeroCell key={`c2-${i}`} src={src} eager={i === 0} />
           ))}
         </div>
       </div>
       <div className="group overflow-hidden relative h-full">
         <div className="flex flex-col gap-1 will-change-transform animate-vg-scroll-down group-hover:[animation-play-state:paused]">
           {[
-            HERO_VIDEOS[6],
-            HERO_VIDEOS[7],
-            HERO_VIDEOS[8],
-            HERO_VIDEOS[6],
-            HERO_VIDEOS[7],
-            HERO_VIDEOS[8],
+            HERO_POSTERS[6],
+            HERO_POSTERS[7],
+            HERO_POSTERS[8],
+            HERO_POSTERS[6],
+            HERO_POSTERS[7],
+            HERO_POSTERS[8],
           ].map((src, i) => (
-            <VideoCell key={`c3-${i}`} src={src} index={i} />
+            <HeroCell key={`c3-${i}`} src={src} eager={i === 0} />
           ))}
         </div>
       </div>

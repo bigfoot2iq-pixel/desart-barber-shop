@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://www.desart.ma';
+export const BASE_URL = 'https://www.desart.shop';
 export const BUSINESS_NAME = 'DESART';
 export const PHONE = '+212612213324';
 export const PHONE_FORMATTED = '+212 6 1221-3324';

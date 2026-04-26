@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/auth/', '/_next/', '/*/dashboard', '/*/admin', '/*/professional', '/*/login'],
       },
     ],
-    sitemap: 'https://www.desart.ma/sitemap.xml',
+    sitemap: 'https://www.desart.shop/sitemap.xml',
   };
 }
