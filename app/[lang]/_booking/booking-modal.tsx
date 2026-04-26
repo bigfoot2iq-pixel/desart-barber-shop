@@ -814,6 +814,10 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   }, [selectedBarber, step]);
 
   useEffect(() => {
+    setSelectedTime(null);
+  }, [selectedDate?.id]);
+
+  useEffect(() => {
     if (step === 4 && selectedDate && timeSlotStatuses.length === 0) {
       setCalendarExpanded(true);
     }
