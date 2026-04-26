@@ -103,7 +103,8 @@
       "selectTime": "Select Time",
       "noSlotsAvailable": "No slots available on this day — try another date.",
       "pickDateFirst": "Pick a date first.",
-      "timeUnavailable": "This time is already booked"
+      "timeUnavailable": "This time is already booked",
+      "noWindowAvailability": "No availability for this service in the next 30 days. Try a shorter service or a different barber."
     },
     "details": {
       "title": "Your Details",

@@ -103,7 +103,8 @@
       "selectTime": "Sélectionner l'Heure",
       "noSlotsAvailable": "Aucun créneau disponible ce jour — essayez une autre date.",
       "pickDateFirst": "Sélectionnez d'abord une date.",
-      "timeUnavailable": "Cet horaire vient d'être réservé"
+      "timeUnavailable": "Cet horaire vient d'être réservé",
+      "noWindowAvailability": "[TRANSLATION NEEDED] No availability for this service in the next 30 days. Try a shorter service or a different barber."
     },
     "details": {
       "title": "Vos Coordonnées",

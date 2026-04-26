@@ -1423,6 +1423,12 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                           {tBooking("steps.time.selectDate")}
                         </div>
 
+                        {availableDateIds.size === 0 && barberWeekly.some((w) => w.professional_id === selectedBarber?.id) && (
+                          <p className="text-[13px] text-[rgb(10_8_0/55%)] text-center py-4">
+                            {tBooking("steps.time.noWindowAvailability")}
+                          </p>
+                        )}
+
                         {!calendarExpanded && (
                           <div className="flex items-stretch gap-1.5">
                             {currentWeekDays.map((day) => {
