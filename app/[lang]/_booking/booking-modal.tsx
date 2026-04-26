@@ -786,7 +786,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     if (targetStep <= 1) setSelectedLocation(null);
     if (targetStep <= 2) setSelectedBarber(null);
     if (targetStep <= 3) setSelectedServices([]);
-    if (targetStep <= 4) {
+    if (targetStep <= 3) {
       setSelectedDate(null);
       setSelectedTime(null);
     }
