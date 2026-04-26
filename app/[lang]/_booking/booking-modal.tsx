@@ -132,7 +132,6 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const bookingsByBarberDate = useMemo(() => {
     const map = new Map<string, { start_time: string; end_time: string }[]>();
     for (const b of bookingsInRange) {
-      if (!b.professional_id) continue;
       const key = `${b.professional_id}:${b.appointment_date}`;
       const list = map.get(key) ?? [];
       list.push({ start_time: b.start_time, end_time: b.end_time });
