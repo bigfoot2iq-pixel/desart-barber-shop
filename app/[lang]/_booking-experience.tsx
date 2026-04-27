@@ -122,16 +122,15 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </nav>
 
-      <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-6 max-sm:gap-5 items-center pt-24 pb-10 max-sm:pt-28 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 lg:pt-[110px] lg:pb-0 lg:pr-0">
-
+      <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-6 max-sm:gap-5 items-center pt-24 pb-10 max-sm:pt-28 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-0 lg:gap-y-0 lg:pt-[110px] lg:pb-0 lg:pr-0">
         {/* Header text — mobile row 1, desktop col 1 row 1 */}
-        <div className="relative z-[3] max-w-[560px] order-1 lg:order-none lg:col-start-1 lg:row-start-1 lg:pl-[100px]">
+        <div className="relative z-[3] max-w-[560px] order-1 lg:order-none lg:col-start-1 lg:row-start-1 lg:pl-[100px] lg:self-end lg:pb-8">
           <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 max-sm:mb-4 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
             {tBooking('hero.tagline')}
           </span>
           <h1 className="font-fraunces font-normal text-[clamp(40px,5.5vw,76px)] leading-[.95] tracking-[-0.035em]">
-            {tBooking('hero.headline1')}<br />
-            {tBooking('hero.headline2')} <em className="italic font-normal text-gold3">{tBooking('hero.headline2Em')}</em>
+            <span className="whitespace-nowrap">{tBooking('hero.headline1')}</span><br />
+            <span className="whitespace-nowrap">{tBooking('hero.headline2')} <em className="italic font-normal text-gold3">{tBooking('hero.headline2Em')}</em></span>
           </h1>
           <p className="mt-6 max-sm:mt-4 text-brand-white/60 text-base max-sm:text-[15px] leading-[1.7] max-w-[440px] font-light">
             {tBooking('hero.subheadline')}
@@ -153,7 +152,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
 
         {/* CTAs + hours — mobile row 2 (above videos), desktop col 1 row 2 */}
-        <div className="relative z-[3] max-w-[560px] order-2 lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-[100px] lg:pb-20">
+        <div className="relative z-[3] max-w-[560px] order-2 lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-[100px] lg:pb-20 lg:self-start lg:pt-0">
           <div className="flex gap-2.5 items-center flex-nowrap">
             <button
               type="button"
@@ -172,7 +171,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
               {tBooking('hero.viewMenuCta')}
             </a>
           </div>
-          <div className="hidden lg:flex gap-8 flex-wrap mt-16 pt-6 border-t border-brand-white/10 text-brand-white/50">
+          <div className="hidden lg:flex gap-8 flex-wrap mt-8 pt-6 border-t border-brand-white/10 text-brand-white/50">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] tracking-[.18em] uppercase font-medium">{tBooking('hero.hours')}</span>
               <span className="text-brand-white font-playfair text-[18px] tracking-[-0.01em]">{tBooking('hero.hours')}</span>
@@ -262,26 +261,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </div>
 
-      <section className="bg-brand-black text-brand-white py-12 px-4">
-        <div className="max-w-[1160px] mx-auto">
-          <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(254_251_243/50%)] mb-[14px]">{tBooking('reviews.eyebrow')}</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="bg-[rgb(254_251_243/5%)] border border-[rgb(254_251_243/10%)] rounded-[14px] p-7">
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, s) => (
-                    <svg key={s} className="w-4 h-4 text-gold3 fill-current" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M10 1l2.39 4.84 5.34.78-3.87 3.77.91 5.33L10 13.27l-4.77 2.51.91-5.33L2.27 6.68l5.34-.78L10 1z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-[15px] font-light leading-[1.75] text-[rgb(254_251_243/75%)] mb-5">{tBooking(`reviews.items.${i}.quote`)}</p>
-                <span className="text-[12px] font-medium tracking-[0.06em] uppercase text-gold3">{tBooking(`reviews.items.${i}.name`)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       <section id="team" className="bg-brand-black text-brand-white py-12 px-4">
         <div className="max-w-[1160px] mx-auto">
