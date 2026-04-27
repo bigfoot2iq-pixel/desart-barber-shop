@@ -1,0 +1,2 @@
+-- SUPERSEDED by 023_add_invitation_from_address.sql
+-- This migration is intentionally left empty. Use the correct numbered migration.

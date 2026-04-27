@@ -92,6 +92,7 @@ export interface CustomerNotificationSettings {
   is_enabled: boolean;
   resend_api_key: string;
   from_address: string;
+  invitation_from_address?: string;
   events: NotificationEventType[];
   created_at: string;
   updated_at: string;

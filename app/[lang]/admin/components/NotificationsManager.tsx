@@ -40,6 +40,7 @@ interface CustomerSettings {
   id: string;
   is_enabled: boolean;
   from_address: string;
+  invitation_from_address: string;
   events: string[];
   has_api_key: boolean;
   created_at: string;
@@ -93,6 +94,7 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
     is_enabled: false,
     resend_api_key: '',
     from_address: '',
+    invitation_from_address: '',
     events: [...CUSTOMER_EVENTS],
   });
   const [customerTestEmail, setCustomerTestEmail] = useState('');
@@ -130,6 +132,7 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
         is_enabled: customerSettings.is_enabled,
         resend_api_key: '',
         from_address: customerSettings.from_address,
+        invitation_from_address: customerSettings.invitation_from_address ?? '',
         events: [...customerSettings.events],
       });
     }
@@ -325,6 +328,7 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
     const body: Record<string, unknown> = {
       is_enabled: customerForm.is_enabled,
       from_address: customerForm.from_address,
+      invitation_from_address: customerForm.invitation_from_address,
       events: customerForm.events,
     };
     if (customerForm.resend_api_key.trim()) {
@@ -726,6 +730,20 @@ export default function NotificationsManager({ lang }: NotificationsManagerProps
                 placeholder={tAdmin('notifications.fromAddressPlaceholder')}
                 className="mt-1"
               />
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                {tAdmin('notifications.invitationFromAddress')}
+              </Label>
+              <Input
+                type="text"
+                value={customerForm.invitation_from_address}
+                onChange={(e) => setCustomerForm((prev) => ({ ...prev, invitation_from_address: e.target.value }))}
+                placeholder={tAdmin('notifications.invitationFromAddressPlaceholder')}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">{tAdmin('notifications.invitationFromAddressHelp')}</p>
             </div>
 
             <div>

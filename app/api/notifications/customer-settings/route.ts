@@ -38,6 +38,7 @@ export async function GET() {
       id: settings.id,
       is_enabled: settings.is_enabled,
       from_address: settings.from_address,
+      invitation_from_address: settings.invitation_from_address ?? '',
       events: settings.events,
       has_api_key: !!settings.resend_api_key,
       created_at: settings.created_at,
@@ -65,10 +66,11 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { is_enabled, resend_api_key, from_address, events } = body as {
+  const { is_enabled, resend_api_key, from_address, invitation_from_address, events } = body as {
     is_enabled?: boolean;
     resend_api_key?: string;
     from_address?: string;
+    invitation_from_address?: string;
     events?: string[];
   };
 
@@ -104,6 +106,7 @@ export async function PUT(request: Request) {
   const updates: Record<string, unknown> = {};
   if (is_enabled !== undefined) updates.is_enabled = is_enabled;
   if (from_address !== undefined) updates.from_address = from_address;
+  if (invitation_from_address !== undefined) updates.invitation_from_address = invitation_from_address;
   if (events !== undefined) updates.events = events;
   if (resend_api_key !== undefined) {
     updates.resend_api_key = resend_api_key;

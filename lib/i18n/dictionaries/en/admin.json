@@ -8,6 +8,7 @@
     "salons": "Salons",
     "notifications": "Notifications",
     "payment": "Payment",
+    "settings": "Settings",
     "adminFallback": "Admin"
   },
   "stats": {
@@ -295,6 +296,9 @@
     "resendApiKeyPlaceholder": "re_...",
     "fromAddress": "From address",
     "fromAddressPlaceholder": "DesArt <no-reply@yourdomain.com>",
+    "invitationFromAddress": "From address (invitations)",
+    "invitationFromAddressPlaceholder": "administration@contact.desart.shop",
+    "invitationFromAddressHelp": "Used only for team invitations. Leave blank to use the main address.",
     "sendTestEmail": "Send test email",
     "testEmailPlaceholder": "test@example.com",
     "sendTest": "Send Test",
@@ -377,5 +381,37 @@
     "fieldInstructionsPlaceholder": "Any additional instructions shown to the customer…",
     "toastSaved": "Payment settings saved",
     "toastSaveFailed": "Failed to save payment settings"
+  },
+  "settings": {
+    "invitations": {
+      "title": "Invite Users",
+      "subtitle": "Send an invitation to a new team member.",
+      "fieldEmail": "Email Address",
+      "fieldEmailPlaceholder": "colleague@example.com",
+      "fieldRole": "Role",
+      "roleProfessional": "Professional",
+      "roleAdmin": "Administrator",
+      "send": "Send Invitation",
+      "sending": "Sending…",
+      "tableTitle": "Pending Invitations",
+      "columnEmail": "Email",
+      "columnRole": "Role",
+      "columnStatus": "Status",
+      "columnSent": "Sent",
+      "columnExpires": "Expires",
+      "statusPending": "Pending",
+      "statusExpired": "Expired",
+      "statusAccepted": "Accepted",
+      "revoke": "Revoke",
+      "revoking": "Revoking…",
+      "noInvitations": "No invitations yet",
+      "toastLoadFailed": "Failed to load invitations",
+      "toastSent": "Invitation sent to {email}",
+      "toastEmailExists": "This email already has a pending invite",
+      "toastEmailNotConfigured": "Email service is not configured — set it up in Notifications",
+      "toastSendFailed": "Failed to send invitation",
+      "toastRevokeFailed": "Failed to revoke invitation",
+      "toastRevoked": "Invitation revoked"
+    }
   }
 }

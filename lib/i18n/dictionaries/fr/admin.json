@@ -8,6 +8,7 @@
     "salons": "Salons",
     "notifications": "Notifications",
     "payment": "Paiement",
+    "settings": "Paramètres",
     "adminFallback": "Admin"
   },
   "stats": {
@@ -295,6 +296,9 @@
     "resendApiKeyPlaceholder": "re_...",
     "fromAddress": "Adresse d'expédition",
     "fromAddressPlaceholder": "DesArt <no-reply@yourdomain.com>",
+    "invitationFromAddress": "Adresse d'expédition (invitations)",
+    "invitationFromAddressPlaceholder": "administration@contact.desart.shop",
+    "invitationFromAddressHelp": "Utilisée uniquement pour les invitations d'équipe. Laissez vide pour utiliser l'adresse principale.",
     "sendTestEmail": "Envoyer un email de test",
     "testEmailPlaceholder": "test@example.com",
     "sendTest": "Envoyer un test",
@@ -377,5 +381,37 @@
     "fieldInstructionsPlaceholder": "Instructions supplémentaires affichées au client…",
     "toastSaved": "Paramètres de paiement enregistrés",
     "toastSaveFailed": "Échec de l'enregistrement des paramètres de paiement"
+  },
+  "settings": {
+    "invitations": {
+      "title": "Inviter des utilisateurs",
+      "subtitle": "Envoyez une invitation à un nouveau membre de l'équipe.",
+      "fieldEmail": "Adresse email",
+      "fieldEmailPlaceholder": "collègue@exemple.com",
+      "fieldRole": "Rôle",
+      "roleProfessional": "Professionnel",
+      "roleAdmin": "Administrateur",
+      "send": "Envoyer l'invitation",
+      "sending": "Envoi…",
+      "tableTitle": "Invitations en attente",
+      "columnEmail": "Email",
+      "columnRole": "Rôle",
+      "columnStatus": "Statut",
+      "columnSent": "Envoyée",
+      "columnExpires": "Expire",
+      "statusPending": "En attente",
+      "statusExpired": "Expirée",
+      "statusAccepted": "Acceptée",
+      "revoke": "Révoquer",
+      "revoking": "Révocation…",
+      "noInvitations": "Aucune invitation",
+      "toastLoadFailed": "Échec du chargement des invitations",
+      "toastSent": "Invitation envoyée à {email}",
+      "toastEmailExists": "Cet email a déjà une invitation en attente",
+      "toastEmailNotConfigured": "Le service email n'est pas configuré — configurez-le dans Notifications",
+      "toastSendFailed": "Échec de l'envoi de l'invitation",
+      "toastRevokeFailed": "Échec de la révocation de l'invitation",
+      "toastRevoked": "Invitation révoquée"
+    }
   }
 }
