@@ -19,7 +19,17 @@ interface AdminShellProps {
 export default function AdminShell({ lang, section, pendingCount, adminName, adminEmail, children }: AdminShellProps) {
   const { signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const tAdmin = useT('admin');
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -28,7 +38,8 @@ export default function AdminShell({ lang, section, pendingCount, adminName, adm
         pendingCount={pendingCount}
         adminName={adminName}
         adminEmail={adminEmail}
-        onSignOut={signOut}
+        onSignOut={handleSignOut}
+        isSigningOut={isSigningOut}
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
         lang={lang}

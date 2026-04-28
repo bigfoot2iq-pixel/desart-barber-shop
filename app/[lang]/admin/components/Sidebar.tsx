@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useT } from '@/lib/i18n/client-dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import { LocaleSwitcher } from '@/app/components/locale-switcher';
@@ -20,6 +21,7 @@ interface SidebarProps {
   adminName: string;
   adminEmail: string;
   onSignOut: () => void;
+  isSigningOut?: boolean;
   mobileOpen: boolean;
   onMobileClose: () => void;
   lang: Locale;
@@ -72,18 +74,42 @@ function SidebarNav({ active, lang, pendingCount, onNavigate }: {
   );
 }
 
-export default function Sidebar({ active, pendingCount, adminName, adminEmail, onSignOut, mobileOpen, onMobileClose, lang }: SidebarProps) {
+function SignOutButton({ onSignOut, isSigningOut }: { onSignOut: () => void; isSigningOut?: boolean }) {
+  const tCommon = useT('common');
+  return (
+    <button
+      onClick={onSignOut}
+      disabled={isSigningOut}
+      className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-red-400 transition-colors duration-200 rounded-lg hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+    >
+      {isSigningOut ? (
+        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+        </svg>
+      )}
+      {tCommon('signOut')}
+    </button>
+  );
+}
+
+export default function Sidebar({ active, pendingCount, adminName, adminEmail, onSignOut, isSigningOut, mobileOpen, onMobileClose, lang }: SidebarProps) {
   const tAdmin = useT('admin');
+  const tCommon = useT('common');
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen fixed top-0 left-0 z-40">
         <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
         <SidebarNav active={active} lang={lang} pendingCount={pendingCount} />
-        <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
+        <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} isSigningOut={isSigningOut} lang={lang} />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose(); }}>
-        <SheetContent side="left" className="w-[260px] p-0" showCloseButton={false}>
+        <SheetContent side="left" className="w-[260px] p-0 flex flex-col">
           <SheetHeader className="px-6 py-6 border-b border-border">
             <SheetTitle className="font-playfair text-xl tracking-wider font-bold">DESART</SheetTitle>
             <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium">{tAdmin('strapline')}</p>
@@ -92,8 +118,17 @@ export default function Sidebar({ active, pendingCount, adminName, adminEmail, o
             </div>
           </SheetHeader>
           <SidebarNav active={active} lang={lang} pendingCount={pendingCount} onNavigate={onMobileClose} />
-          <div className="px-6 py-4 border-t border-border">
-            <LocaleSwitcher locale={lang} variant="dark" />
+          <div className="mt-auto px-6 py-4 border-t border-border">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">
+                {adminName?.charAt(0)?.toUpperCase() || 'A'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-foreground font-medium truncate">{adminName || adminEmail?.split('@')[0] || 'Admin'}</p>
+                <p className="text-xs text-muted-foreground truncate">{adminEmail || ''}</p>
+              </div>
+            </div>
+            <SignOutButton onSignOut={onSignOut} isSigningOut={isSigningOut} />
           </div>
         </SheetContent>
       </Sheet>
@@ -119,14 +154,14 @@ function SidebarDesktopHeader({ adminName, adminEmail, onSignOut, lang }: {
   );
 }
 
-function SidebarFooter({ adminName, adminEmail, onSignOut, lang }: {
+function SidebarFooter({ adminName, adminEmail, onSignOut, isSigningOut, lang }: {
   adminName: string;
   adminEmail: string;
   onSignOut: () => void;
+  isSigningOut?: boolean;
   lang: Locale;
 }) {
   const tAdmin = useT('admin');
-  const tCommon = useT('common');
   const displayName = adminName || tAdmin('nav.adminFallback');
   return (
     <div className="px-4 py-4 border-t border-border space-y-3">
@@ -142,12 +177,7 @@ function SidebarFooter({ adminName, adminEmail, onSignOut, lang }: {
           <p className="text-xs text-muted-foreground truncate">{adminEmail || ''}</p>
         </div>
       </div>
-      <button
-        onClick={onSignOut}
-        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-red-400 transition-colors duration-200 rounded-lg hover:bg-red-400/10"
-      >
-        {tCommon('signOut')}
-      </button>
+      <SignOutButton onSignOut={onSignOut} isSigningOut={isSigningOut} />
     </div>
   );
 }
