@@ -110,7 +110,22 @@
     "modalCancelTitle": "Confirmer l'annulation",
     "cancelConfirmMessage": "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible.",
     "confirmCancel": "Annuler le rendez-vous",
-    "cancelling": "Annulation…"
+    "cancelling": "Annulation…",
+    "defaultFilter": "Confirmé",
+    "withNote": "Avec note",
+    "viewDetails": "Voir les détails",
+    "tapToCall": "Appeler",
+    "noteSectionTitle": "Note du client",
+    "noAppointmentsForStatus": "Aucun rendez-vous {status}",
+    "showAll": "Voir tout",
+    "panelServicesTitle": "Services",
+    "panelLocationTitle": "Lieu",
+    "panelPaymentTitle": "Paiement",
+    "panelProfessionalTitle": "Professionnel",
+    "panelCreatedAt": "Créé le",
+    "panelReviewTitle": "Avis",
+    "noReviewComment": "Aucun commentaire",
+    "noReviewYet": "Aucun avis pour le moment"
   },
   "professionals": {
     "title": "Professionnels",

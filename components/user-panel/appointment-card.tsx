@@ -1,9 +1,7 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import type { AppointmentWithDetails } from "@/lib/types/database";
-import { RateDialog } from "./rate-dialog";
 import { useT } from "@/lib/i18n/client-dictionary";
 import { formatShortMonth } from "@/lib/i18n/format";
 import type { Locale } from "@/lib/i18n/config";
@@ -24,14 +22,13 @@ interface AppointmentCardProps {
   item: AppointmentWithDetails;
   hasReview: boolean;
   onCancel: (id: string) => void;
-  onRate: (appointmentId: string, professionalId: string | null, rating: number, comment: string | null) => void;
+  onRequestRate: (item: AppointmentWithDetails) => void;
   locale: string;
 }
 
-export function AppointmentCard({ item, hasReview, onCancel, onRate, locale }: AppointmentCardProps) {
+export function AppointmentCard({ item, hasReview, onCancel, onRequestRate, locale }: AppointmentCardProps) {
   const tUser = useT('userPanel');
   const tCommon = useT('common');
-  const [showRateDialog, setShowRateDialog] = useState(false);
   const [optimisticallyCancelled, setOptimisticallyCancelled] = useState(false);
 
   const status = optimisticallyCancelled ? "cancelled" : item.status;
@@ -51,56 +48,40 @@ export function AppointmentCard({ item, hasReview, onCancel, onRate, locale }: A
     }
   };
 
-  const handleRateSubmit = (rating: number, comment: string | null) => {
-    onRate(item.id, professional?.id ?? null, rating, comment);
-    setShowRateDialog(false);
-  };
-
   return (
-    <>
-      <div className="rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] bg-white px-[18px] py-4 flex flex-col gap-2 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-brand-black leading-snug truncate">{serviceNames}</p>
-          <div className="flex items-center gap-2 shrink-0">
-            {(status === "completed" || status === "cancelled") && (
-              <span className={`text-[10px] font-semibold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full ${STATUS_CHIP_STYLES[status] ?? ""}`}>
-                {tUser(`status.${status}`)}
-              </span>
-            )}
-            {status === "pending" && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="text-[11px] font-semibold text-red-600 border border-red-200 rounded-full px-3 py-1.5 transition-[background,border-color] duration-200 hover:bg-red-50 hover:border-red-300"
-              >
-                {tCommon('cancel')}
-              </button>
-            )}
-            {status === "completed" && !hasReview && (
-              <button
-                type="button"
-                onClick={() => setShowRateDialog(true)}
-                className="text-[11px] font-semibold text-white bg-gold rounded-full px-3 py-1.5 transition-[background,box-shadow] duration-200 hover:shadow-[0_2px_8px_rgb(192_154_90/30%)]"
-              >
-                {tUser('card.rate')}
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[12px] text-[rgb(10_8_0/50%)] truncate">{professionalName} · {salonName}</p>
-          <p className="text-[11px] text-[rgb(10_8_0/35%)] shrink-0">{formatDate(dateStr, locale as Locale)} · {timeStr}</p>
+    <div className="rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] bg-white px-[18px] py-4 flex flex-col gap-2 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-brand-black leading-snug truncate">{serviceNames}</p>
+        <div className="flex items-center gap-2 shrink-0">
+          {(status === "completed" || status === "cancelled") && (
+            <span className={`text-[10px] font-semibold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full ${STATUS_CHIP_STYLES[status] ?? ""}`}>
+              {tUser(`status.${status}`)}
+            </span>
+          )}
+          {status === "pending" && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="text-[11px] font-semibold text-red-600 border border-red-200 rounded-full px-3 py-1.5 transition-[background,border-color] duration-200 hover:bg-red-50 hover:border-red-300"
+            >
+              {tCommon('cancel')}
+            </button>
+          )}
+          {status === "completed" && !hasReview && (
+            <button
+              type="button"
+              onClick={() => onRequestRate(item)}
+              className="text-[11px] font-semibold text-white bg-gold rounded-full px-3 py-1.5 transition-[background,box-shadow] duration-200 hover:shadow-[0_2px_8px_rgb(192_154_90/30%)]"
+            >
+              {tUser('card.rate')}
+            </button>
+          )}
         </div>
       </div>
-
-      <AnimatePresence>
-        {showRateDialog && (
-          <RateDialog
-            onClose={() => setShowRateDialog(false)}
-            onSubmit={handleRateSubmit}
-          />
-        )}
-      </AnimatePresence>
-    </>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[12px] text-[rgb(10_8_0/50%)] truncate">{professionalName} · {salonName}</p>
+        <p className="text-[11px] text-[rgb(10_8_0/35%)] shrink-0">{formatDate(dateStr, locale as Locale)} · {timeStr}</p>
+      </div>
+    </div>
   );
 }

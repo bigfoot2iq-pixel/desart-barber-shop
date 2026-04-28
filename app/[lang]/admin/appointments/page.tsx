@@ -12,8 +12,14 @@ import AppointmentsManager from '../components/AppointmentsManager';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminAppointmentsPage({ params }: PageProps<'/[lang]'>) {
+export default async function AdminAppointmentsPage({
+  params,
+  searchParams,
+}: PageProps<'/[lang]'> & {
+  searchParams: Promise<{ appointment?: string }>;
+}) {
   const { lang } = await params;
+  const { appointment: appointmentId } = await searchParams;
   if (!hasLocale(lang)) notFound();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -64,7 +70,7 @@ export default async function AdminAppointmentsPage({ params }: PageProps<'/[lan
         adminName={adminName}
         adminEmail={adminEmail}
       >
-        <AppointmentsManager lang={lang} initialAppointments={appointments} />
+        <AppointmentsManager lang={lang} initialAppointments={appointments} initialAppointmentId={appointmentId ?? null} />
       </AdminShell>
     </DictionaryProvider>
   );

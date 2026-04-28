@@ -110,7 +110,22 @@
     "modalCancelTitle": "Confirm Cancellation",
     "cancelConfirmMessage": "Are you sure you want to cancel this appointment? This action cannot be undone.",
     "confirmCancel": "Cancel Appointment",
-    "cancelling": "Cancelling…"
+    "cancelling": "Cancelling…",
+    "defaultFilter": "Confirmed",
+    "withNote": "Has note",
+    "viewDetails": "View details",
+    "tapToCall": "Tap to call",
+    "noteSectionTitle": "Customer note",
+    "noAppointmentsForStatus": "No {status} appointments",
+    "showAll": "Show all",
+    "panelServicesTitle": "Services",
+    "panelLocationTitle": "Location",
+    "panelPaymentTitle": "Payment",
+    "panelProfessionalTitle": "Professional",
+    "panelCreatedAt": "Created",
+    "panelReviewTitle": "Review",
+    "noReviewComment": "No comment",
+    "noReviewYet": "No review yet"
   },
   "professionals": {
     "title": "Professionals",

@@ -35,3 +35,15 @@ export async function getReviewsForAppointments(ids: string[]): Promise<Appointm
   if (error) throw error;
   return data as AppointmentReview[];
 }
+
+export async function getReviewForAppointment(appointmentId: string): Promise<AppointmentReview | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('appointment_reviews')
+    .select('*')
+    .eq('appointment_id', appointmentId)
+    .maybeSingle();
+
+  if (error) return null;
+  return data as AppointmentReview | null;
+}

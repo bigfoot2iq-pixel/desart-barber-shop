@@ -63,7 +63,15 @@ export async function GET(request: NextRequest) {
     .eq('id', user.id);
 
   if (updateProfileError) {
+    // RLS policies key off profiles.role, so leaving it stale would
+    // half-promote the user (page access works but every RLS query
+    // fails).  Roll the auth metadata back so retrying the invite is
+    // clean instead of leaving the account in a broken state.
     console.error('[invite/accept] failed to update profile role', updateProfileError);
+    await supabase.auth.admin.updateUserById(user.id, {
+      app_metadata: { role: 'customer' },
+    });
+    return NextResponse.redirect(new URL(localeHref('fr', '/?error=update_failed'), request.url));
   }
 
   const tokenUpdate: Record<string, unknown> = { used_at: new Date().toISOString() };
