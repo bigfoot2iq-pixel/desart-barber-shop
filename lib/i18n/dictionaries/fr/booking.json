@@ -87,7 +87,8 @@
       "next": "Prochain",
       "unavailable": "Indisponible",
       "noServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
-      "noHomeBarbers": "Aucun barbier ne propose de visite à domicile pour le moment. Veuillez choisir un salon."
+      "noHomeBarbers": "Aucun barbier ne propose de visite à domicile pour le moment. Veuillez choisir un salon.",
+      "noSalonBarbers": "Aucun barbier n'est disponible dans ce salon."
     },
     "service": {
       "title": "Choisir un Service",

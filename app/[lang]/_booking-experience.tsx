@@ -45,6 +45,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
       .then((data: ProfessionalWithServices[]) => {
         const mapped: BarberOption[] = data.map((p) => ({
           id: p.id,
+          salonId: p.salon_id ?? null,
           shortName: p.display_name
             .split(" ")
             .map((w) => w[0])

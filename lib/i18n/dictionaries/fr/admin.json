@@ -147,6 +147,8 @@
     "fieldPhone": "Téléphone *",
     "fieldYearsExperience": "Années d'expérience",
     "fieldProfession": "Profession",
+    "fieldSalon": "Salon",
+    "fieldSalonNone": "Aucun salon",
     "fieldProfileImageUrl": "URL de la photo de profil",
     "fieldProfileImageUrlPlaceholder": "https://...",
     "toggleOffersHomeVisits": "Propose des visites à domicile",

@@ -35,6 +35,7 @@ const emptyForm = {
   profile_image_url: '',
   offers_home_visit: false,
   is_active: true,
+  salon_id: '',
 };
 
 export default function ProfessionalsManager({ lang, initialProfessionals, initialSalons }: ProfessionalsManagerProps) {
@@ -97,6 +98,7 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
       profile_image_url: p.profile_image_url || '',
       offers_home_visit: p.offers_home_visit,
       is_active: p.is_active,
+      salon_id: p.salon_id || '',
     });
     setFormErrors({});
     setFormOpen(true);
@@ -124,6 +126,7 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
           profile_image_url: form.profile_image_url || null,
           offers_home_visit: form.offers_home_visit,
           is_active: form.is_active,
+          salon_id: form.salon_id || null,
         });
         toast(tAdmin('professionals.toastUpdated'));
       } else {
@@ -138,6 +141,7 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
             profile_image_url: form.profile_image_url || null,
             offers_home_visit: form.offers_home_visit,
             is_active: form.is_active,
+            salon_id: form.salon_id || null,
           }),
         });
         if (!res.ok) {
@@ -380,6 +384,20 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
                 className="mt-1"
               />
             </div>
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{tAdmin('professionals.fieldSalon')}</Label>
+            <select
+              value={form.salon_id}
+              onChange={(e) => setForm({ ...form, salon_id: e.target.value })}
+              className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">{tAdmin('professionals.fieldSalonNone')}</option>
+              {salons.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>

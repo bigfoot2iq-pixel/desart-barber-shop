@@ -31,7 +31,7 @@ export interface Salon {
 
 export interface Professional {
   id: string;
-  salon_id: string;
+  salon_id: string | null;
   display_name: string;
   profile_image_url: string | null;
   years_of_experience: number;

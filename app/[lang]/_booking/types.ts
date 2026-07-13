@@ -10,6 +10,7 @@ export type LocationOption = {
 
 export type BarberOption = {
   id: string;
+  salonId: string | null;
   shortName: string;
   name: string;
   role: string;

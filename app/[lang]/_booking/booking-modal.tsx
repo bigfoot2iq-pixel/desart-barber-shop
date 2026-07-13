@@ -175,6 +175,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     () =>
       selectedLocation?.type === "home"
         ? barbers.filter((b) => b.offersHomeVisit)
+        : selectedLocation?.type === "salon"
+        ? barbers.filter((b) => b.salonId === selectedLocation.id)
         : barbers,
     [barbers, selectedLocation]
   );
@@ -1198,7 +1200,9 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                         </>
                       ) : visibleBarbers.length === 0 ? (
                           <p className="text-[13px] text-[rgb(10_8_0/55%)] text-center py-8">
-                            {tBooking("steps.barber.noHomeBarbers")}
+                            {selectedLocation?.type === "home"
+                              ? tBooking("steps.barber.noHomeBarbers")
+                              : tBooking("steps.barber.noSalonBarbers")}
                           </p>
                         ) : visibleBarbers.map((barber) => {
                           const isBarberSelected = selectedBarber?.id === barber.id;

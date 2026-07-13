@@ -87,7 +87,8 @@
       "next": "Next",
       "unavailable": "Unavailable",
       "noServices": "This barber has no services listed yet.",
-      "noHomeBarbers": "No barbers are available for home visits. Please choose a salon location."
+      "noHomeBarbers": "No barbers are available for home visits. Please choose a salon location.",
+      "noSalonBarbers": "No barbers are available at this salon."
     },
     "service": {
       "title": "Choose a Service",

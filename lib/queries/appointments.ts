@@ -101,7 +101,7 @@ export async function getActiveProfessionalsWithServices(locale: Locale): Promis
     salon: localizeSalon(prof.salon, locale),
     services: (prof.professional_services ?? [])
       .map((ps) => ps.services)
-      .filter((s) => s.is_active)
+      .filter((s): s is NonNullable<typeof s> => s != null && s.is_active)
       .map((s) => localizeService(s, locale)),
   }));
 }
