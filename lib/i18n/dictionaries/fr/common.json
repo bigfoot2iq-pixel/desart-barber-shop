@@ -32,6 +32,16 @@
     "termsAgree": "En continuant, vous acceptez les Conditions d'utilisation et la Politique de confidentialité de DESART.",
     "backToHome": "Retour à l'accueil"
   },
+  "inAppBrowser": {
+    "heading": "Ouvrez dans votre navigateur",
+    "bodyNamed": "La connexion Google ne fonctionne pas dans le navigateur intégré de {app}. Ouvrez cette page dans Chrome ou Safari pour continuer.",
+    "bodyGeneric": "La connexion Google ne fonctionne pas dans ce navigateur intégré. Ouvrez cette page dans Chrome ou Safari pour continuer.",
+    "openChrome": "Ouvrir dans Chrome",
+    "copyLink": "Copier le lien",
+    "copied": "Lien copié ✓",
+    "iosInstructions": "Appuyez sur le bouton ••• ou Partager en haut, puis choisissez « Ouvrir dans Safari ».",
+    "androidInstructions": "Appuyez sur le menu ••• en haut, puis choisissez « Ouvrir dans le navigateur »."
+  },
   "homeVisitPage": {
     "meta": {
       "title": "Coiffeur à Domicile Agadir — DESART | Coupe & Barbier Chez Vous",

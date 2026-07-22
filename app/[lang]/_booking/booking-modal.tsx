@@ -20,6 +20,8 @@ import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMeth
 import type { Locale } from "@/lib/i18n/config";
 import { getPublicPaymentConfig } from "@/lib/queries/payment-settings";
 import { useAuth } from "@/lib/auth-context";
+import { getInAppBrowser } from "@/lib/in-app-browser";
+import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
 import { MenuAvatarButton } from "@/components/user-panel/menu-avatar-button";
 import { UserPanel } from "@/components/user-panel/user-panel";
 import { buildTimeSlots, buildTimeSlotsWithStatus, getWorkingHoursForDate, toMinutes, toHHMM, toHHMMSS, SLOT_STEP_MINUTES } from "@/lib/booking/slots";
@@ -100,6 +102,10 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const [toast, setToast] = useState<{ kind: "success" | "error"; text: string; testid?: string } | null>(null);
   const [isLoadingSalons, setIsLoadingSalons] = useState(true);
   const [salons, setSalons] = useState<LocationOption[]>([]);
+  // Booking submits via Google OAuth (step 5), which can't run in an in-app
+  // WebView. Detect up-front so the user opens a real browser before filling
+  // the form instead of hitting a dead auth wall at the final step.
+  const [inApp] = useState(() => getInAppBrowser());
 
   const prefersReducedMotion = useReducedMotion();
   const { user, signInWithGoogleModal, verifyUser } = useAuth();
@@ -950,12 +956,18 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {step === 1 && tBooking("steps.location.title")}
-                  {step === 2 && tBooking("steps.barber.title")}
-                  {step === 3 && tBooking("steps.service.title")}
-                  {step === 4 && tBooking("steps.time.title")}
-                  {step === 5 && tBooking("steps.details.title")}
-                  {step === 6 && tBooking("steps.confirmation.title")}
+                  {inApp.isInApp ? (
+                    tCommon("inAppBrowser.heading")
+                  ) : (
+                    <>
+                      {step === 1 && tBooking("steps.location.title")}
+                      {step === 2 && tBooking("steps.barber.title")}
+                      {step === 3 && tBooking("steps.service.title")}
+                      {step === 4 && tBooking("steps.time.title")}
+                      {step === 5 && tBooking("steps.details.title")}
+                      {step === 6 && tBooking("steps.confirmation.title")}
+                    </>
+                  )}
                 </motion.p>
               </AnimatePresence>
             </div>
@@ -983,6 +995,11 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
           </div>
 
           <div className="flex-1 overflow-hidden relative bg-[#fafaf8]">
+            {inApp.isInApp ? (
+              <div className="absolute inset-0 overflow-y-auto p-5 flex items-center justify-center">
+                <InAppBrowserNotice appName={inApp.appName} os={inApp.os} variant="light" />
+              </div>
+            ) : (
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={step}
@@ -2136,6 +2153,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                 )}
               </motion.div>
             </AnimatePresence>
+            )}
 
             <AnimatePresence>
               {showUserPanel && (

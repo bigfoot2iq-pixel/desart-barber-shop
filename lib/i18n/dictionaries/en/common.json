@@ -32,6 +32,16 @@
     "termsAgree": "By continuing, you agree to DESART's Terms of Service and Privacy Policy.",
     "backToHome": "Back to home"
   },
+  "inAppBrowser": {
+    "heading": "Open in your browser",
+    "bodyNamed": "Google sign-in doesn't work inside {app}'s in-app browser. Please open this page in Chrome or Safari to continue.",
+    "bodyGeneric": "Google sign-in doesn't work inside this in-app browser. Please open this page in Chrome or Safari to continue.",
+    "openChrome": "Open in Chrome",
+    "copyLink": "Copy link",
+    "copied": "Link copied ✓",
+    "iosInstructions": "Tap the ••• or share button at the top, then choose \"Open in Safari\".",
+    "androidInstructions": "Tap the ••• menu at the top, then choose \"Open in browser\"."
+  },
   "homeVisitPage": {
     "meta": {
       "title": "Home Haircut Agadir — DESART | Barber at Your Doorstep",

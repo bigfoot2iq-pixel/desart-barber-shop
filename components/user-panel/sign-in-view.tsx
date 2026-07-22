@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/lib/i18n/client-dictionary";
+import { getInAppBrowser } from "@/lib/in-app-browser";
+import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
 
 interface SignInViewProps {
   onSignedIn: () => void;
@@ -11,6 +14,8 @@ interface SignInViewProps {
 export function SignInView({ onSignedIn, showToast }: SignInViewProps) {
   const { signInWithGoogleModal } = useAuth();
   const tUser = useT('userPanel');
+  // Google OAuth can't run inside Instagram/Facebook/etc. in-app browsers.
+  const [inApp] = useState(() => getInAppBrowser());
 
   const handleGoogleSignIn = async () => {
     try {
@@ -21,6 +26,14 @@ export function SignInView({ onSignedIn, showToast }: SignInViewProps) {
       showToast("error", tUser('signIn.signInFailed'));
     }
   };
+
+  if (inApp.isInApp) {
+    return (
+      <div className="flex-1 overflow-y-auto p-5 flex flex-col items-center justify-center [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">
+        <InAppBrowserNotice appName={inApp.appName} os={inApp.os} variant="light" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-5 flex flex-col items-center [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent]">

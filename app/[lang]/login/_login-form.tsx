@@ -7,6 +7,8 @@ import { DesktopVideoGrid } from '@/app/components/video-grid';
 import { localeHref } from '@/lib/i18n/href';
 import { useT } from '@/lib/i18n/client-dictionary';
 import type { Locale } from '@/lib/i18n/config';
+import { getInAppBrowser } from '@/lib/in-app-browser';
+import { InAppBrowserNotice } from '@/components/auth/in-app-browser-notice';
 
 export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +18,8 @@ export default function LoginForm() {
   const params = useParams();
   const lang = (params?.lang as Locale) ?? 'fr';
   const t = useT('common');
+  // Google OAuth can't run inside Instagram/Facebook/etc. in-app browsers.
+  const [inApp] = useState(() => getInAppBrowser());
 
   const handleGoogleSignIn = async () => {
     setError(null);
@@ -50,6 +54,10 @@ export default function LoginForm() {
             {t('login.signInSubtitle')}
           </p>
 
+          {inApp.isInApp ? (
+            <InAppBrowserNotice appName={inApp.appName} os={inApp.os} variant="dark" />
+          ) : (
+          <>
           {/* Google Sign In Button */}
           <button
             onClick={handleGoogleSignIn}
@@ -109,6 +117,8 @@ export default function LoginForm() {
               {t('login.createAccount')}
             </button>
           </p>
+          </>
+          )}
 
           {/* Terms */}
           <p className="text-[11px] text-[rgb(254_251_243/20)] leading-[1.6] mt-6">
