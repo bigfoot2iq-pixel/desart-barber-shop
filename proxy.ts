@@ -1,21 +1,18 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
-import { match } from '@formatjs/intl-localematcher';
-import Negotiator from 'negotiator';
 import { i18n, hasLocale, isPublicLocale, type Locale } from '@/lib/i18n/config';
 import { getLocaleCookie, setLocaleCookie } from '@/lib/i18n/locale-cookie';
 
 // Arabic is admin-only: it is never auto-served or matched for public routes.
+// French is the default: a first-time visitor always lands on /fr. Browser
+// Accept-Language is intentionally NOT negotiated so English browsers don't get
+// auto-served /en; visitors who explicitly switch have their choice persisted in
+// the locale cookie and honored here.
 function getPreferredLocale(request: NextRequest): Locale {
   const cookieLocale = getLocaleCookie(request);
   if (cookieLocale && isPublicLocale(cookieLocale)) return cookieLocale;
 
-  const languages = new Negotiator({ headers: { 'accept-language': request.headers.get('accept-language') || undefined } }).languages();
-  try {
-    return match(languages, i18n.publicLocales as unknown as string[], i18n.defaultLocale) as Locale;
-  } catch {
-    return i18n.defaultLocale;
-  }
+  return i18n.defaultLocale;
 }
 
 function shouldSkipLocaleRedirect(pathname: string): boolean {
