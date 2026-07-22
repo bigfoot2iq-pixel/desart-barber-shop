@@ -4,6 +4,8 @@ import type { Locale } from '@/lib/i18n/config';
 const META_LANG_MAP: Record<Locale, string> = {
   fr: 'fr',
   en: 'en',
+  // Arabic is admin-only; customer WhatsApp templates never dispatch in `ar`.
+  ar: 'ar',
 };
 
 export async function sendWhatsAppCloud(

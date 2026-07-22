@@ -37,6 +37,17 @@ const loaders: Loaders = {
     dashboard: () => import('./dictionaries/en/dashboard.json').then(resolveModule<Record<string, unknown>>),
     staffNotifications: () => import('./dictionaries/en/staffNotifications.json').then(resolveModule<Record<string, unknown>>),
   },
+  // Arabic is admin-only. `admin` + `common` are fully translated; the remaining
+  // (public-only) namespaces fall back to French since /ar is never served publicly.
+  ar: {
+    common: () => import('./dictionaries/ar/common.json').then(resolveModule<Record<string, unknown>>),
+    booking: () => import('./dictionaries/fr/booking.json').then(resolveModule<Record<string, unknown>>),
+    admin: () => import('./dictionaries/ar/admin.json').then(resolveModule<Record<string, unknown>>),
+    userPanel: () => import('./dictionaries/fr/userPanel.json').then(resolveModule<Record<string, unknown>>),
+    notifications: () => import('./dictionaries/fr/notifications.json').then(resolveModule<Record<string, unknown>>),
+    dashboard: () => import('./dictionaries/fr/dashboard.json').then(resolveModule<Record<string, unknown>>),
+    staffNotifications: () => import('./dictionaries/fr/staffNotifications.json').then(resolveModule<Record<string, unknown>>),
+  },
 };
 
 export async function getDictionary<N extends Namespace>(

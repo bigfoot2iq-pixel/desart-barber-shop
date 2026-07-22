@@ -25,7 +25,7 @@ export default async function AdminProfessionalsPage({ params }: PageProps<'/[la
   const role = getRole(user);
 
   if (role !== 'admin') {
-    redirect(localeHref(lang, '/dashboard'));
+    redirect(localeHref(lang, '/'));
   }
 
   const { data: profile } = await supabase

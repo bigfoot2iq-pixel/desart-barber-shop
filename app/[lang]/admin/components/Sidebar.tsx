@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useT } from '@/lib/i18n/client-dictionary';
 import type { Locale } from '@/lib/i18n/config';
+import { i18n } from '@/lib/i18n/config';
 import { LocaleSwitcher } from '@/app/components/locale-switcher';
 import {
   Sheet,
@@ -55,7 +56,7 @@ function SidebarNav({ active, lang, pendingCount, onNavigate }: {
           onClick={onNavigate}
           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             active === item.key
-              ? 'bg-primary/15 text-primary border-l-2 border-primary rounded-l-none rounded-r-lg'
+              ? 'bg-primary/15 text-primary border-s-2 border-primary rounded-s-none rounded-e-lg'
               : 'text-muted-foreground hover:text-foreground hover:bg-accent'
           }`}
         >
@@ -64,7 +65,7 @@ function SidebarNav({ active, lang, pendingCount, onNavigate }: {
           </svg>
           <span>{tAdmin(`nav.${item.key}`)}</span>
           {item.key === 'appointments' && pendingCount > 0 && (
-            <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full leading-none">
+            <span className="ms-auto bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full leading-none">
               {pendingCount}
             </span>
           )}
@@ -102,7 +103,7 @@ export default function Sidebar({ active, pendingCount, adminName, adminEmail, o
   const tCommon = useT('common');
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-r border-sidebar-border h-screen fixed top-0 left-0 z-40">
+      <aside className="hidden lg:flex flex-col w-[260px] bg-sidebar border-e border-sidebar-border h-screen fixed top-0 start-0 z-40">
         <SidebarDesktopHeader adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} lang={lang} />
         <SidebarNav active={active} lang={lang} pendingCount={pendingCount} />
         <SidebarFooter adminName={adminName} adminEmail={adminEmail} onSignOut={onSignOut} isSigningOut={isSigningOut} lang={lang} />
@@ -114,7 +115,7 @@ export default function Sidebar({ active, pendingCount, adminName, adminEmail, o
             <SheetTitle className="font-playfair text-xl tracking-wider font-bold">DESART</SheetTitle>
             <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium">{tAdmin('strapline')}</p>
             <div className="mt-3">
-              <LocaleSwitcher locale={lang} variant="dark" />
+              <LocaleSwitcher locale={lang} variant="dark" locales={i18n.locales} />
             </div>
           </SheetHeader>
           <SidebarNav active={active} lang={lang} pendingCount={pendingCount} onNavigate={onMobileClose} />
@@ -148,7 +149,7 @@ function SidebarDesktopHeader({ adminName, adminEmail, onSignOut, lang }: {
       <h1 className="font-playfair text-2xl text-foreground tracking-wider font-bold">DESART</h1>
       <p className="text-xs text-muted-foreground mt-1 uppercase tracking-[0.2em] font-medium">{tAdmin('strapline')}</p>
       <div className="mt-3">
-        <LocaleSwitcher locale={lang} variant="dark" />
+        <LocaleSwitcher locale={lang} variant="dark" locales={i18n.locales} />
       </div>
     </div>
   );
@@ -166,7 +167,7 @@ function SidebarFooter({ adminName, adminEmail, onSignOut, isSigningOut, lang }:
   return (
     <div className="px-4 py-4 border-t border-border space-y-3">
       <div className="px-1">
-        <LocaleSwitcher locale={lang} variant="dark" />
+        <LocaleSwitcher locale={lang} variant="dark" locales={i18n.locales} />
       </div>
       <div className="flex items-center gap-3 mb-3 px-1">
         <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">

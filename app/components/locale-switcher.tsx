@@ -9,9 +9,14 @@ import { setLocaleCookieClient } from '@/lib/i18n/locale-cookie';
 interface LocaleSwitcherProps {
   locale: Locale;
   variant?: 'light' | 'dark';
+  /** Which locales to offer. Defaults to the public set (fr/en). Admin passes all. */
+  locales?: readonly Locale[];
 }
 
-export function LocaleSwitcher({ locale, variant = 'light' }: LocaleSwitcherProps) {
+const LOCALE_LABEL: Record<Locale, string> = { fr: 'fr', en: 'en', ar: 'ع' };
+const LOCALE_ARIA: Record<Locale, string> = { fr: 'French', en: 'English', ar: 'Arabic' };
+
+export function LocaleSwitcher({ locale, variant = 'light', locales = i18n.publicLocales }: LocaleSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,19 +34,19 @@ export function LocaleSwitcher({ locale, variant = 'light' }: LocaleSwitcherProp
 
   return (
     <div className="inline-flex items-center gap-1 text-[11px] font-medium tracking-[0.14em] uppercase">
-      {i18n.locales.map((l, index) => (
+      {locales.map((l, index) => (
         <span key={l} className="inline-flex items-center gap-1">
           <button
             type="button"
             onClick={() => handleSwitch(l)}
             data-active={locale === l}
             className={`px-1.5 py-0.5 rounded transition-colors duration-200 ${baseClasses}`}
-            aria-label={`Switch to ${l === 'fr' ? 'French' : 'English'}`}
+            aria-label={`Switch to ${LOCALE_ARIA[l]}`}
             aria-pressed={locale === l}
           >
-            {l}
+            {LOCALE_LABEL[l]}
           </button>
-          {index < i18n.locales.length - 1 && (
+          {index < locales.length - 1 && (
             <span
               className={
                 variant === 'light' ? 'text-brand-white/20' : 'text-border'

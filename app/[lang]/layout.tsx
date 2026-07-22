@@ -4,7 +4,7 @@ import { Playfair_Display, DM_Sans, Geist, Fraunces } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import '../globals.css';
 import { cn } from '@/lib/utils';
-import { hasLocale, type Locale, i18n } from '@/lib/i18n/config';
+import { hasLocale, localeDir, type Locale, i18n } from '@/lib/i18n/config';
 import { notFound } from 'next/navigation';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { BASE_URL, BUSINESS_NAME, PHONE, ADDRESS_LOCALITY, ADDRESS_COUNTRY, GEO_LATITUDE, GEO_LONGITUDE, PRICE_RANGE, PAYMENT_ACCEPTED, OPENING_HOURS, LOGO_URL, OG_IMAGE_URL } from '@/lib/seo/constants';
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
     alternates: {
       canonical,
       languages: {
-        ...Object.fromEntries(i18n.locales.map((l) => [l, `/${l}`])),
+        ...Object.fromEntries(i18n.publicLocales.map((l) => [l, `/${l}`])),
         'x-default': `/${i18n.defaultLocale}`,
       },
     },
@@ -98,7 +98,9 @@ export const viewport = {
 };
 
 export async function generateStaticParams() {
-  return i18n.locales.map((lang) => ({ lang }));
+  // Only the public marketing locales are prerendered. Arabic (/ar) is admin-only
+  // and rendered on demand (admin pages are force-dynamic anyway).
+  return i18n.publicLocales.map((lang) => ({ lang }));
 }
 
 export default async function RootLayout({
@@ -117,6 +119,7 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
+      dir={localeDir(lang)}
       className={cn('h-full w-full scroll-smooth overflow-x-hidden antialiased', playfair.variable, dmSans.variable, fraunces.variable, 'font-sans', geist.variable)}
     >
       <head>

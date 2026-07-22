@@ -45,7 +45,7 @@ export default function AdminShell({ lang, section, pendingCount, adminName, adm
         lang={lang}
       />
 
-      <main className="flex-1 min-w-0 lg:ml-[260px]">
+      <main className="flex-1 min-w-0 lg:ms-[260px]">
         <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border px-4 lg:px-8 py-4 flex items-center gap-4">
           <button
             onClick={() => setMobileMenuOpen(true)}
@@ -56,7 +56,7 @@ export default function AdminShell({ lang, section, pendingCount, adminName, adm
             </svg>
           </button>
           <h2 className="font-playfair text-lg text-foreground font-semibold">{tAdmin(`nav.${section}`)}</h2>
-          <div className="ml-auto flex items-center gap-3 lg:hidden">
+          <div className="ms-auto flex items-center gap-3 lg:hidden">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-playfair text-sm font-bold ring-1 ring-primary/25">
               {adminName?.charAt(0)?.toUpperCase() || 'A'}
             </div>

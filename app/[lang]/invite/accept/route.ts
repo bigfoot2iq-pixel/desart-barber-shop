@@ -85,8 +85,10 @@ export async function GET(request: NextRequest) {
   }
 
   const redirectLang = (user.app_metadata?.locale as Locale) || 'fr';
-  const redirectPath = invitationData.role === 'admin' ? '/admin' : '/dashboard';
-  const redirectUrl = new URL(localeHref(redirectLang, redirectPath), request.url);
+  // Admins land on the Arabic-first admin panel; professionals on their page.
+  const redirectUrl = invitationData.role === 'admin'
+    ? new URL('/ar/admin', request.url)
+    : new URL(localeHref(redirectLang, '/professional'), request.url);
 
   return NextResponse.redirect(redirectUrl);
 }

@@ -27,7 +27,7 @@ export default async function ProfessionalPage({ params }: PageProps<'/[lang]'>)
   const role = getRole(user);
 
   if (role !== 'professional') {
-    redirect(localeHref(lang, '/dashboard'));
+    redirect(localeHref(lang, '/'));
   }
 
   return <ProfessionalClient dict={dict} common={common} user={user} lang={lang} />;

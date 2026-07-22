@@ -51,7 +51,7 @@ export default function DataTable<T extends Record<string, unknown>>({
         <thead>
           <tr className="border-b border-border">
             {columns.map((col) => (
-              <th key={col.key} className={`text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-3 px-3 ${col.className || ''}`}>
+              <th key={col.key} className={`text-start text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-3 px-3 ${col.className || ''}`}>
                 {col.label}
               </th>
             ))}

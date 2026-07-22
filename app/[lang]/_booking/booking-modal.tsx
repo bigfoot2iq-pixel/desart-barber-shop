@@ -612,7 +612,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
         first_name: draft.firstName,
         last_name: draft.lastName,
         phone: draft.phone,
-        locale,
+        // Booking is public (fr/en only); Arabic is admin-only so it never reaches here.
+        locale: locale === 'ar' ? 'fr' : locale,
       });
 
       const startTime = toHHMMSS(draft.time);
