@@ -479,6 +479,12 @@ export async function updateSalon(id: string, updates: Partial<Salon>): Promise<
   return data as Salon;
 }
 
+export async function deleteSalon(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('salons').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function getAllProfessionals(locale: Locale): Promise<ProfessionalWithSalon[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -518,6 +524,12 @@ export async function updateProfessional(id: string, updates: Partial<Profession
   return data as Professional;
 }
 
+export async function deleteProfessional(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('professionals').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function getAllServices(locale: Locale): Promise<Service[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -552,6 +564,12 @@ export async function updateService(id: string, updates: Partial<Service>): Prom
 
   if (error) throw error;
   return data as Service;
+}
+
+export async function deleteService(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('services').delete().eq('id', id);
+  if (error) throw error;
 }
 
 export async function getProfessionalServices(professionalId: string): Promise<string[]> {

@@ -194,7 +194,12 @@
     "dayWednesday": "Wednesday",
     "dayThursday": "Thursday",
     "dayFriday": "Friday",
-    "daySaturday": "Saturday"
+    "daySaturday": "Saturday",
+    "deleting": "Deleting…",
+    "deleteConfirmTitle": "Delete professional?",
+    "deleteConfirmMessage": "This will permanently delete \"{name}\", including their schedule and time off. Past appointments are kept but unassigned. This action cannot be undone.",
+    "toastDeleted": "Professional deleted",
+    "toastDeleteFailed": "Failed to delete professional"
   },
   "services": {
     "title": "Services",
@@ -225,7 +230,14 @@
     "toastDeactivated": "Service deactivated",
     "toastActivated": "Service activated",
     "toastToggleFailed": "Failed to toggle service",
-    "translationMissing": "FR missing"
+    "translationMissing": "FR missing",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "deleteConfirmTitle": "Delete service?",
+    "deleteConfirmMessage": "This will permanently delete \"{name}\". This action cannot be undone.",
+    "toastDeleted": "Service deleted",
+    "toastDeleteFailed": "Failed to delete service",
+    "toastDeleteInUse": "Cannot delete this service because it is used in existing appointments."
   },
   "salons": {
     "title": "Salons",
@@ -253,7 +265,14 @@
     "toastDeactivated": "Salon deactivated",
     "toastActivated": "Salon activated",
     "toastToggleFailed": "Failed to toggle salon",
-    "translationMissing": "FR missing"
+    "translationMissing": "FR missing",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "deleteConfirmTitle": "Delete salon?",
+    "deleteConfirmMessage": "This will permanently delete \"{name}\". This action cannot be undone.",
+    "toastDeleted": "Salon deleted",
+    "toastDeleteFailed": "Failed to delete salon",
+    "toastDeleteHasProfessionals": "Cannot delete this salon while professionals are still assigned to it. Reassign or delete them first."
   },
   "notifications": {
     "channels": {

@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Service } from '@/lib/types/database';
 import type { Locale } from '@/lib/i18n/config';
-import { getAllServices, createService, updateService } from '@/lib/queries';
+import { getAllServices, createService, updateService, deleteService } from '@/lib/queries';
 import { formatMoney } from '@/lib/i18n/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Modal, ToggleButton, useToast } from './ui';
+import { Modal, ConfirmDialog, ToggleButton, useToast } from './ui';
 import { useT } from '@/lib/i18n/client-dictionary';
 
 interface ServicesManagerProps {
@@ -39,6 +39,8 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
   const [descTab, setDescTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
@@ -128,6 +130,22 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteService(deleteTarget.id);
+      setServices((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      toast(tAdmin('services.toastDeleted'));
+      setDeleteTarget(null);
+    } catch (e) {
+      const code = (e as { code?: string })?.code;
+      toast(code === '23503' ? tAdmin('services.toastDeleteInUse') : tAdmin('services.toastDeleteFailed'), 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const toggleActive = async (s: Service) => {
     if (togglingId === s.id) return;
     setTogglingId(s.id);
@@ -193,10 +211,12 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
                           disabled={togglingId === s.id}
                         />
                         <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>{tAdmin('services.edit')}</Button>
+                        <Button variant="destructive" size="xs" onClick={() => setDeleteTarget(s)}>{tAdmin('services.delete')}</Button>
                       </div>
-                      <div className="flex sm:hidden items-center gap-2">
+                      <div className="flex sm:hidden items-center gap-3">
                         <span className="text-primary font-semibold text-sm">{formatMoney(s.price_mad, lang)}</span>
                         <button onClick={() => openEditForm(s)} className="text-primary text-xs font-medium">{tAdmin('services.edit')}</button>
+                        <button onClick={() => setDeleteTarget(s)} className="text-destructive text-xs font-medium">{tAdmin('services.delete')}</button>
                       </div>
                     </div>
                   </CardContent>
@@ -283,6 +303,17 @@ export default function ServicesManager({ lang, initialServices }: ServicesManag
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={tAdmin('services.deleteConfirmTitle')}
+        message={tAdmin('services.deleteConfirmMessage', { name: deleteTarget?.name || '' })}
+        confirmLabel={deleting ? tAdmin('services.deleting') : tAdmin('services.delete')}
+        cancelLabel={tCommon('cancel')}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

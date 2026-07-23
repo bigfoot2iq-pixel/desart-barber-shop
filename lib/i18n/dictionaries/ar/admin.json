@@ -194,7 +194,12 @@
     "dayWednesday": "الأربعاء",
     "dayThursday": "الخميس",
     "dayFriday": "الجمعة",
-    "daySaturday": "السبت"
+    "daySaturday": "السبت",
+    "deleting": "جارٍ الحذف…",
+    "deleteConfirmTitle": "حذف المحترف؟",
+    "deleteConfirmMessage": "سيؤدي هذا إلى حذف «{name}» نهائيًا، بما في ذلك جدوله وإجازاته. تُحفظ المواعيد السابقة لكن دون تعيين. لا يمكن التراجع عن هذا الإجراء.",
+    "toastDeleted": "تم حذف المحترف",
+    "toastDeleteFailed": "فشل حذف المحترف"
   },
   "services": {
     "title": "الخدمات",
@@ -225,7 +230,14 @@
     "toastDeactivated": "تم إيقاف الخدمة",
     "toastActivated": "تم تفعيل الخدمة",
     "toastToggleFailed": "تعذّر تبديل حالة الخدمة",
-    "translationMissing": "الفرنسية ناقصة"
+    "translationMissing": "الفرنسية ناقصة",
+    "delete": "حذف",
+    "deleting": "جارٍ الحذف…",
+    "deleteConfirmTitle": "حذف الخدمة؟",
+    "deleteConfirmMessage": "سيؤدي هذا إلى حذف «{name}» نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "toastDeleted": "تم حذف الخدمة",
+    "toastDeleteFailed": "فشل حذف الخدمة",
+    "toastDeleteInUse": "لا يمكن حذف هذه الخدمة لأنها مستخدمة في مواعيد قائمة."
   },
   "salons": {
     "title": "الصالونات",
@@ -253,7 +265,14 @@
     "toastDeactivated": "تم إيقاف الصالون",
     "toastActivated": "تم تفعيل الصالون",
     "toastToggleFailed": "تعذّر تبديل حالة الصالون",
-    "translationMissing": "الفرنسية ناقصة"
+    "translationMissing": "الفرنسية ناقصة",
+    "delete": "حذف",
+    "deleting": "جارٍ الحذف…",
+    "deleteConfirmTitle": "حذف الصالون؟",
+    "deleteConfirmMessage": "سيؤدي هذا إلى حذف «{name}» نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "toastDeleted": "تم حذف الصالون",
+    "toastDeleteFailed": "فشل حذف الصالون",
+    "toastDeleteHasProfessionals": "لا يمكن حذف هذا الصالون ما دام هناك محترفون مرتبطون به. أعد تعيينهم أو احذفهم أولاً."
   },
   "notifications": {
     "channels": {

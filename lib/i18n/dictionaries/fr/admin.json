@@ -194,7 +194,12 @@
     "dayWednesday": "Mercredi",
     "dayThursday": "Jeudi",
     "dayFriday": "Vendredi",
-    "daySaturday": "Samedi"
+    "daySaturday": "Samedi",
+    "deleting": "Suppression…",
+    "deleteConfirmTitle": "Supprimer le professionnel ?",
+    "deleteConfirmMessage": "Cela supprimera définitivement « {name} », y compris son planning et ses congés. Les rendez-vous passés sont conservés mais non attribués. Cette action est irréversible.",
+    "toastDeleted": "Professionnel supprimé",
+    "toastDeleteFailed": "Échec de la suppression du professionnel"
   },
   "services": {
     "title": "Services",
@@ -225,7 +230,14 @@
     "toastDeactivated": "Service désactivé",
     "toastActivated": "Service activé",
     "toastToggleFailed": "Échec du changement d'état du service",
-    "translationMissing": "FR manquant"
+    "translationMissing": "FR manquant",
+    "delete": "Supprimer",
+    "deleting": "Suppression…",
+    "deleteConfirmTitle": "Supprimer le service ?",
+    "deleteConfirmMessage": "Cela supprimera définitivement « {name} ». Cette action est irréversible.",
+    "toastDeleted": "Service supprimé",
+    "toastDeleteFailed": "Échec de la suppression du service",
+    "toastDeleteInUse": "Impossible de supprimer ce service car il est utilisé dans des rendez-vous existants."
   },
   "salons": {
     "title": "Salons",
@@ -253,7 +265,14 @@
     "toastDeactivated": "Salon désactivé",
     "toastActivated": "Salon activé",
     "toastToggleFailed": "Échec du changement d'état du salon",
-    "translationMissing": "FR manquant"
+    "translationMissing": "FR manquant",
+    "delete": "Supprimer",
+    "deleting": "Suppression…",
+    "deleteConfirmTitle": "Supprimer le salon ?",
+    "deleteConfirmMessage": "Cela supprimera définitivement « {name} ». Cette action est irréversible.",
+    "toastDeleted": "Salon supprimé",
+    "toastDeleteFailed": "Échec de la suppression du salon",
+    "toastDeleteHasProfessionals": "Impossible de supprimer ce salon tant que des professionnels y sont rattachés. Réaffectez-les ou supprimez-les d'abord."
   },
   "notifications": {
     "channels": {

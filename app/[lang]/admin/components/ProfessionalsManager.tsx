@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Professional, Salon, Service, ProfessionalAvailability, AvailabilityOverride } from '@/lib/types/database';
-import { getAllProfessionals, getAllSalons, getAllServices, createProfessional, updateProfessional, getProfessionalServices, setProfessionalServices } from '@/lib/queries';
+import { getAllProfessionals, getAllSalons, getAllServices, createProfessional, updateProfessional, deleteProfessional, getProfessionalServices, setProfessionalServices } from '@/lib/queries';
 import { getWeeklySchedule, setWeeklySchedule as saveWeeklyScheduleToDb, getOverrides, addOverride, deleteOverride } from '@/lib/queries/availability';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/ui/image-uploader';
 import { DatePicker } from '@/components/ui/date-picker';
 import { TimePicker, fmtTime } from '@/components/ui/time-picker';
-import { Modal, AdminBadge, ToggleButton, useToast } from './ui';
+import { Modal, ConfirmDialog, AdminBadge, ToggleButton, useToast } from './ui';
 import { formatDate, formatMoney } from '@/lib/i18n/format';
 import { useT } from '@/lib/i18n/client-dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -53,6 +53,8 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [deletingOverrideId, setDeletingOverrideId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProfessionalWithSalon | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [selectedProfessional, setSelectedProfessional] = useState<ProfessionalWithSalon | null>(null);
   const [professionalServiceIds, setProfessionalServiceIds] = useState<string[]>([]);
@@ -156,6 +158,21 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
       toast(tAdmin('professionals.toastFailed', { error: e instanceof Error ? e.message : 'Unknown error' }), 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteProfessional(deleteTarget.id);
+      setProfessionals((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      toast(tAdmin('professionals.toastDeleted'));
+      setDeleteTarget(null);
+    } catch {
+      toast(tAdmin('professionals.toastDeleteFailed'), 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -327,6 +344,7 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
                       >
                         {p.is_active ? tAdmin('professionals.deactivate') : tAdmin('professionals.activate')}
                       </Button>
+                      <Button variant="destructive" size="xs" onClick={() => setDeleteTarget(p)}>{tAdmin('professionals.delete')}</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -623,6 +641,17 @@ export default function ProfessionalsManager({ lang, initialProfessionals, initi
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={tAdmin('professionals.deleteConfirmTitle')}
+        message={tAdmin('professionals.deleteConfirmMessage', { name: deleteTarget?.display_name || '' })}
+        confirmLabel={deleting ? tAdmin('professionals.deleting') : tAdmin('professionals.delete')}
+        cancelLabel={tCommon('cancel')}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

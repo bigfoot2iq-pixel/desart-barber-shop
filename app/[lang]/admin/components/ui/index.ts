@@ -1,4 +1,5 @@
 export { Modal } from './Modal';
+export { ConfirmDialog } from './ConfirmDialog';
 export { AdminBadge } from './Badge';
 export { ToastProvider, useToast } from './Toast';
 export { default as ToggleButton } from './ToggleButton';

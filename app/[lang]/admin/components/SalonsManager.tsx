@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Salon } from '@/lib/types/database';
 import type { Locale } from '@/lib/i18n/config';
-import { getAllSalons, createSalon, updateSalon } from '@/lib/queries';
+import { getAllSalons, createSalon, updateSalon, deleteSalon } from '@/lib/queries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/ui/image-uploader';
 import { LocationPicker, type LocationValue } from '@/components/location-picker';
-import { Modal, ToggleButton, useToast } from './ui';
+import { Modal, ConfirmDialog, ToggleButton, useToast } from './ui';
 import { useT } from '@/lib/i18n/client-dictionary';
 
 interface SalonsManagerProps {
@@ -40,6 +40,8 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Salon | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [nameTab, setNameTab] = useState<'en' | 'fr'>('en');
   const [addrTab, setAddrTab] = useState<'en' | 'fr'>('en');
   const { toast } = useToast();
@@ -131,6 +133,22 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteSalon(deleteTarget.id);
+      setSalons((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      toast(tAdmin('salons.toastDeleted'));
+      setDeleteTarget(null);
+    } catch (e) {
+      const code = (e as { code?: string })?.code;
+      toast(code === '23503' ? tAdmin('salons.toastDeleteHasProfessionals') : tAdmin('salons.toastDeleteFailed'), 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const toggleActive = async (s: Salon) => {
     if (togglingId === s.id) return;
     setTogglingId(s.id);
@@ -209,6 +227,7 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
                     </p>
                     <div className="mt-3 flex gap-2">
                       <Button variant="outline" size="xs" onClick={() => openEditForm(s)}>{tAdmin('salons.edit')}</Button>
+                      <Button variant="destructive" size="xs" onClick={() => setDeleteTarget(s)}>{tAdmin('salons.delete')}</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -298,6 +317,17 @@ export default function SalonsManager({ lang, initialSalons }: SalonsManagerProp
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={tAdmin('salons.deleteConfirmTitle')}
+        message={tAdmin('salons.deleteConfirmMessage', { name: deleteTarget?.name || '' })}
+        confirmLabel={deleting ? tAdmin('salons.deleting') : tAdmin('salons.delete')}
+        cancelLabel={tCommon('cancel')}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }
