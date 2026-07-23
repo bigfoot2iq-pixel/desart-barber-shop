@@ -575,6 +575,20 @@ export default function AppointmentsManager({
                   <span className="text-primary">{tAdmin('appointments.total')}</span>
                   <span className="text-primary">{formatMoney(selectedAppointment.total_price_mad, lang)}</span>
                 </div>
+                {selectedAppointment.tip_mad > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{tAdmin('appointments.tip')}</span>
+                      <span className="text-muted-foreground">+{formatMoney(selectedAppointment.tip_mad, lang)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-semibold">
+                      <span className="text-primary">{tAdmin('appointments.grandTotal')}</span>
+                      <span className="text-primary">
+                        {formatMoney(selectedAppointment.total_price_mad + selectedAppointment.tip_mad, lang)}
+                      </span>
+                    </div>
+                  </>
+                )}
                 {selectedAppointment.location_type === 'home' && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{tAdmin('appointments.homeVisitSurcharge')}</span>

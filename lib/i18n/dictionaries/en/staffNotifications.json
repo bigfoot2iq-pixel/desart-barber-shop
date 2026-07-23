@@ -10,6 +10,7 @@
   "timeLabel": "Time",
   "locationLabel": "Location",
   "paymentLabel": "Payment",
+  "tipLabel": "Tip",
   "notesLabel": "Notes",
   "professionalLabel": "Professional",
   "adminLinkLabel": "View in admin dashboard",

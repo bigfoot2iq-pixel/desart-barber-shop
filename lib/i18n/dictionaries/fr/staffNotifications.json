@@ -10,6 +10,7 @@
   "timeLabel": "Heure",
   "locationLabel": "Lieu",
   "paymentLabel": "Paiement",
+  "tipLabel": "Pourboire",
   "notesLabel": "Notes",
   "professionalLabel": "Professionnel",
   "adminLinkLabel": "Voir dans le tableau de bord admin",

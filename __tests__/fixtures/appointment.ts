@@ -13,6 +13,7 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
     status: 'confirmed',
     payment_method: 'cash',
     total_price_mad: 180,
+    tip_mad: 0,
     location_type: 'salon',
     home_address: null,
     home_latitude: null,

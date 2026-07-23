@@ -69,6 +69,8 @@
     "homeVisit": "Home visit",
     "sectionServices": "Services",
     "total": "Total",
+    "tip": "Tip",
+    "grandTotal": "Total with tip",
     "homeVisitSurcharge": "Home visit surcharge",
     "sectionProfessional": "Professional",
     "preferred": "Preferred",

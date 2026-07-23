@@ -69,6 +69,8 @@
     "homeVisit": "Visite à domicile",
     "sectionServices": "Services",
     "total": "Total",
+    "tip": "Pourboire",
+    "grandTotal": "Total avec pourboire",
     "homeVisitSurcharge": "Supplement visite à domicile",
     "sectionProfessional": "Professionnel",
     "preferred": "Préféré",

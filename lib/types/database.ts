@@ -96,6 +96,7 @@ export interface Appointment {
   payment_method: PaymentMethod;
   status: AppointmentStatus;
   total_price_mad: number;
+  tip_mad: number;
   notes: string | null;
   created_at: string;
   updated_at: string;

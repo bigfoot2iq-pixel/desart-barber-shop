@@ -79,6 +79,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [tip, setTip] = useState(0);
+  const [customTip, setCustomTip] = useState("");
   const [paymentConfig, setPaymentConfig] = useState<Awaited<ReturnType<typeof getPublicPaymentConfig>> | null>(null);
   const [copiedField, setCopiedField] = useState<{ accountId: string; field: "rib" | "iban" } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -535,7 +537,15 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   }, [toast]);
 
   const total = effectiveSelectedServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.type === "home" ? 30 : 0);
+  const grandTotal = total + tip;
   const selectedServicesLabel = effectiveSelectedServices.map((service) => service.name).join(", ");
+
+  const TIP_PRESETS = [10, 20, 50] as const;
+  const applyCustomTip = (raw: string) => {
+    const cleaned = raw.replace(/[^\d]/g, "").slice(0, 4);
+    setCustomTip(cleaned);
+    setTip(cleaned ? parseInt(cleaned, 10) : 0);
+  };
 
   const canContinue = (() => {
     if (step === 1) return Boolean(selectedLocation);
@@ -564,6 +574,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     setLastName("");
     setPhone("");
     setPaymentMethod("cash");
+    setTip(0);
+    setCustomTip("");
     setPaymentConfig(null);
     setCopiedField(null);
     setIsSubmitting(false);
@@ -606,10 +618,11 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
       lastName: lastName.trim(),
       phone: phone.trim(),
       totalPrice: total,
+      tipMad: tip,
       durationMinutes: totalDurationMinutes,
       paymentMethod,
     };
-  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, firstName, lastName, phone, total, totalDurationMinutes, paymentMethod]);
+  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, firstName, lastName, phone, total, tip, totalDurationMinutes, paymentMethod]);
 
   const persistAppointment = useCallback(
     async (draft: BookingDraft, customerId: string) => {
@@ -642,6 +655,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
           payment_method: draft.paymentMethod,
           status: "pending",
           total_price_mad: draft.totalPrice,
+          tip_mad: draft.tipMad,
           notes: null,
         },
         draft.serviceIds
@@ -1984,7 +1998,86 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                           )}
                       </div>
 
+                      <div className="flex flex-col gap-3 mb-[22px]">
+                        <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="opacity-60"
+                          >
+                            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                          </svg>
+                          {tBooking("steps.details.tipTitle")}
+                          <span className="normal-case tracking-normal font-medium text-[rgb(10_8_0/35%)]">
+                            {tBooking("steps.details.tipOptional")}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {TIP_PRESETS.map((preset) => {
+                            const active = customTip === "" && tip === preset;
+                            return (
+                              <button
+                                key={preset}
+                                type="button"
+                                data-testid={`btn:tip-${preset}`}
+                                aria-pressed={active}
+                                onClick={() => {
+                                  setCustomTip("");
+                                  setTip(active ? 0 : preset);
+                                }}
+                                className={`flex-1 min-w-[76px] rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+                                  active
+                                    ? "border-gold bg-[rgb(192_154_90/6%)] text-brand-black"
+                                    : "border-[rgb(10_8_0/12%)] bg-white text-[rgb(10_8_0/70%)] hover:border-[rgb(10_8_0/22%)]"
+                                }`}
+                              >
+                                {formatMoney(preset, locale as import("@/lib/i18n/config").Locale)}
+                              </button>
+                            );
+                          })}
+                          <div
+                            className={`flex items-center gap-1 flex-1 min-w-[110px] rounded-xl border-2 px-3 py-2 transition-colors duration-200 ${
+                              customTip !== "" ? "border-gold bg-[rgb(192_154_90/6%)]" : "border-[rgb(10_8_0/12%)] bg-white"
+                            }`}
+                          >
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              data-testid="input:tip-custom"
+                              placeholder={tBooking("steps.details.tipCustom")}
+                              value={customTip}
+                              onChange={(event) => applyCustomTip(event.target.value)}
+                              className="w-full bg-transparent text-sm font-semibold text-brand-black outline-none placeholder:font-medium placeholder:text-[rgb(10_8_0/30%)]"
+                            />
+                            <span className="text-[11px] font-semibold text-[rgb(10_8_0/40%)] shrink-0">MAD</span>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="bg-white rounded-2xl border border-[rgb(10_8_0/10%)] shadow-[0_1px_3px_rgb(0_0_0/3%)] overflow-hidden">
+                        {tip > 0 && (
+                          <div className="px-4 pt-3 pb-2 border-b border-[rgb(10_8_0/8%)] space-y-1.5 text-[12px]">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[rgb(10_8_0/55%)]">{tBooking("steps.summary.services")}</span>
+                              <span className="text-brand-black font-medium">
+                                {formatMoney(total, locale as import("@/lib/i18n/config").Locale)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[rgb(10_8_0/55%)]">{tBooking("steps.summary.tip")}</span>
+                              <span className="text-brand-black font-medium">
+                                +{formatMoney(tip, locale as import("@/lib/i18n/config").Locale)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                         <div className="px-4 py-3 flex items-center justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="text-[13px] font-semibold text-brand-black tracking-[-0.01em] truncate">
@@ -2005,7 +2098,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                               Total
                             </div>
                             <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">
-                              {formatMoney(total, locale as import("@/lib/i18n/config").Locale)}
+                              {formatMoney(grandTotal, locale as import("@/lib/i18n/config").Locale)}
                             </div>
                           </div>
                         </div>
@@ -2049,7 +2142,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                               {user ? tBooking("steps.details.confirmBooking") : tBooking("steps.details.continueWithGoogle")}
                             </span>
                             <span className="font-bold tracking-[-0.01em]">
-                              {formatMoney(total, locale as import("@/lib/i18n/config").Locale)}
+                              {formatMoney(grandTotal, locale as import("@/lib/i18n/config").Locale)}
                             </span>
                           </button>
                         </motion.div>
@@ -2118,13 +2211,18 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                               {selectedBarber?.name}
                             </div>
                             <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">{selectedServicesLabel}</div>
+                            {tip > 0 && (
+                              <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">
+                                {tBooking("steps.summary.tip")}: {formatMoney(tip, locale as import("@/lib/i18n/config").Locale)}
+                              </div>
+                            )}
                           </div>
                           <div className="shrink-0 text-right">
                             <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[rgb(10_8_0/40%)] leading-none mb-1">
                               {tBooking("steps.summary.total")}
                             </div>
                             <div className="font-playfair text-[19px] font-medium tracking-[-0.02em] text-gold leading-none">
-                              {formatMoney(total, locale as import("@/lib/i18n/config").Locale)}
+                              {formatMoney(grandTotal, locale as import("@/lib/i18n/config").Locale)}
                             </div>
                           </div>
                         </div>

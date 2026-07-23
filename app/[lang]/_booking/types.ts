@@ -42,6 +42,7 @@ export type BookingDraft = {
   lastName: string;
   phone: string;
   totalPrice: number;
+  tipMad: number;
   durationMinutes: number;
   paymentMethod: PaymentMethod;
 };

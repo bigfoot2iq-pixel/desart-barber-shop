@@ -118,6 +118,9 @@
       "phonePlaceholder": "+212 6XX XXX XXX",
       "phoneFormat": "Format : +212 6XX XXX XXX ou 06XX XXX XXX",
       "paymentMethod": "Mode de Paiement",
+      "tipTitle": "Pourboire",
+      "tipOptional": "(optionnel)",
+      "tipCustom": "Autre",
       "cash": "Espèces",
       "payAtAppointment": "Payer sur place",
       "bankTransfer": "Virement Bancaire",
@@ -140,7 +143,9 @@
 "discardConfirm": "Abandonner les détails de votre réservation ?"
     },
     "summary": {
-      "total": "Total"
+      "total": "Total",
+      "services": "Services",
+      "tip": "Pourboire"
     },
     "confirmation": {
       "title": "Réservation Confirmée",

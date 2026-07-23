@@ -118,6 +118,9 @@
       "phonePlaceholder": "+212 6XX XXX XXX",
       "phoneFormat": "Format: +212 6XX XXX XXX or 06XX XXX XXX",
       "paymentMethod": "Payment Method",
+      "tipTitle": "Tip",
+      "tipOptional": "(optional)",
+      "tipCustom": "Other",
       "cash": "Cash",
       "payAtAppointment": "Pay at your appointment",
       "bankTransfer": "Bank transfer",
@@ -140,7 +143,9 @@
       "discardConfirm": "Discard your booking details?"
     },
     "summary": {
-      "total": "Total"
+      "total": "Total",
+      "services": "Services",
+      "tip": "Tip"
     },
 "confirmation": {
       "title": "Booking Confirmed",

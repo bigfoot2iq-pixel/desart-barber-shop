@@ -49,6 +49,7 @@ export async function buildAppointmentCreatedMessage(
     `${dict.timeLabel as string}: ${startTimeStr} – ${endTimeStr}`,
     `${dict.locationLabel as string}: ${locationName}`,
     `${dict.paymentLabel as string}: ${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD`,
+    ...(apt.tip_mad > 0 ? [`${dict.tipLabel as string}: ${apt.tip_mad} MAD`] : []),
     ...(apt.notes ? [`${dict.notesLabel as string}: ${apt.notes}`] : []),
     ...(adminUrl ? ['', `${adminLinkLabel}: ${adminUrl}`] : []),
   ].join('\n');
@@ -65,6 +66,7 @@ export async function buildAppointmentCreatedMessage(
           <tr><td style="padding: 6px 0; color: #888;">${dict.servicesLabel as string}</td><td style="padding: 6px 0;">${services}</td></tr>
           <tr><td style="padding: 6px 0; color: #888;">${dict.locationLabel as string}</td><td style="padding: 6px 0;">${locationName}</td></tr>
           <tr><td style="padding: 6px 0; color: #888;">${dict.paymentLabel as string}</td><td style="padding: 6px 0;">${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD</td></tr>
+          ${apt.tip_mad > 0 ? `<tr><td style="padding: 6px 0; color: #888;">${dict.tipLabel as string}</td><td style="padding: 6px 0;">${apt.tip_mad} MAD</td></tr>` : ''}
         </table>
         ${apt.notes ? `<div style="margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 4px; font-size: 13px; color: #555;"><strong>${dict.notesLabel as string}:</strong> ${apt.notes}</div>` : ''}
         ${adminUrl ? `<div style="margin-top: 20px;"><a href="${adminUrl}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">${adminLinkLabel}</a></div>` : ''}
@@ -83,6 +85,9 @@ export async function buildAppointmentCreatedMessage(
     `<b>${dict.locationLabel as string}:</b> ${locationName}`,
     `<b>${dict.paymentLabel as string}:</b> ${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD`,
   ];
+  if (apt.tip_mad > 0) {
+    telegramLines.push(`<b>${dict.tipLabel as string}:</b> ${apt.tip_mad} MAD`);
+  }
   if (apt.notes) {
     telegramLines.push(`<b>${dict.notesLabel as string}:</b> ${apt.notes}`);
   }
