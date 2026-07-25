@@ -19,6 +19,12 @@ export async function buildAppointmentCreatedMessage(
 
   const customerName = `${apt.customer?.first_name ?? ''} ${apt.customer?.last_name ?? ''}`.trim();
   const services = apt.services.map((s) => localizeService(s, locale).name).join(', ');
+  // Group bookings (party_size > 1): show who's coming and each guest's services
+  // so staff can allocate the back-to-back block for the single barber.
+  const isGroup = apt.party_size > 1;
+  const guestLines = isGroup
+    ? apt.guests.map((g) => `• ${g.name}: ${g.services.map((s) => localizeService(s, locale).name).join(', ')}`)
+    : [];
   const locationType = apt.location_type === 'home'
     ? (dict.locationTypeHome as string)
     : (dict.locationTypeSalon as string);
@@ -45,6 +51,7 @@ export async function buildAppointmentCreatedMessage(
     `${dict.phoneLabel as string}: ${formatPhone(apt.customer?.phone)}`,
     `${dict.emailLabel as string}: ${apt.customer?.email ?? 'N/A'}`,
     `${dict.serviceLabel as string}: ${services}`,
+    ...(isGroup ? [`${dict.groupLabel as string}: ${apt.party_size}`, ...guestLines] : []),
     `${dict.dateLabel as string}: ${dateStr}`,
     `${dict.timeLabel as string}: ${startTimeStr} – ${endTimeStr}`,
     `${dict.locationLabel as string}: ${locationName}`,
@@ -64,6 +71,7 @@ export async function buildAppointmentCreatedMessage(
           <tr><td style="padding: 6px 0; color: #888;">${dict.dateLabel as string}</td><td style="padding: 6px 0;">${dateStr}</td></tr>
           <tr><td style="padding: 6px 0; color: #888;">${dict.timeLabel as string}</td><td style="padding: 6px 0;">${startTimeStr} – ${endTimeStr}</td></tr>
           <tr><td style="padding: 6px 0; color: #888;">${dict.servicesLabel as string}</td><td style="padding: 6px 0;">${services}</td></tr>
+          ${isGroup ? `<tr><td style="padding: 6px 0; color: #888;">${dict.groupLabel as string}</td><td style="padding: 6px 0;">${apt.party_size} — ${guestLines.map((l) => l.replace(/^• /, '')).join('<br>')}</td></tr>` : ''}
           <tr><td style="padding: 6px 0; color: #888;">${dict.locationLabel as string}</td><td style="padding: 6px 0;">${locationName}</td></tr>
           <tr><td style="padding: 6px 0; color: #888;">${dict.paymentLabel as string}</td><td style="padding: 6px 0;">${apt.payment_method.replace('_', ' ')} • ${apt.total_price_mad} MAD</td></tr>
           ${apt.tip_mad > 0 ? `<tr><td style="padding: 6px 0; color: #888;">${dict.tipLabel as string}</td><td style="padding: 6px 0;">${apt.tip_mad} MAD</td></tr>` : ''}
@@ -80,6 +88,7 @@ export async function buildAppointmentCreatedMessage(
     `<b>${dict.phoneLabel as string}:</b> ${formatPhone(apt.customer?.phone)}`,
     `<b>${dict.emailLabel as string}:</b> ${apt.customer?.email ?? 'N/A'}`,
     `<b>${dict.serviceLabel as string}:</b> ${services}`,
+    ...(isGroup ? [`<b>${dict.groupLabel as string}:</b> ${apt.party_size}`, ...guestLines] : []),
     `<b>${dict.dateLabel as string}:</b> ${dateStr}`,
     `<b>${dict.timeLabel as string}:</b> ${startTimeStr} – ${endTimeStr}`,
     `<b>${dict.locationLabel as string}:</b> ${locationName}`,

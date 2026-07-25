@@ -38,5 +38,6 @@
     "subject": "Professionnel assigné — {professionalName} → {customerName}",
     "heading": "Professionnel Assigné — {locationType}",
     "statusLabel": "Professionnel assigné"
-  }
+  },
+  "groupLabel": "Groupe"
 }

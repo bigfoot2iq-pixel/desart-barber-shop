@@ -96,7 +96,15 @@
       "thisBarberNoServices": "Ce barbier n'a pas de services répertoriés pour le moment.",
       "continue": "Continuer",
       "services_one": "1 service",
-      "services_other": "{count} services"
+      "services_other": "{count} services",
+      "whoLabel": "Qui vient ?",
+      "partyHint": "Réservez pour vous seul, ou ajoutez des invités pour le même créneau.",
+      "partyYou": "Vous",
+      "partyGuest": "Invité {n}",
+      "partyAdd": "Ajouter un invité",
+      "partyRemove": "Retirer un invité",
+      "partyGroupOf": "Groupe de {count}",
+      "nextGuest": "Suivant : {name}"
     },
     "time": {
       "title": "Choisir une Heure",
@@ -140,7 +148,10 @@
       "continueWithGoogle": "Continuer avec Google",
       "saving": "Enregistrement…",
       "waitingForGoogle": "Attente de Google…",
-"discardConfirm": "Abandonner les détails de votre réservation ?"
+"discardConfirm": "Abandonner les détails de votre réservation ?",
+      "guestsTitle": "Le groupe ({count})",
+      "guestNamePlaceholder": "Invité {n} — prénom",
+      "guestsHint": "Les prénoms aident votre coiffeur à accueillir tout le monde. Facultatif."
     },
     "summary": {
       "total": "Total",

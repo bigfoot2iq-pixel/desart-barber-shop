@@ -40,7 +40,8 @@
     "unassigned": "Non attribué",
     "homeVisit": "Intervention à domicile",
     "salonFallback": "Salon",
-    "rate": "Noter"
+    "rate": "Noter",
+    "groupOf": "Groupe de {count}"
   },
   "toast": {
     "signedIn": "Connecté avec succès",

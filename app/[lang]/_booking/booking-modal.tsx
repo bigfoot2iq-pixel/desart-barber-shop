@@ -13,6 +13,7 @@ import {
   getBookedSlots,
   getBookedSlotsInRange,
   createAppointment,
+  createGroupAppointment,
   updateProfile,
   getCurrentProfile,
 } from "@/lib/queries";
@@ -35,6 +36,9 @@ const HOME_LOCATION: LocationOption = {
   imageUrl: null,
   type: "home",
 };
+
+// Upper bound for a single group booking (account holder + up to 5 guests).
+const MAX_PARTY_SIZE = 6;
 
 const HomePanelMapView = dynamic(
   () => import("@/components/map-view").then((mod) => ({ default: mod.MapView })),
@@ -94,6 +98,11 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<BarberOption | null>(null);
   const [selectedServices, setSelectedServices] = useState<ServiceOption[]>([]);
+  // Group booking: extra guests beyond the account holder. Guest 0 is the
+  // account holder and uses `selectedServices`; extras are served back-to-back
+  // by the same barber. partySize = 1 + extraGuests.length (max MAX_PARTY_SIZE).
+  const [extraGuests, setExtraGuests] = useState<{ name: string; services: ServiceOption[] }[]>([]);
+  const [activeGuest, setActiveGuest] = useState(0);
   const [selectedDate, setSelectedDate] = useState<DateSlot | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
@@ -138,15 +147,29 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
 
   const dateSlots = useMemo(() => buildDateSlots(), []);
 
-  const effectiveSelectedServices = useMemo(() => {
-    if (!selectedBarber) return selectedServices;
-    const ids = new Set(selectedBarber.services.map((s) => s.id));
-    return selectedServices.filter((s) => ids.has(s.id));
-  }, [selectedServices, selectedBarber]);
+  const partySize = 1 + extraGuests.length;
+
+  // Each guest's services filtered to what the chosen barber actually offers.
+  // Index 0 = account holder (selectedServices), 1..N = extra guests.
+  const guestEffectiveServices = useMemo(() => {
+    const ids = selectedBarber ? new Set(selectedBarber.services.map((s) => s.id)) : null;
+    const filt = (svc: ServiceOption[]) => (ids ? svc.filter((s) => ids.has(s.id)) : svc);
+    return [filt(selectedServices), ...extraGuests.map((g) => filt(g.services))];
+  }, [selectedServices, extraGuests, selectedBarber]);
+
+  // Services of the guest currently being edited on the service step.
+  const effectiveSelectedServices = guestEffectiveServices[activeGuest] ?? guestEffectiveServices[0];
+
+  // Whole-booking flat list — the barber serves everyone back-to-back, so
+  // duration and price sum across all guests (duplicates kept intentionally).
+  const allEffectiveServices = useMemo(
+    () => guestEffectiveServices.flat(),
+    [guestEffectiveServices]
+  );
 
   const totalDurationMinutes = useMemo(
-    () => effectiveSelectedServices.reduce((sum, s) => sum + s.duration, 0),
-    [effectiveSelectedServices]
+    () => allEffectiveServices.reduce((sum, s) => sum + s.duration, 0),
+    [allEffectiveServices]
   );
 
   const weeklyForBarber = useMemo(
@@ -558,9 +581,18 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const total = effectiveSelectedServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.type === "home" ? 30 : 0);
+  const total = allEffectiveServices.reduce((sum, service) => sum + service.price, 0) + (selectedLocation?.type === "home" ? 30 : 0);
   const grandTotal = total + tip;
-  const selectedServicesLabel = effectiveSelectedServices.map((service) => service.name).join(", ");
+  const selectedServicesLabel = allEffectiveServices.map((service) => service.name).join(", ");
+  const servicesSubtotal = allEffectiveServices.reduce((sum, service) => sum + service.price, 0);
+  // Group gating for the service step: every guest needs ≥1 service before continuing.
+  const allGuestsHaveServices = guestEffectiveServices.every((g) => g.length > 0);
+  const firstIncompleteGuest = guestEffectiveServices.findIndex((g) => g.length === 0);
+  // Per-guest lines for the summary/confirmation cards ("Karim — Haircut").
+  const guestBreakdownRows = guestEffectiveServices.map((svc, i) => ({
+    label: guestLabel(i),
+    services: svc.map((s) => s.name).join(", "),
+  }));
 
   const TIP_PRESETS = [10, 20, 50] as const;
   const applyCustomTip = (raw: string) => {
@@ -572,7 +604,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const canContinue = (() => {
     if (step === 1) return Boolean(selectedLocation);
     if (step === 2) return Boolean(selectedBarber);
-    if (step === 3) return effectiveSelectedServices.length > 0;
+    if (step === 3) return guestEffectiveServices.every((g) => g.length > 0);
     if (step === 4) return Boolean(selectedDate && effectiveSelectedTime);
     if (step === 5) return Boolean(firstName.trim() && lastName.trim() && phone.trim());
     return true;
@@ -590,6 +622,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     setSelectedLocation(null);
     setSelectedBarber(null);
     setSelectedServices([]);
+    setExtraGuests([]);
+    setActiveGuest(0);
     setSelectedDate(null);
     setSelectedTime(null);
     setFirstName("");
@@ -617,20 +651,58 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     resetBooking();
   };
 
+  const toggle = (current: ServiceOption[], service: ServiceOption) =>
+    current.some((s) => s.id === service.id)
+      ? current.filter((s) => s.id !== service.id)
+      : [...current, service];
+
+  // Toggles a service for the guest currently being edited (activeGuest).
   const toggleService = (service: ServiceOption) => {
-    setSelectedServices((current) =>
-      current.some((selected) => selected.id === service.id)
-        ? current.filter((selected) => selected.id !== service.id)
-        : [...current, service]
-    );
+    if (activeGuest === 0) {
+      setSelectedServices((current) => toggle(current, service));
+    } else {
+      setExtraGuests((current) =>
+        current.map((g, i) => (i === activeGuest - 1 ? { ...g, services: toggle(g.services, service) } : g))
+      );
+    }
+  };
+
+  const addGuest = () => {
+    if (partySize >= MAX_PARTY_SIZE) return;
+    setExtraGuests((current) => [...current, { name: "", services: [] }]);
+    setActiveGuest(partySize); // focus the newly added guest
+  };
+
+  const removeGuest = (guestIndex: number) => {
+    if (guestIndex === 0) return; // account holder can't be removed
+    setExtraGuests((current) => current.filter((_, i) => i !== guestIndex - 1));
+    setActiveGuest((prev) => (prev >= guestIndex ? Math.max(0, prev - 1) : prev));
+  };
+
+  const setGuestName = (guestIndex: number, name: string) => {
+    if (guestIndex === 0) return;
+    setExtraGuests((current) => current.map((g, i) => (i === guestIndex - 1 ? { ...g, name } : g)));
+  };
+
+  // Display label for a guest chip / row: real name, else "You" / "Guest N".
+  const guestLabel = (guestIndex: number) => {
+    if (guestIndex === 0) return firstName.trim() || tBooking("steps.service.partyYou");
+    return extraGuests[guestIndex - 1]?.name.trim() || tBooking("steps.service.partyGuest", { n: guestIndex + 1 });
   };
 
   const buildDraft = useCallback((): BookingDraft | null => {
     if (!selectedBarber || !selectedDate || !effectiveSelectedTime || !selectedLocation) return null;
-    if (effectiveSelectedServices.length === 0) return null;
+    if (guestEffectiveServices.some((g) => g.length === 0)) return null;
     const isHome = selectedLocation.type === "home";
     const homeDetails = isHome ? buildHomeDetails(homeAccessNotes) : null;
     const homeLabel = isHome ? composeHomeAddress(homePinLabel ?? null, homeAccessNotes) : null;
+    const guests = guestEffectiveServices.map((svc, i) => ({
+      name:
+        i === 0
+          ? firstName.trim() || tBooking("steps.service.partyYou")
+          : extraGuests[i - 1]?.name.trim() || tBooking("steps.service.partyGuest", { n: i + 1 }),
+      serviceIds: svc.map((s) => s.id),
+    }));
     return {
       locationType: selectedLocation.type,
       salonId: selectedLocation.type === "salon" ? selectedLocation.id : null,
@@ -638,7 +710,9 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
       homeLabel,
       homeDetails,
       barberId: selectedBarber.id,
-      serviceIds: effectiveSelectedServices.map((s) => s.id),
+      serviceIds: Array.from(new Set(allEffectiveServices.map((s) => s.id))),
+      guests,
+      partySize,
       date: selectedDate.id,
       time: effectiveSelectedTime,
       firstName: firstName.trim(),
@@ -649,7 +723,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
       durationMinutes: totalDurationMinutes,
       paymentMethod,
     };
-  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, homeAccessNotes, firstName, lastName, phone, total, tip, totalDurationMinutes, paymentMethod]);
+  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, guestEffectiveServices, allEffectiveServices, partySize, extraGuests, tBooking, homePin, homePinLabel, homeAccessNotes, firstName, lastName, phone, total, tip, totalDurationMinutes, paymentMethod]);
 
   const persistAppointment = useCallback(
     async (draft: BookingDraft, customerId: string) => {
@@ -666,28 +740,32 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
       const endHHMM = toHHMM(toMinutes(draft.time) + draft.durationMinutes);
       const endTime = toHHMMSS(endHHMM);
 
-      await createAppointment(
-        {
-          professional_id: null,
-          preferred_professional_id: draft.barberId,
-          customer_id: customerId,
-          location_type: draft.locationType,
-          salon_id: draft.locationType === "salon" ? draft.salonId : null,
-          home_address: draft.homeLabel,
-          home_latitude: draft.homePin?.lat ?? null,
-          home_longitude: draft.homePin?.lng ?? null,
-          home_details: draft.homeDetails,
-          appointment_date: draft.date,
-          start_time: startTime,
-          end_time: endTime,
-          payment_method: draft.paymentMethod,
-          status: "pending",
-          total_price_mad: draft.totalPrice,
-          tip_mad: draft.tipMad,
-          notes: null,
-        },
-        draft.serviceIds
-      );
+      const appointmentInput = {
+        professional_id: null,
+        preferred_professional_id: draft.barberId,
+        customer_id: customerId,
+        location_type: draft.locationType,
+        salon_id: draft.locationType === "salon" ? draft.salonId : null,
+        home_address: draft.homeLabel,
+        home_latitude: draft.homePin?.lat ?? null,
+        home_longitude: draft.homePin?.lng ?? null,
+        home_details: draft.homeDetails,
+        appointment_date: draft.date,
+        start_time: startTime,
+        end_time: endTime,
+        payment_method: draft.paymentMethod,
+        status: "pending" as const,
+        total_price_mad: draft.totalPrice,
+        tip_mad: draft.tipMad,
+        party_size: draft.partySize,
+        notes: null,
+      };
+
+      if (draft.partySize > 1) {
+        await createGroupAppointment(appointmentInput, draft.guests);
+      } else {
+        await createAppointment(appointmentInput, draft.serviceIds);
+      }
 
       setBookedSlots(null);
       const ids = barbers.map((b) => b.id);
@@ -836,6 +914,11 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     if (targetStep <= 1) setSelectedLocation(null);
     if (targetStep <= 2) setSelectedBarber(null);
     if (targetStep <= 3) setSelectedServices([]);
+    // Leaving the service step backwards drops the group make-up too.
+    if (targetStep <= 2) {
+      setExtraGuests([]);
+      setActiveGuest(0);
+    }
     if (targetStep <= 3) {
       setSelectedDate(null);
       setSelectedTime(null);
@@ -1355,6 +1438,76 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                 {step === 3 && (
                   <div className="flex flex-col h-full">
                     <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(10_8_0/15%)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[rgb(10_8_0/15%)] [&::-webkit-scrollbar-thumb]:rounded-sm -mx-5 px-5">
+                      {!isLoadingServices && (selectedBarber?.services ?? []).length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between mb-2.5">
+                            <span className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]">
+                              {tBooking("steps.service.whoLabel")}
+                            </span>
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                data-testid="btn:party-remove"
+                                aria-label={tBooking("steps.service.partyRemove")}
+                                disabled={partySize <= 1}
+                                onClick={() => removeGuest(partySize - 1)}
+                                className="w-7 h-7 rounded-full flex items-center justify-center border border-[rgb(10_8_0/18%)] bg-white text-brand-black transition-[background,border-color,opacity] duration-200 hover:bg-[rgb(10_8_0/4%)] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                              >
+                                <svg viewBox="0 0 12 2" width="11" height="2"><path d="M1 1h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                              </button>
+                              <span data-testid="text:party-size" className="text-[15px] font-bold text-brand-black tabular-nums w-4 text-center">{partySize}</span>
+                              <button
+                                type="button"
+                                data-testid="btn:party-add"
+                                aria-label={tBooking("steps.service.partyAdd")}
+                                disabled={partySize >= MAX_PARTY_SIZE}
+                                onClick={addGuest}
+                                className="w-7 h-7 rounded-full flex items-center justify-center border border-[rgb(10_8_0/18%)] bg-white text-brand-black transition-[background,border-color,opacity] duration-200 hover:bg-[rgb(10_8_0/4%)] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                              >
+                                <svg viewBox="0 0 12 12" width="11" height="11"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                              </button>
+                            </div>
+                          </div>
+                          {partySize === 1 ? (
+                            <p className="text-[11px] text-[rgb(10_8_0/40%)] leading-relaxed">
+                              {tBooking("steps.service.partyHint")}
+                            </p>
+                          ) : (
+                            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                              {Array.from({ length: partySize }).map((_, i) => {
+                                const isActive = i === activeGuest;
+                                const count = guestEffectiveServices[i]?.length ?? 0;
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    data-testid={`btn:guest-tab-${i}`}
+                                    onClick={() => setActiveGuest(i)}
+                                    className={`shrink-0 flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-full border-[1.5px] text-[12px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2 ${
+                                      isActive
+                                        ? "border-gold bg-gold text-white"
+                                        : "border-[rgb(10_8_0/14%)] bg-white text-brand-black hover:border-[rgb(10_8_0/24%)]"
+                                    }`}
+                                  >
+                                    <span className="max-w-[92px] truncate">{guestLabel(i)}</span>
+                                    <span
+                                      className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold tabular-nums ${
+                                        isActive
+                                          ? "bg-white/25 text-white"
+                                          : count > 0
+                                          ? "bg-[rgb(192_154_90/16%)] text-[rgb(140_110_50)]"
+                                          : "bg-[rgb(10_8_0/8%)] text-[rgb(10_8_0/40%)]"
+                                      }`}
+                                    >
+                                      {count}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div className="flex flex-col gap-2 pb-24">
                         {isLoadingServices ? (
                           <>
@@ -1376,7 +1529,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                               </p>
                             )}
                             {(selectedBarber?.services ?? []).map((service) => {
-                              const isServiceSelected = selectedServices.some((s) => s.id === service.id);
+                              const isServiceSelected = effectiveSelectedServices.some((s) => s.id === service.id);
                               return (
                                 <button
                                   key={service.id}
@@ -1436,28 +1589,49 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                           transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", damping: 26, stiffness: 260 }}
                           className="shrink-0 px-5 pt-3 pb-5 bg-[#fafaf8] border-t border-[rgb(10_8_0/8%)]"
                         >
-                          <button
-                            type="button"
-                            data-testid="btn:services-continue"
-                            onClick={advanceStep}
-                            className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
-                          >
-                            <span>
-                              {tBooking("steps.service.continue")}
-                              <span className="opacity-60 normal-case tracking-normal ml-2 font-medium">
-                                ({effectiveSelectedServices.length === 1
-                                  ? tBooking("steps.service.services_one")
-                                  : tBooking("steps.service.services_other", { count: effectiveSelectedServices.length })}
-                                )
+                          {partySize > 1 && !allGuestsHaveServices ? (
+                            // Group with a guest still empty: nudge to the next one instead of advancing.
+                            <button
+                              type="button"
+                              data-testid="btn:services-next-guest"
+                              onClick={() => firstIncompleteGuest >= 0 && setActiveGuest(firstIncompleteGuest)}
+                              className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                            >
+                              <span className="normal-case tracking-normal font-semibold">
+                                {tBooking("steps.service.nextGuest", { name: guestLabel(firstIncompleteGuest) })}
                               </span>
-                            </span>
-                            <span className="font-bold tracking-[-0.01em]">
-                              {formatMoney(
-                                effectiveSelectedServices.reduce((s, x) => s + x.price, 0),
-                                locale as import("@/lib/i18n/config").Locale
-                              )}
-                            </span>
-                          </button>
+                              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                              </svg>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              data-testid="btn:services-continue"
+                              onClick={advanceStep}
+                              className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-between gap-3 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                            >
+                              <span>
+                                {tBooking("steps.service.continue")}
+                                <span className="opacity-60 normal-case tracking-normal ml-2 font-medium">
+                                  ({partySize > 1
+                                    ? tBooking("steps.service.partyGroupOf", { count: partySize })
+                                    : effectiveSelectedServices.length === 1
+                                    ? tBooking("steps.service.services_one")
+                                    : tBooking("steps.service.services_other", { count: effectiveSelectedServices.length })}
+                                  )
+                                </span>
+                              </span>
+                              <span className="font-bold tracking-[-0.01em]">
+                                {formatMoney(
+                                  partySize > 1
+                                    ? servicesSubtotal
+                                    : effectiveSelectedServices.reduce((s, x) => s + x.price, 0),
+                                  locale as import("@/lib/i18n/config").Locale
+                                )}
+                              </span>
+                            </button>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -1811,6 +1985,38 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                         </div>
                       </div>
 
+                      {partySize > 1 && (
+                        <div className="flex flex-col gap-3 mb-[22px]">
+                          <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                            </svg>
+                            {tBooking("steps.details.guestsTitle", { count: partySize })}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {extraGuests.map((guest, i) => (
+                              <div key={i} className="flex items-center gap-2.5">
+                                <span className="shrink-0 w-6 h-6 rounded-full bg-[rgb(192_154_90/12%)] text-[rgb(140_110_50)] text-[11px] font-bold flex items-center justify-center tabular-nums">
+                                  {i + 2}
+                                </span>
+                                <input
+                                  type="text"
+                                  data-testid={`input:guest-name-${i + 1}`}
+                                  placeholder={tBooking("steps.details.guestNamePlaceholder", { n: i + 2 })}
+                                  value={guest.name}
+                                  onChange={(event) => setGuestName(i + 1, event.target.value)}
+                                  onBlur={() => setGuestName(i + 1, guest.name.trim())}
+                                  className="flex-1 min-w-0 bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-4 py-2.5 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow,background] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%),0_1px_3px_rgb(0_0_0/4%)]"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-[rgb(10_8_0/40%)]">{tBooking("steps.details.guestsHint")}</p>
+                        </div>
+                      )}
+
                       <div className="flex flex-col gap-3 mb-[22px]">
                         <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)] flex items-center gap-1.5">
                           <svg
@@ -2111,8 +2317,21 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                             <div className="text-[13px] font-semibold text-brand-black tracking-[-0.01em] truncate">
                               {selectedBarber?.name ?? "—"}
                               <span className="text-[rgb(10_8_0/35%)] font-normal"> · </span>
-                              <span className="text-[rgb(10_8_0/60%)] font-medium">{selectedServicesLabel || "—"}</span>
+                              <span className="text-[rgb(10_8_0/60%)] font-medium">
+                                {partySize > 1 ? tBooking("steps.service.partyGroupOf", { count: partySize }) : selectedServicesLabel || "—"}
+                              </span>
                             </div>
+                            {partySize > 1 && (
+                              <div className="mt-1.5 flex flex-col gap-0.5">
+                                {guestBreakdownRows.map((row, i) => (
+                                  <div key={i} className="text-[11px] text-[rgb(10_8_0/55%)] truncate">
+                                    <span className="font-semibold text-brand-black">{row.label}</span>
+                                    <span className="text-[rgb(10_8_0/35%)]"> — </span>
+                                    {row.services}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             <div className="text-[11px] text-[rgb(10_8_0/50%)] mt-0.5 truncate">
                               {selectedDate?.fullDate ?? "—"}
                               {selectedTime ? ` · ${formatTimeFromHHMM(selectedTime, locale as import("@/lib/i18n/config").Locale)}` : ""}
@@ -2238,7 +2457,19 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                               {selectedTime ? ` · ${formatTimeFromHHMM(selectedTime, locale as import("@/lib/i18n/config").Locale)}` : ""} ·{" "}
                               {selectedBarber?.name}
                             </div>
-                            <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">{selectedServicesLabel}</div>
+                            {partySize > 1 ? (
+                              <div className="mt-1 flex flex-col gap-0.5">
+                                {guestBreakdownRows.map((row, i) => (
+                                  <div key={i} className="text-[11px] text-[rgb(10_8_0/45%)] truncate">
+                                    <span className="font-semibold text-[rgb(10_8_0/65%)]">{row.label}</span>
+                                    <span className="text-[rgb(10_8_0/30%)]"> — </span>
+                                    {row.services}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">{selectedServicesLabel}</div>
+                            )}
                             {tip > 0 && (
                               <div className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5 truncate">
                                 {tBooking("steps.summary.tip")}: {formatMoney(tip, locale as import("@/lib/i18n/config").Locale)}

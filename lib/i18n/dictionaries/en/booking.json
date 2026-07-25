@@ -96,7 +96,15 @@
       "thisBarberNoServices": "This barber has no services listed yet.",
       "continue": "Continue",
       "services_one": "1 service",
-      "services_other": "{count} services"
+      "services_other": "{count} services",
+      "whoLabel": "Who's coming?",
+      "partyHint": "Book just for yourself, or add guests for the same time slot.",
+      "partyYou": "You",
+      "partyGuest": "Guest {n}",
+      "partyAdd": "Add a guest",
+      "partyRemove": "Remove a guest",
+      "partyGroupOf": "Group of {count}",
+      "nextGuest": "Next: {name}"
     },
     "time": {
       "title": "Choose a Time",
@@ -140,7 +148,10 @@
       "continueWithGoogle": "Continue with Google",
       "saving": "Saving…",
       "waitingForGoogle": "Waiting for Google…",
-      "discardConfirm": "Discard your booking details?"
+      "discardConfirm": "Discard your booking details?",
+      "guestsTitle": "The group ({count})",
+      "guestNamePlaceholder": "Guest {n} — first name",
+      "guestsHint": "First names help your barber greet everyone. Optional."
     },
     "summary": {
       "total": "Total",

@@ -40,7 +40,8 @@
     "unassigned": "Unassigned",
     "homeVisit": "Home visit",
     "salonFallback": "Salon",
-    "rate": "Rate"
+    "rate": "Rate",
+    "groupOf": "Group of {count}"
   },
   "toast": {
     "signedIn": "Signed in successfully",

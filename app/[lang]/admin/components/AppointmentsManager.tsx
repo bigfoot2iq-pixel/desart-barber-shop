@@ -342,6 +342,11 @@ export default function AppointmentsManager({
                           <AdminBadge variant={statusBadgeVariants[apt.status]}>
                             {tAdmin(`status.${apt.status}`)}
                           </AdminBadge>
+                          {apt.party_size > 1 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-amber-500/15 text-amber-300 border-amber-500/30">
+                              {tAdmin('appointments.groupOf', { count: apt.party_size })}
+                            </span>
+                          )}
                           {apt.notes && (
                             <span className="text-xs" title={tAdmin('appointments.withNote')}>📝</span>
                           )}
@@ -571,6 +576,18 @@ export default function AppointmentsManager({
 
             <AccordionSection title={tAdmin('appointments.panelServicesTitle')} defaultOpen>
               <div className="space-y-2">
+                {selectedAppointment.party_size > 1 && selectedAppointment.guests.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    {selectedAppointment.guests.map((g) => (
+                      <div key={g.id} className="rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5">
+                        <div className="text-xs font-semibold text-foreground/90">{g.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {g.services.map((s) => s.name).join(', ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {selectedAppointment.services.map((s) => (
                   <div key={s.id} className="flex justify-between text-sm">
                     <span className="text-foreground/85">{s.name}</span>

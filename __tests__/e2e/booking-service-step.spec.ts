@@ -211,4 +211,55 @@ test.describe('Booking Service Step — Section 15', () => {
     await page.waitForTimeout(1000);
     await expect(page.locator('#panel-title')).toContainText('Choose a Service');
   });
+
+  // 15.4 Group booking: per-guest services, next-guest nudge, then continue
+  test('15.4 — group booking assigns services per guest before continuing', async ({
+    authenticatedPage,
+  }) => {
+    const page = authenticatedPage;
+
+    await page.goto('/');
+    await page.getByTestId('btn:open-booking').first().click();
+    await page.waitForSelector('[role="dialog"]', { state: 'visible' });
+
+    // Step 1: salon
+    await page.waitForTimeout(500);
+    const locationBtn = page.getByTestId(`btn:location-${salonId}`);
+    await locationBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await locationBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Step 2: barber
+    const barberBtn = page.getByTestId(`btn:barber-${barberId}`);
+    await barberBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await barberBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Step 3: bump party size to 2 → guest tabs appear
+    await expect(page.locator('#panel-title')).toContainText('Choose a Service');
+    await page.getByTestId('btn:party-add').click();
+    await expect(page.getByTestId('text:party-size')).toHaveText('2');
+    await expect(page.getByTestId('btn:guest-tab-0')).toBeVisible();
+    await expect(page.getByTestId('btn:guest-tab-1')).toBeVisible();
+
+    // Active guest is the newly added one (guest 1) — give them a service.
+    await page.getByTestId(`btn:service-${serviceIds[0]}`).click();
+    await page.waitForTimeout(300);
+
+    // Guest 0 still empty → CTA nudges to the next incomplete guest, not Continue.
+    await expect(page.getByTestId('btn:services-next-guest')).toBeVisible();
+    await expect(page.getByTestId('btn:services-continue')).toHaveCount(0);
+    await page.getByTestId('btn:services-next-guest').click();
+    await page.waitForTimeout(300);
+
+    // Now on guest 0 — give them a service too.
+    await page.getByTestId(`btn:service-${serviceIds[0]}`).click();
+    await page.waitForTimeout(300);
+
+    // Every guest has a service → Continue appears and advances to the time step.
+    await expect(page.getByTestId('btn:services-continue')).toBeVisible();
+    await page.getByTestId('btn:services-continue').click();
+    await page.waitForTimeout(800);
+    await expect(page.locator('#panel-title')).toContainText('Choose a Time');
+  });
 });

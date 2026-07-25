@@ -7,6 +7,7 @@ import {
   getAnyActiveSalonId,
   seedAppointmentAsAdmin,
   deleteAppointmentAsAdmin,
+  adminClient,
   type TestUser,
 } from './helpers';
 
@@ -157,6 +158,48 @@ describeWithServiceRole('Security / authenticated customer access', () => {
         .eq('appointment_id', seededAppointmentB!);
       expect(error).toBeNull();
       expect(data).toEqual([]);
+    });
+
+    test("cannot read another customer's appointment_guests", async () => {
+      // Seed a guest on B's appointment via admin (bypasses RLS).
+      const admin = adminClient();
+      const { data: guest } = await admin
+        .from('appointment_guests')
+        .insert({ appointment_id: seededAppointmentB!, name: 'Secret Guest', sort_order: 0 })
+        .select('id')
+        .single();
+      const guestId = (guest as { id: string } | null)?.id ?? null;
+
+      try {
+        // A cannot see B's guests; B can.
+        const aRead = await customerA.client
+          .from('appointment_guests')
+          .select('id, name')
+          .eq('appointment_id', seededAppointmentB!);
+        expect(aRead.error).toBeNull();
+        expect(aRead.data).toEqual([]);
+
+        const bRead = await customerB.client
+          .from('appointment_guests')
+          .select('id, name')
+          .eq('appointment_id', seededAppointmentB!);
+        expect(bRead.error).toBeNull();
+        expect((bRead.data ?? []).length).toBe(1);
+      } finally {
+        if (guestId) await admin.from('appointment_guests').delete().eq('id', guestId);
+      }
+    });
+
+    test("cannot INSERT appointment_guests for another customer's appointment", async () => {
+      const { data, error } = await customerA.client
+        .from('appointment_guests')
+        .insert({ appointment_id: seededAppointmentB!, name: 'Forged', sort_order: 1 })
+        .select();
+      expect(error).not.toBeNull();
+      expect(data).toBeNull();
+      expect(
+        error?.code === '42501' || /row-level security/i.test(error?.message ?? '')
+      ).toBe(true);
     });
   });
 

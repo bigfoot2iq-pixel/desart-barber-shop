@@ -107,6 +107,9 @@ export interface Appointment {
   status: AppointmentStatus;
   total_price_mad: number;
   tip_mad: number;
+  // Number of people served in this one booking. 1 = solo (default);
+  // >1 = a group served back-to-back by the single chosen barber.
+  party_size: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -117,12 +120,27 @@ export interface AppointmentService {
   service_id: string;
 }
 
+// One person in a group booking. `name` is a first name so the barber
+// knows who's who; the account holder (appointment.customer_id) is the
+// single payer/contact and is guest sort_order = 0.
+export interface AppointmentGuest {
+  id: string;
+  appointment_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export type AppointmentGuestWithServices = AppointmentGuest & { services: Service[] };
+
 export type AppointmentWithDetails = Appointment & {
   professional: Professional | null;
   preferred_professional: Professional | null;
   customer: Profile;
   salon: Salon | null;
   services: Service[];
+  // Per-guest breakdown, sorted by sort_order. Empty for solo bookings.
+  guests: AppointmentGuestWithServices[];
 };
 
 export interface AppointmentReview {

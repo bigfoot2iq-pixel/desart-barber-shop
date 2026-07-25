@@ -117,6 +117,7 @@
     "cancelling": "Annulation…",
     "defaultFilter": "Confirmé",
     "withNote": "Avec note",
+    "groupOf": "Groupe de {count}",
     "viewDetails": "Voir les détails",
     "tapToCall": "Appeler",
     "noteSectionTitle": "Note du client",

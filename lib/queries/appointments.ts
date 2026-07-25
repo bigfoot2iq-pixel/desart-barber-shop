@@ -8,11 +8,13 @@ import type {
   ProfessionalAvailability,
   AvailabilityOverride,
   Appointment,
+  AppointmentGuest,
   AppointmentWithDetails,
   Profile,
 } from '@/lib/types/database';
 
 type ServiceRow = { service_id: string; services: Service };
+type GuestRow = AppointmentGuest & { services: ServiceRow[] };
 type ProfessionalWithSalon = Professional & { salon: Salon | null };
 type ProfessionalWithServicesRow = Professional & {
   salon: Salon;
@@ -253,8 +255,47 @@ export async function createAppointment(appointment: Omit<Appointment, 'id' | 'c
   return appointmentData as Appointment;
 }
 
+// Group booking: one appointment (single barber, one continuous block)
+// plus per-guest breakdown, written atomically via the create_group_appointment
+// RPC so a mid-way failure can't orphan the appointment block. Maps the
+// double-booking exclusion violation to 'SLOT_TAKEN' like createAppointment.
+export async function createGroupAppointment(
+  appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>,
+  guests: { name: string; serviceIds: string[] }[],
+): Promise<Appointment> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc('create_group_appointment', {
+    p_appointment: appointment,
+    p_guests: guests.map((g, i) => ({
+      name: g.name,
+      sort_order: i,
+      service_ids: g.serviceIds,
+    })),
+  });
+
+  if (error) {
+    if (error.message?.includes('SLOT_TAKEN') || (error as { code?: string }).code === '23P01') {
+      throw new Error('SLOT_TAKEN');
+    }
+    throw error;
+  }
+
+  return data as Appointment;
+}
+
 function mapAppointmentDetails(row: Record<string, unknown>): AppointmentWithDetails {
   const services = (row.services as unknown as ServiceRow[]).map((s) => s.services);
+  const guests = ((row.guests ?? []) as unknown as GuestRow[])
+    .map((g) => ({
+      id: g.id,
+      appointment_id: g.appointment_id,
+      name: g.name,
+      sort_order: g.sort_order,
+      created_at: g.created_at,
+      services: (g.services ?? []).map((s) => s.services),
+    }))
+    .sort((a, b) => a.sort_order - b.sort_order);
   return {
     ...(row as unknown as Appointment),
     professional: (row.professional ?? null) as ProfessionalWithSalon | null,
@@ -262,6 +303,7 @@ function mapAppointmentDetails(row: Record<string, unknown>): AppointmentWithDet
     customer: row.customer as Profile,
     salon: (row.salon ?? null) as Salon | null,
     services,
+    guests,
   };
 }
 
@@ -275,7 +317,8 @@ export async function getAppointmentWithDetails(appointmentId: string): Promise<
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       customer:profiles!appointments_customer_id_fkey(*),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .eq('id', appointmentId)
     .single();
@@ -293,7 +336,8 @@ export async function getCustomerAppointments(customerId: string): Promise<Appoi
       professional:professionals!appointments_professional_id_fkey(*, salon:salons(*)),
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .eq('customer_id', customerId)
     .order('appointment_date', { ascending: false });
@@ -312,7 +356,8 @@ export async function getPendingAppointments(): Promise<AppointmentWithDetails[]
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       customer:profiles!appointments_customer_id_fkey(*),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .eq('status', 'pending')
     .order('created_at', { ascending: true });
@@ -361,7 +406,8 @@ export async function getAllAppointments(status?: Appointment['status']): Promis
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       customer:profiles!appointments_customer_id_fkey(*),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .order('appointment_date', { ascending: false });
 
@@ -396,7 +442,8 @@ export async function searchAppointments(search: string, status?: Appointment['s
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       customer:profiles!appointments_customer_id_fkey(*),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .order('appointment_date', { ascending: false });
 
@@ -428,7 +475,8 @@ export async function getAppointmentsByDateRange(startDate: string, endDate: str
       preferred_professional:professionals!appointments_preferred_professional_id_fkey(*, salon:salons(*)),
       customer:profiles!appointments_customer_id_fkey(*),
       salon:salons(*),
-      services:appointment_services(service_id, services(*))
+      services:appointment_services(service_id, services(*)),
+      guests:appointment_guests(*, services:appointment_guest_services(service_id, services(*)))
     `)
     .gte('appointment_date', startDate)
     .lte('appointment_date', endDate)

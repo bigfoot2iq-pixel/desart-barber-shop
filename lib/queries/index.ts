@@ -13,6 +13,7 @@ export {
   getBookedSlots,
   getBookedSlotsInRange,
   createAppointment,
+  createGroupAppointment,
   getAppointmentWithDetails,
   getCustomerAppointments,
   getPendingAppointments,

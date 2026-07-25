@@ -51,7 +51,14 @@ export function AppointmentCard({ item, hasReview, onCancel, onRequestRate, loca
   return (
     <div className="rounded-2xl border-[1.5px] border-[rgb(10_8_0/14%)] bg-white px-[18px] py-4 flex flex-col gap-2 shadow-[0_1px_2px_rgb(0_0_0/3%)]">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-brand-black leading-snug truncate">{serviceNames}</p>
+        <div className="min-w-0 flex items-center gap-2">
+          <p className="text-sm font-semibold text-brand-black leading-snug truncate">{serviceNames}</p>
+          {item.party_size > 1 && (
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full bg-[rgb(192_154_90/12%)] text-[rgb(140_110_50)] border border-[rgb(192_154_90/30%)]">
+              {tUser('card.groupOf', { count: item.party_size })}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2 shrink-0">
           {(status === "completed" || status === "cancelled") && (
             <span className={`text-[10px] font-semibold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full ${STATUS_CHIP_STYLES[status] ?? ""}`}>

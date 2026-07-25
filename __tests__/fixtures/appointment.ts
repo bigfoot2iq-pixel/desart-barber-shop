@@ -14,6 +14,7 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
     payment_method: 'cash',
     total_price_mad: 180,
     tip_mad: 0,
+    party_size: 1,
     location_type: 'salon',
     home_address: null,
     home_latitude: null,
@@ -74,5 +75,6 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
         updated_at: '2026-01-01T00:00:00Z',
       },
     ],
+    guests: [],
   };
 }

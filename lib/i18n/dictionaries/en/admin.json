@@ -117,6 +117,7 @@
     "cancelling": "Cancelling…",
     "defaultFilter": "Confirmed",
     "withNote": "Has note",
+    "groupOf": "Group of {count}",
     "viewDetails": "View details",
     "tapToCall": "Tap to call",
     "noteSectionTitle": "Customer note",

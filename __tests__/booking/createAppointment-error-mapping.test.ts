@@ -25,6 +25,7 @@ describeWithServiceRole('DB / createAppointment error mapping', () => {
   let salonId: string;
   let customer: TestUser;
   let barberId: string;
+  let serviceId: string | null = null;
   const testDate = '2026-09-01';
 
   beforeAll(async () => {
@@ -35,6 +36,9 @@ describeWithServiceRole('DB / createAppointment error mapping', () => {
 
     const prof = await seedTestProfessional(salonId, { displayName: 'CreateAppt Barber' });
     barberId = prof.id;
+
+    const { data: svc } = await adminClient().from('services').select('id').eq('is_active', true).limit(1);
+    serviceId = svc && svc.length > 0 ? (svc[0] as { id: string }).id : null;
   });
 
   afterAll(async () => {
@@ -158,5 +162,73 @@ describeWithServiceRole('DB / createAppointment error mapping', () => {
     if (data && data.length > 0) {
       await admin.from('appointments').delete().in('id', data.map((r: { id: string }) => r.id));
     }
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createGroupAppointment } = require('@/lib/queries/appointments');
+
+  test('8.5 Group booking: creates one appointment + guest rows + guest services', async () => {
+    createClient.mockReturnValue(customer.client);
+    const guests = [
+      { name: 'Alpha', serviceIds: serviceId ? [serviceId] : [] },
+      { name: 'Beta', serviceIds: serviceId ? [serviceId] : [] },
+    ];
+    const result = await createGroupAppointment(
+      basePayload({ start_time: '13:00:00', end_time: '14:00:00', party_size: 2 }),
+      guests
+    );
+    expect(result.id).toBeDefined();
+    expect(result.party_size).toBe(2);
+
+    const admin = adminClient();
+    const { data: guestRows } = await admin
+      .from('appointment_guests')
+      .select('id, name, sort_order')
+      .eq('appointment_id', result.id)
+      .order('sort_order');
+    expect(guestRows?.length).toBe(2);
+    expect((guestRows as { name: string }[])[0].name).toBe('Alpha');
+
+    if (serviceId) {
+      const { data: gs } = await admin
+        .from('appointment_guest_services')
+        .select('appointment_guest_id')
+        .in('appointment_guest_id', (guestRows as { id: string }[]).map((r) => r.id));
+      expect(gs?.length).toBe(2);
+      // Flat union is still written for backward-compatible reads.
+      const { data: flat } = await admin
+        .from('appointment_services')
+        .select('service_id')
+        .eq('appointment_id', result.id);
+      expect(flat?.length).toBe(1); // DISTINCT union of the single shared service
+    }
+  });
+
+  test('8.6 Group double-book triggers 23P01 → throws Error("SLOT_TAKEN")', async () => {
+    await adminClient().from('appointments').insert({
+      customer_id: customer.id,
+      professional_id: null,
+      preferred_professional_id: barberId,
+      location_type: 'salon',
+      salon_id: salonId,
+      appointment_date: testDate,
+      start_time: '15:00:00',
+      end_time: '16:00:00',
+      payment_method: 'cash',
+      status: 'pending',
+      total_price_mad: 100,
+      notes: null,
+    });
+
+    createClient.mockReturnValue(customer.client);
+    await expect(
+      createGroupAppointment(
+        basePayload({ start_time: '15:00:00', end_time: '16:00:00', party_size: 2 }),
+        [
+          { name: 'Alpha', serviceIds: [] },
+          { name: 'Beta', serviceIds: [] },
+        ]
+      )
+    ).rejects.toThrow('SLOT_TAKEN');
   });
 });
