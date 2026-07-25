@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AppointmentWithDetails, Professional, AppointmentStatus, AppointmentReview } from '@/lib/types/database';
 import { getAllAppointments, assignProfessionalToAppointment, updateAppointmentStatus, getActiveProfessionals, searchAppointments } from '@/lib/queries';
@@ -612,34 +612,12 @@ export default function AppointmentsManager({
               {selectedAppointment.location_type === 'home' ? (
                 <div className="space-y-2">
                   <p className="text-foreground/85 text-sm">{selectedAppointment.home_address || tAdmin('appointments.homeVisit')}</p>
-                  {selectedAppointment.home_details && (() => {
-                    const d = selectedAppointment.home_details;
-                    const rows: [string, string | null][] = [
-                      [tAdmin('appointments.homeType'), tAdmin(`appointments.homeTypes.${d.propertyType}`)],
-                      [tAdmin('appointments.homeResidence'), d.residence],
-                      [tAdmin('appointments.homeBlock'), d.block],
-                      [tAdmin('appointments.homeFloor'), d.floor],
-                      [tAdmin('appointments.homeApartmentNumber'), d.apartmentNumber],
-                      [tAdmin('appointments.homeDoorCode'), d.doorCode],
-                      [tAdmin('appointments.homeDoorNumber'), d.doorNumber],
-                      [tAdmin('appointments.homeStreet'), d.street],
-                      [tAdmin('appointments.homeQuartier'), d.quartier],
-                      [tAdmin('appointments.homeLandmark'), d.landmark],
-                      [tAdmin('appointments.homeNotes'), d.notes],
-                    ];
-                    return (
-                      <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-xs rounded-lg bg-muted/40 p-3">
-                        {rows
-                          .filter(([, v]) => v && v.trim())
-                          .map(([label, v]) => (
-                            <Fragment key={label}>
-                              <dt className="text-muted-foreground">{label}</dt>
-                              <dd className="text-foreground/85">{v}</dd>
-                            </Fragment>
-                          ))}
-                      </dl>
-                    );
-                  })()}
+                  {selectedAppointment.home_details?.accessNotes?.trim() && (
+                    <div className="rounded-lg bg-muted/40 p-3 text-xs">
+                      <p className="text-muted-foreground mb-0.5">{tAdmin('appointments.homeAccess')}</p>
+                      <p className="text-foreground/85 whitespace-pre-wrap">{selectedAppointment.home_details.accessNotes}</p>
+                    </div>
+                  )}
                   {selectedAppointment.home_latitude != null && (
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${selectedAppointment.home_latitude},${selectedAppointment.home_longitude}`}

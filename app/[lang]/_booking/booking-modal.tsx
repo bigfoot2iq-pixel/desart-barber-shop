@@ -16,7 +16,7 @@ import {
   updateProfile,
   getCurrentProfile,
 } from "@/lib/queries";
-import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMethod, HomeDetails, HomePropertyType } from "@/lib/types/database";
+import type { Salon, ProfessionalAvailability, AvailabilityOverride, PaymentMethod, HomeDetails } from "@/lib/types/database";
 import type { Locale } from "@/lib/i18n/config";
 import { getPublicPaymentConfig } from "@/lib/queries/payment-settings";
 import { useAuth } from "@/lib/auth-context";
@@ -41,91 +41,25 @@ const HomePanelMapView = dynamic(
   { ssr: false }
 );
 
-// Granular home-visit address form. Fields differ by property type; kept flat as
-// strings for controlled inputs, normalized into HomeDetails at submit time.
-type HomeForm = {
-  propertyType: HomePropertyType;
-  residence: string;
-  block: string;
-  floor: string;
-  apartmentNumber: string;
-  doorCode: string;
-  doorNumber: string;
-  street: string;
-  quartier: string;
-  landmark: string;
-  notes: string;
-};
-
-const EMPTY_HOME_FORM: HomeForm = {
-  propertyType: "apartment",
-  residence: "",
-  block: "",
-  floor: "",
-  apartmentNumber: "",
-  doorCode: "",
-  doorNumber: "",
-  street: "",
-  quartier: "",
-  landmark: "",
-  notes: "",
-};
-
 const HOME_INPUT_CLASS =
   "w-full bg-white border-[1.5px] border-[rgb(10_8_0/14%)] rounded-xl px-3.5 py-2.5 font-dm-sans text-sm text-brand-black outline-none transition-[border-color,box-shadow] duration-200 shadow-[0_1px_2px_rgb(0_0_0/3%)] placeholder:text-[rgb(10_8_0/25%)] hover:border-[rgb(10_8_0/24%)] focus:border-gold focus:shadow-[0_0_0_3px_rgb(192_154_90/12%)]";
 const HOME_LABEL_CLASS = "text-[10px] font-semibold tracking-[0.14em] uppercase text-[rgb(10_8_0/40%)]";
 
-// Required fields to save a home location: property type is always set, plus the
-// unit identifier (apt/door number) and a landmark the pro navigates by.
-function isHomeFormValid(f: HomeForm): boolean {
-  const unit = f.propertyType === "apartment" ? f.apartmentNumber : f.doorNumber;
-  return unit.trim().length > 0 && f.landmark.trim().length > 0;
+// The GPS pin + reverse-geocoded label already resolve street/neighborhood, so
+// the only thing they can't capture is which unit and how to be found. Keep that
+// to one optional free-text field (floor, apt/door no, door code, landmark).
+function buildHomeDetails(accessNotes: string): HomeDetails | null {
+  const v = accessNotes.trim();
+  return v.length > 0 ? { accessNotes: v } : null;
 }
 
-function normalizeHomeDetails(f: HomeForm): HomeDetails {
-  const t = (s: string) => {
-    const v = s.trim();
-    return v.length > 0 ? v : null;
-  };
-  const isApt = f.propertyType === "apartment";
-  return {
-    propertyType: f.propertyType,
-    quartier: t(f.quartier),
-    landmark: f.landmark.trim(),
-    notes: t(f.notes),
-    residence: isApt ? t(f.residence) : null,
-    block: isApt ? t(f.block) : null,
-    floor: isApt ? t(f.floor) : null,
-    apartmentNumber: isApt ? t(f.apartmentNumber) : null,
-    doorCode: isApt ? t(f.doorCode) : null,
-    doorNumber: isApt ? null : t(f.doorNumber),
-    street: isApt ? null : t(f.street),
-  };
-}
-
-// Compose a compact human-readable summary from the granular details. Stored in
-// appointments.home_address and consumed by notification templates. `labels`
-// carries the short localized tokens (Bloc/Étage/…) from the booking dictionary.
-function composeHomeAddress(
-  d: HomeDetails,
-  labels: { block: string; floor: string; apt: string; code: string; door: string; landmark: string },
-  fallback: string | null
-): string {
-  const parts: string[] = [];
-  if (d.propertyType === "apartment") {
-    if (d.residence) parts.push(d.residence);
-    if (d.block) parts.push(`${labels.block} ${d.block}`);
-    if (d.floor) parts.push(`${labels.floor} ${d.floor}`);
-    if (d.apartmentNumber) parts.push(`${labels.apt} ${d.apartmentNumber}`);
-    if (d.doorCode) parts.push(`${labels.code} ${d.doorCode}`);
-  } else {
-    const line = [d.doorNumber ? `${labels.door} ${d.doorNumber}` : null, d.street].filter(Boolean).join(" ");
-    if (line) parts.push(line);
-  }
-  if (d.quartier) parts.push(d.quartier);
-  let summary = parts.join(", ");
-  if (d.landmark) summary += (summary ? " — " : "") + `${labels.landmark}: ${d.landmark}`;
-  return summary || fallback || "";
+// Human-readable location for admin/notifications: geocoded label, plus the
+// access note appended when the customer gave one.
+function composeHomeAddress(geocodeLabel: string | null, accessNotes: string): string {
+  const label = geocodeLabel?.trim() ?? "";
+  const notes = accessNotes.trim();
+  if (label && notes) return `${label} · ${notes}`;
+  return label || notes;
 }
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -178,8 +112,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   });
   const [showHomePanel, setShowHomePanel] = useState(false);
   const [homePin, setHomePin] = useState<{ lat: number; lng: number } | null>(null);
-  const [homeForm, setHomeForm] = useState<HomeForm>(EMPTY_HOME_FORM);
-  const [homeFormTouched, setHomeFormTouched] = useState(false);
+  const [homeAccessNotes, setHomeAccessNotes] = useState("");
   const [homeLocating, setHomeLocating] = useState(false);
   const [nearbyActive, setNearbyActive] = useState(false);
   const [nearbyLocating, setNearbyLocating] = useState(false);
@@ -540,22 +473,10 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     );
   }, []);
 
-  const setHomeField = useCallback(
-    (field: keyof HomeForm, value: string) =>
-      setHomeForm((prev) => ({ ...prev, [field]: value })),
-    []
-  );
-
-  const homeFormValid = useMemo(() => isHomeFormValid(homeForm), [homeForm]);
-
   const handleConfirmHomeLocation = useCallback(() => {
-    if (!isHomeFormValid(homeForm)) {
-      setHomeFormTouched(true);
-      return;
-    }
     setSelectedLocation(HOME_LOCATION);
     setShowHomePanel(false);
-  }, [homeForm]);
+  }, []);
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
@@ -687,8 +608,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     });
     setShowHomePanel(false);
     setHomePin(null);
-    setHomeForm(EMPTY_HOME_FORM);
-    setHomeFormTouched(false);
+    setHomeAccessNotes("");
     setHomeLocating(false);
   };
 
@@ -709,21 +629,8 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
     if (!selectedBarber || !selectedDate || !effectiveSelectedTime || !selectedLocation) return null;
     if (effectiveSelectedServices.length === 0) return null;
     const isHome = selectedLocation.type === "home";
-    const homeDetails = isHome ? normalizeHomeDetails(homeForm) : null;
-    const homeLabel = homeDetails
-      ? composeHomeAddress(
-          homeDetails,
-          {
-            block: tBooking("homePanel.blockShort"),
-            floor: tBooking("homePanel.floorShort"),
-            apt: tBooking("homePanel.aptShort"),
-            code: tBooking("homePanel.codeShort"),
-            door: tBooking("homePanel.doorShort"),
-            landmark: tBooking("homePanel.landmarkShort"),
-          },
-          homePinLabel ?? null
-        )
-      : null;
+    const homeDetails = isHome ? buildHomeDetails(homeAccessNotes) : null;
+    const homeLabel = isHome ? composeHomeAddress(homePinLabel ?? null, homeAccessNotes) : null;
     return {
       locationType: selectedLocation.type,
       salonId: selectedLocation.type === "salon" ? selectedLocation.id : null,
@@ -742,7 +649,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
       durationMinutes: totalDurationMinutes,
       paymentMethod,
     };
-  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, homeForm, tBooking, firstName, lastName, phone, total, tip, totalDurationMinutes, paymentMethod]);
+  }, [selectedBarber, selectedDate, effectiveSelectedTime, selectedLocation, effectiveSelectedServices, homePin, homePinLabel, homeAccessNotes, firstName, lastName, phone, total, tip, totalDurationMinutes, paymentMethod]);
 
   const persistAppointment = useCallback(
     async (draft: BookingDraft, customerId: string) => {
@@ -2495,175 +2402,25 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                       </span>
                     </div>
 
-                    <div className="h-px bg-[rgb(10_8_0/8%)] my-1" />
-
-                    <div>
-                      <p className="text-[13px] font-bold text-brand-black">{tBooking("homePanel.detailsTitle")}</p>
-                      <p className="text-[11px] text-[rgb(10_8_0/45%)] mt-0.5">{tBooking("homePanel.detailsHint")}</p>
-                    </div>
-
-                    {/* Property type toggle — drives which unit fields show. */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {(["apartment", "house"] as const).map((pt) => {
-                        const active = homeForm.propertyType === pt;
-                        return (
-                          <button
-                            key={pt}
-                            type="button"
-                            onClick={() => setHomeField("propertyType", pt)}
-                            className={`flex items-center justify-center gap-2 h-11 rounded-xl border-[1.5px] text-[13px] font-semibold transition-all duration-200 ${
-                              active
-                                ? "border-gold bg-gold text-white"
-                                : "border-[rgb(10_8_0/14%)] bg-white text-brand-black hover:border-[rgb(10_8_0/24%)] hover:bg-[rgb(10_8_0/3%)]"
-                            } focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2`}
-                          >
-                            {pt === "apartment" ? (
-                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 21h18M6 21V3h12v18M10 7h.01M14 7h.01M10 11h.01M14 11h.01M10 15h.01M14 15h.01" />
-                              </svg>
-                            ) : (
-                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                <polyline points="9 22 9 12 15 12 15 22" />
-                              </svg>
-                            )}
-                            {tBooking(pt === "apartment" ? "homePanel.apartment" : "homePanel.house")}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {homeForm.propertyType === "apartment" ? (
-                      <>
-                        <div className="flex flex-col gap-1.5">
-                          <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.residence")}</label>
-                          <input
-                            type="text"
-                            className={HOME_INPUT_CLASS}
-                            placeholder={tBooking("homePanel.residencePlaceholder")}
-                            value={homeForm.residence}
-                            onChange={(e) => setHomeField("residence", e.target.value)}
-                          />
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="flex flex-col gap-1.5">
-                            <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.block")}</label>
-                            <input
-                              type="text"
-                              className={HOME_INPUT_CLASS}
-                              placeholder={tBooking("homePanel.blockPlaceholder")}
-                              value={homeForm.block}
-                              onChange={(e) => setHomeField("block", e.target.value)}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.floor")}</label>
-                            <input
-                              type="text"
-                              className={HOME_INPUT_CLASS}
-                              placeholder={tBooking("homePanel.floorPlaceholder")}
-                              value={homeForm.floor}
-                              onChange={(e) => setHomeField("floor", e.target.value)}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <label className={HOME_LABEL_CLASS}>
-                              {tBooking("homePanel.apartmentNumber")} <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              className={`${HOME_INPUT_CLASS} ${homeFormTouched && !homeForm.apartmentNumber.trim() ? "border-red-400" : ""}`}
-                              placeholder={tBooking("homePanel.apartmentNumberPlaceholder")}
-                              value={homeForm.apartmentNumber}
-                              onChange={(e) => setHomeField("apartmentNumber", e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.doorCode")}</label>
-                          <input
-                            type="text"
-                            className={HOME_INPUT_CLASS}
-                            placeholder={tBooking("homePanel.doorCodePlaceholder")}
-                            value={homeForm.doorCode}
-                            onChange={(e) => setHomeField("doorCode", e.target.value)}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="flex flex-col gap-1.5">
-                          <label className={HOME_LABEL_CLASS}>
-                            {tBooking("homePanel.doorNumber")} <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className={`${HOME_INPUT_CLASS} ${homeFormTouched && !homeForm.doorNumber.trim() ? "border-red-400" : ""}`}
-                            placeholder={tBooking("homePanel.doorNumberPlaceholder")}
-                            value={homeForm.doorNumber}
-                            onChange={(e) => setHomeField("doorNumber", e.target.value)}
-                          />
-                        </div>
-                        <div className="col-span-2 flex flex-col gap-1.5">
-                          <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.street")}</label>
-                          <input
-                            type="text"
-                            className={HOME_INPUT_CLASS}
-                            placeholder={tBooking("homePanel.streetPlaceholder")}
-                            value={homeForm.street}
-                            onChange={(e) => setHomeField("street", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-
                     <div className="flex flex-col gap-1.5">
-                      <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.quartier")}</label>
-                      <input
-                        type="text"
-                        className={HOME_INPUT_CLASS}
-                        placeholder={tBooking("homePanel.quartierPlaceholder")}
-                        value={homeForm.quartier}
-                        onChange={(e) => setHomeField("quartier", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className={HOME_LABEL_CLASS}>
-                        {tBooking("homePanel.landmark")} <span className="text-red-500">*</span>
+                      <label htmlFor="home-access" className={HOME_LABEL_CLASS}>
+                        {tBooking("homePanel.accessLabel")}
                       </label>
-                      <input
-                        type="text"
-                        className={`${HOME_INPUT_CLASS} ${homeFormTouched && !homeForm.landmark.trim() ? "border-red-400" : ""}`}
-                        placeholder={tBooking("homePanel.landmarkPlaceholder")}
-                        value={homeForm.landmark}
-                        onChange={(e) => setHomeField("landmark", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className={HOME_LABEL_CLASS}>{tBooking("homePanel.notes")}</label>
                       <textarea
-                        rows={2}
+                        id="home-access"
+                        rows={3}
                         className={`${HOME_INPUT_CLASS} resize-none`}
-                        placeholder={tBooking("homePanel.notesPlaceholder")}
-                        value={homeForm.notes}
-                        onChange={(e) => setHomeField("notes", e.target.value)}
+                        placeholder={tBooking("homePanel.accessPlaceholder")}
+                        value={homeAccessNotes}
+                        onChange={(e) => setHomeAccessNotes(e.target.value)}
                       />
                     </div>
-
-                    {homeFormTouched && !homeFormValid && (
-                      <p className="text-[11px] text-red-600 font-medium">{tBooking("homePanel.requiredHint")}</p>
-                    )}
                   </div>
 
                   <div className="px-5 pb-5 pt-3 shrink-0 border-t border-[rgb(10_8_0/11%)]">
                     <button
                       type="button"
-                      aria-disabled={!homeFormValid}
-                      className={`w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow,opacity] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2 ${
-                        homeFormValid ? "" : "opacity-60"
-                      }`}
+                      className="w-full bg-brand-black text-white text-[11px] font-semibold tracking-[0.1em] uppercase px-6 py-3.5 rounded-[10px] flex items-center justify-center gap-1.5 transition-[background,transform,box-shadow] duration-200 shadow-[0_2px_8px_rgb(0_0_0/12%)] cursor-pointer border-none hover:bg-ink hover:-translate-y-px hover:shadow-[0_6px_20px_rgb(0_0_0/18%)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                       onClick={handleConfirmHomeLocation}
                     >
                       {tBooking("homePanel.saveLocation")}

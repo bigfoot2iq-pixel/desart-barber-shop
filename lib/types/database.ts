@@ -3,29 +3,13 @@ export type LocationType = 'salon' | 'home';
 export type PaymentMethod = 'cash' | 'bank_transfer';
 export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
-// Property kind for a home ("à domicile") visit. Moroccan/Agadir addressing is
-// landmark-driven and differs sharply between a flat in a residence and a
-// standalone house, so the granular fields below are split by this discriminator.
-export type HomePropertyType = 'apartment' | 'house';
-
-// Granular customer-supplied location details for a home visit, stored as JSONB
-// in appointments.home_details. `home_address` holds the composed human summary
-// (used by notifications); this holds the structured breakdown for the pro.
+// Customer-supplied access detail for a home ("à domicile") visit, stored as
+// JSONB in appointments.home_details. The GPS pin + reverse-geocoded label
+// already resolve street/neighborhood; this captures the one thing they can't —
+// which unit and how to be found (floor, apt/door no, door code, landmark) — as
+// a single free-text note. `home_address` holds the composed human summary.
 export interface HomeDetails {
-  propertyType: HomePropertyType;
-  // Shared
-  quartier: string | null;   // neighborhood (Founty, Talborjt, Les Amicales…)
-  landmark: string;          // point de repère — required, the pro finds the place by this
-  notes: string | null;      // arrival instructions
-  // Apartment
-  residence: string | null;  // résidence / immeuble name
-  block: string | null;      // bloc
-  floor: string | null;      // étage
-  apartmentNumber: string | null; // n° appartement — required when propertyType='apartment'
-  doorCode: string | null;   // digicode / interphone
-  // House
-  doorNumber: string | null; // n° de porte — required when propertyType='house'
-  street: string | null;     // rue
+  accessNotes: string;
 }
 
 export interface Profile {
