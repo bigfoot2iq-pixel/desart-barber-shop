@@ -588,6 +588,11 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   // Group gating for the service step: every guest needs ≥1 service before continuing.
   const allGuestsHaveServices = guestEffectiveServices.every((g) => g.length > 0);
   const firstIncompleteGuest = guestEffectiveServices.findIndex((g) => g.length === 0);
+  // Display label for a guest chip / row: real name, else "You" / "Guest N".
+  const guestLabel = (guestIndex: number) => {
+    if (guestIndex === 0) return firstName.trim() || tBooking("steps.service.partyYou");
+    return extraGuests[guestIndex - 1]?.name.trim() || tBooking("steps.service.partyGuest", { n: guestIndex + 1 });
+  };
   // Per-guest lines for the summary/confirmation cards ("Karim — Haircut").
   const guestBreakdownRows = guestEffectiveServices.map((svc, i) => ({
     label: guestLabel(i),
@@ -682,12 +687,6 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
   const setGuestName = (guestIndex: number, name: string) => {
     if (guestIndex === 0) return;
     setExtraGuests((current) => current.map((g, i) => (i === guestIndex - 1 ? { ...g, name } : g)));
-  };
-
-  // Display label for a guest chip / row: real name, else "You" / "Guest N".
-  const guestLabel = (guestIndex: number) => {
-    if (guestIndex === 0) return firstName.trim() || tBooking("steps.service.partyYou");
-    return extraGuests[guestIndex - 1]?.name.trim() || tBooking("steps.service.partyGuest", { n: guestIndex + 1 });
   };
 
   const buildDraft = useCallback((): BookingDraft | null => {
