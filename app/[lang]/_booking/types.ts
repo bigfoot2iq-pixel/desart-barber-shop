@@ -1,4 +1,4 @@
-import type { PaymentMethod } from "@/lib/types/database";
+import type { PaymentMethod, HomeDetails } from "@/lib/types/database";
 
 export type LocationOption = {
   id: string;
@@ -34,6 +34,7 @@ export type BookingDraft = {
   salonId: string | null;
   homePin: { lat: number; lng: number } | null;
   homeLabel: string | null;
+  homeDetails: HomeDetails | null;
   barberId: string;
   serviceIds: string[];
   date: string;

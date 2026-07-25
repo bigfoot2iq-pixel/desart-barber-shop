@@ -18,6 +18,7 @@ export function makeAppointmentFixture(): AppointmentWithDetails {
     home_address: null,
     home_latitude: null,
     home_longitude: null,
+    home_details: null,
     notes: null,
     created_at: '2026-04-20T10:00:00Z',
     updated_at: '2026-04-20T10:00:00Z',
