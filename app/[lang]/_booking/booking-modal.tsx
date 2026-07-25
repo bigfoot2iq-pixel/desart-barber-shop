@@ -2402,7 +2402,7 @@ export function BookingModal({ barbers, isModalOpen, isLoadingBarbers, isLoading
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-1.5 mt-2 pt-3 border-t border-[rgb(10_8_0/8%)]">
                       <label htmlFor="home-access" className={HOME_LABEL_CLASS}>
                         {tBooking("homePanel.accessLabel")}
                       </label>
