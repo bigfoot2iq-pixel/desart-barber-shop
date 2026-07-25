@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AppointmentWithDetails, Professional, AppointmentStatus, AppointmentReview } from '@/lib/types/database';
 import { getAllAppointments, assignProfessionalToAppointment, updateAppointmentStatus, getActiveProfessionals, searchAppointments } from '@/lib/queries';
@@ -36,8 +36,16 @@ const statusBadgeVariants: Record<string, 'pending' | 'confirmed' | 'completed' 
 const statusBarColors: Record<AppointmentStatus, string> = {
   confirmed: 'border-l-green-500',
   pending: 'border-l-amber-500',
-  completed: 'border-l-zinc-500',
+  completed: 'border-l-blue-500',
   cancelled: 'border-l-red-500',
+};
+
+// Incoming (confirmed/pending) tinted to stand out; done/cancelled dimmed.
+const statusCardTint: Record<AppointmentStatus, string> = {
+  confirmed: 'bg-green-500/[0.04]',
+  pending: 'bg-amber-500/[0.04]',
+  completed: 'opacity-75',
+  cancelled: 'opacity-60',
 };
 
 interface AppointmentsManagerProps {
@@ -312,7 +320,7 @@ export default function AppointmentsManager({
                 exit={{ opacity: 0, y: -10 }}
               >
                 <Card
-                  className={`cursor-pointer hover:border-primary/30 transition-colors border-l-4 ${statusBarColors[apt.status]}`}
+                  className={`cursor-pointer hover:border-primary/30 transition-colors border-l-4 ${statusBarColors[apt.status]} ${statusCardTint[apt.status]}`}
                   onClick={() => openSidePanel(apt)}
                 >
                   <CardContent className="p-4">
@@ -602,12 +610,45 @@ export default function AppointmentsManager({
 
             <AccordionSection title={tAdmin('appointments.panelLocationTitle')}>
               {selectedAppointment.location_type === 'home' ? (
-                <div>
+                <div className="space-y-2">
                   <p className="text-foreground/85 text-sm">{selectedAppointment.home_address || tAdmin('appointments.homeVisit')}</p>
-                  {selectedAppointment.home_latitude && (
-                    <p className="text-muted-foreground text-xs mt-1">
-                      {selectedAppointment.home_latitude.toFixed(6)}, {selectedAppointment.home_longitude?.toFixed(6)}
-                    </p>
+                  {selectedAppointment.home_details && (() => {
+                    const d = selectedAppointment.home_details;
+                    const rows: [string, string | null][] = [
+                      [tAdmin('appointments.homeType'), tAdmin(`appointments.homeTypes.${d.propertyType}`)],
+                      [tAdmin('appointments.homeResidence'), d.residence],
+                      [tAdmin('appointments.homeBlock'), d.block],
+                      [tAdmin('appointments.homeFloor'), d.floor],
+                      [tAdmin('appointments.homeApartmentNumber'), d.apartmentNumber],
+                      [tAdmin('appointments.homeDoorCode'), d.doorCode],
+                      [tAdmin('appointments.homeDoorNumber'), d.doorNumber],
+                      [tAdmin('appointments.homeStreet'), d.street],
+                      [tAdmin('appointments.homeQuartier'), d.quartier],
+                      [tAdmin('appointments.homeLandmark'), d.landmark],
+                      [tAdmin('appointments.homeNotes'), d.notes],
+                    ];
+                    return (
+                      <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-xs rounded-lg bg-muted/40 p-3">
+                        {rows
+                          .filter(([, v]) => v && v.trim())
+                          .map(([label, v]) => (
+                            <Fragment key={label}>
+                              <dt className="text-muted-foreground">{label}</dt>
+                              <dd className="text-foreground/85">{v}</dd>
+                            </Fragment>
+                          ))}
+                      </dl>
+                    );
+                  })()}
+                  {selectedAppointment.home_latitude != null && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${selectedAppointment.home_latitude},${selectedAppointment.home_longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-gold hover:underline"
+                    >
+                      {tAdmin('appointments.openInMaps')} ({selectedAppointment.home_latitude.toFixed(6)}, {selectedAppointment.home_longitude?.toFixed(6)})
+                    </a>
                   )}
                 </div>
               ) : (

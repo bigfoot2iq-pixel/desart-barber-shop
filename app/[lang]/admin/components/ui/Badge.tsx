@@ -11,9 +11,9 @@ interface AdminBadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  pending: 'bg-white/10 text-neutral-300 border-white/20',
-  confirmed: 'bg-neutral-400/15 text-neutral-300 border-neutral-400/30',
-  completed: 'bg-neutral-500/15 text-neutral-400 border-neutral-500/30',
+  pending: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
+  confirmed: 'bg-green-500/20 text-green-400 border-green-500/40',
+  completed: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
   cancelled: 'bg-red-500/20 text-red-400 border-red-500/40',
   active: 'bg-neutral-400/15 text-neutral-300 border-neutral-400/30',
   inactive: 'bg-neutral-600/15 text-neutral-500 border-neutral-600/30',
