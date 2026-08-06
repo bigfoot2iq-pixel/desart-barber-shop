@@ -123,7 +123,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </nav>
 
-      <section className="relative bg-brand-black text-brand-white min-h-svh overflow-hidden grid grid-cols-1 gap-6 max-sm:gap-5 items-center pt-24 pb-10 max-sm:pt-28 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-0 lg:gap-y-0 lg:pt-[110px] lg:pb-0 lg:pr-0">
+      <section className="relative bg-brand-black text-brand-white lg:min-h-svh overflow-hidden grid grid-cols-1 gap-6 max-sm:gap-8 content-start lg:content-normal items-center pt-24 pb-10 max-sm:pt-20 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-0 lg:gap-y-0 lg:pt-[110px] lg:pb-0 lg:pr-0">
         {/* Header text — mobile row 1, desktop col 1 row 1 */}
         <div className="relative z-[3] max-w-[560px] order-1 lg:order-none lg:col-start-1 lg:row-start-1 lg:pl-[100px] lg:self-end lg:pb-8">
           <span className="inline-flex items-center gap-2.5 text-gold3 mb-7 max-sm:mb-4 text-[11px] tracking-[.18em] uppercase font-medium before:content-[''] before:w-6 before:h-px before:bg-current">
@@ -153,7 +153,7 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
 
         {/* CTAs + hours — mobile row 2 (above videos), desktop col 1 row 2 */}
-        <div className="relative z-[3] max-w-[560px] order-2 lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-[100px] lg:pb-20 lg:self-start lg:pt-0">
+        <div className="relative z-[3] max-w-[560px] order-2 max-sm:hidden lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-[100px] lg:pb-20 lg:self-start lg:pt-0">
           <div className="flex gap-2.5 items-center flex-nowrap">
             <button
               type="button"

@@ -223,7 +223,7 @@ export function BeforeAfterSection() {
         </div>
 
         {/* Thumbnail strip */}
-        <div className="mt-6 flex gap-3 lg:justify-center overflow-x-auto snap-x snap-mandatory -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
+        <div className="mt-0 lg:mt-6 flex gap-3 lg:justify-center overflow-x-auto snap-x snap-mandatory -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
           {TRANSFORMATIONS.map((_, i) => {
             const isActive = i === activeIdx;
             const thumbCaption = tBooking(`beforeAfter.transformations.${i}.caption`) as string;
@@ -237,7 +237,7 @@ export function BeforeAfterSection() {
                 className={`group flex-shrink-0 snap-start text-left bg-transparent border-0 p-0 cursor-pointer transition-[transform] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold3 focus-visible:ring-offset-2 focus-visible:ring-offset-black2 ${isActive ? "" : "hover:-translate-y-1"}`}
               >
                 <div
-                  className={`relative overflow-hidden rounded-[10px] w-[120px] aspect-[4/5] lg:w-[168px] lg:aspect-[16/10] border ${isActive ? "border-gold3" : "border-[rgb(254_251_243/0.1)]"} transition-[border-color] duration-300`}
+                  className={`relative overflow-hidden rounded-[10px] w-[96px] aspect-[4/5] lg:w-[168px] lg:aspect-[16/10] border ${isActive ? "border-gold3" : "border-[rgb(254_251_243/0.1)]"} transition-[border-color] duration-300`}
                 >
                   <img
                     src={TRANSFORMATIONS[i].after}
