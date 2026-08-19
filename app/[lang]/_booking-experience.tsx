@@ -262,7 +262,42 @@ function BookingExperienceInner({ locale, common, booking, userPanel }: BookingE
         </div>
       </div>
 
-      
+      <section id="home-visit" className="bg-gold-bg text-brand-black py-12 px-4">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-[18px] border border-[rgb(10_8_0/12%)] bg-[rgb(10_8_0/4%)]">
+            <div className="p-8 sm:p-12 lg:p-14 flex flex-col justify-center">
+              <div className="before:content-[''] before:w-[26px] before:h-px before:bg-current inline-flex items-center gap-2.5 text-[10px] font-medium tracking-[0.22em] uppercase text-[rgb(10_8_0/55%)] mb-[14px]">{tCommon('homePromo.eyebrow')}</div>
+              <h2 className="font-playfair text-[clamp(34px,4.5vw,54px)] font-normal leading-[1.05] tracking-[-0.01em] mb-[18px] [&_em]:italic">
+                {tCommon('homePromo.title')} <em className="text-gold3 not-italic">{tCommon('homePromo.highlight')}</em>
+              </h2>
+              <p className="text-[17px] font-light leading-[1.8] opacity-70 max-w-[460px] mb-9">{tCommon('homePromo.description')}</p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+                <a
+                  href={`/${locale}/a-domicile`}
+                  className="inline-flex items-center justify-center gap-2 px-[22px] py-[15px] bg-brand-black text-brand-white text-[11px] tracking-[.16em] uppercase font-semibold border border-transparent transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-gold3 hover:text-brand-black whitespace-nowrap"
+                >
+                  {tCommon('homePromo.cta')}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="w-3.5 h-3.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+                </a>
+                <span className="text-[12px] tracking-[0.08em] uppercase text-[rgb(10_8_0/50%)]">{tCommon('homePromo.fee')}</span>
+              </div>
+            </div>
+            <div className="relative bg-brand-black text-brand-white p-8 sm:p-12 lg:p-14 flex flex-col justify-center overflow-hidden">
+              <div className="pointer-events-none absolute -top-[160px] right-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(192,154,90,0.12)_0%,transparent_65%)]" />
+              <div className="relative z-10">
+                <p className="font-playfair text-[clamp(22px,2.6vw,30px)] font-normal italic leading-snug mb-8">
+                  {tCommon('homePromo.note')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[tBooking('marquee.0'), tBooking('marquee.1'), tBooking('marquee.2')].map((label, i) => (
+                    <span key={i} className="text-[11px] tracking-[0.08em] uppercase text-[rgb(254_251_243/60%)] border border-[rgb(254_251_243/15%)] rounded-[3px] px-2.5 py-1">{label}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section id="team" className="bg-brand-black text-brand-white py-12 px-4">
         <div className="max-w-[1160px] mx-auto">

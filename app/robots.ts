@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/auth/', '/_next/', '/*/admin', '/*/professional', '/*/login'],
+        disallow: ['/api/', '/auth/', '/_next/', '/*/admin', '/*/professional', '/*/login', '/*/dashboard'],
       },
     ],
     sitemap: 'https://www.desart.shop/sitemap.xml',

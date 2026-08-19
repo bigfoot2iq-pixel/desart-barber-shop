@@ -43,7 +43,13 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
     title: meta.title ?? BUSINESS_NAME,
     description: meta.description ?? '',
     icons: {
-      icon: LOGO_URL,
+      icon: [
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', type: 'image/x-icon', sizes: '32x32' },
+        { url: LOGO_URL, type: 'image/jpeg' },
+      ],
+      shortcut: '/favicon.ico',
+      apple: LOGO_URL,
     },
     metadataBase: new URL(BASE_URL),
     alternates: {

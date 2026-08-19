@@ -43,13 +43,16 @@ export function buildLocalBusinessJsonLd(lang: string) {
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'HairSalon',
+    '@type': ['HairSalon', 'BarberShop'],
     name: BUSINESS_NAME,
     image: LOGO_URL,
     url: `${BASE_URL}/${lang}`,
     telephone: PHONE,
     priceRange: PRICE_RANGE,
     paymentAccepted: PAYMENT_ACCEPTED,
+    description: lang === 'fr'
+      ? 'Salon de coiffure et barbier premium à Agadir. Coupes dégradées, taille de barbe, rasage à l\'ancienne. Service à domicile disponible.'
+      : 'Premium barbershop in Agadir. Precision fades, beard sculpting, hot towel shaves. Home service available.',
     address: {
       '@type': 'PostalAddress',
       addressLocality: ADDRESS_LOCALITY,
@@ -64,6 +67,36 @@ export function buildLocalBusinessJsonLd(lang: string) {
     areaServed: {
       '@type': 'City',
       name: ADDRESS_LOCALITY,
+    },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: lang === 'fr' ? 'Services de Coiffure et Barbier' : 'Barbershop Services',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: lang === 'fr' ? 'Coupe de Cheveux' : 'Haircut',
+            description: lang === 'fr' ? 'Coupe dégradée et tailoring premium' : 'Premium fade and taper cuts',
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: lang === 'fr' ? 'Taille de Barbe' : 'Beard Trim',
+            description: lang === 'fr' ? 'Sculpture et entretien de barbe' : 'Beard sculpting and grooming',
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: lang === 'fr' ? 'Rasage à l\'Ancienne' : 'Hot Towel Shave',
+            description: lang === 'fr' ? 'Rasage traditionnel au rasoir' : 'Classic straight razor shave',
+          },
+        },
+      ],
     },
     sameAs: [INSTAGRAM_URL],
   };
@@ -110,8 +143,10 @@ export function buildServiceJsonLd(params: {
   price?: number | string;
   priceCurrency?: string;
   lang: string;
+  serviceType?: string;
+  isHomeVisit?: boolean;
 }) {
-  const { name, description, price, priceCurrency = 'MAD', lang } = params;
+  const { name, description, price, priceCurrency = 'MAD', lang, serviceType, isHomeVisit } = params;
   const offer = price !== undefined
     ? {
         '@type': 'Offer' as const,
@@ -125,6 +160,7 @@ export function buildServiceJsonLd(params: {
     '@type': 'Service',
     name,
     description: description ?? undefined,
+    serviceType: serviceType ?? (lang === 'fr' ? 'Coiffure et Barbier' : 'Barbershop'),
     provider: {
       '@type': 'HairSalon',
       name: BUSINESS_NAME,
@@ -135,6 +171,20 @@ export function buildServiceJsonLd(params: {
       },
     },
     areaServed: { '@type': 'City', name: ADDRESS_LOCALITY },
+    availableChannel: isHomeVisit
+      ? {
+          '@type': 'ServiceChannel',
+          serviceLocation: {
+            '@type': 'Place',
+            name: lang === 'fr' ? 'Domicile du client' : "Client's home",
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: ADDRESS_LOCALITY,
+              addressCountry: ADDRESS_COUNTRY,
+            },
+          },
+        }
+      : undefined,
     ...(offer ? { offers: offer } : {}),
   };
 }

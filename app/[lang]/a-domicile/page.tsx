@@ -75,6 +75,8 @@ export default async function HomeVisitPage({ params }: { params: Promise<{ lang
   const serviceJsonLd = buildServiceJsonLd({
     name: locale === 'fr' ? 'Coiffeur à Domicile Agadir' : 'Home Haircut Agadir',
     description: heroDescription,
+    serviceType: locale === 'fr' ? 'Service de Coiffure à Domicile' : 'Home Barber Service',
+    isHomeVisit: true,
     lang: locale,
   });
 

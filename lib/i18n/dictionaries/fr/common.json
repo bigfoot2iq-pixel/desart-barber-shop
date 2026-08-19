@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "DESART — Salon de Coiffure & Barbier Premium à Agadir | Réserver",
-    "description": "Salon de coiffure premium à Agadir. Coupes dégradées, taille de barbe, rasage à l'ancienne. Réservez votre barbier en ligne. Ouvert sam-jeu 9h-17h."
+    "title": "DESART — Coiffeur & Barbier Agadir | Coupe & À Domicile",
+    "description": "Salon de coiffure et barbier premium à Agadir. Coupes, barbe, rasage. Réservation en ligne. Service à domicile disponible."
   },
   "navigate": "Naviguer",
   "services": "Services",
@@ -44,8 +44,8 @@
   },
   "homeVisitPage": {
     "meta": {
-      "title": "Coiffeur à Domicile Agadir — DESART | Coupe & Barbier Chez Vous",
-      "description": "Réservez votre coiffeur professionnel à domicile à Agadir. Coupes de cheveux, taille de barbe, rasage — nos barbiers se déplacent chez vous. +30 MAD de déplacement."
+      "title": "Coiffeur à Domicile Agadir — Barber Chez Vous | DESART",
+      "description": "Coiffeur et barbier à domicile à Agadir. Coupes de cheveux, taille de barbe, rasage — nos barbiers se déplacent chez vous. Réservation en ligne. +30 MAD de déplacement."
     },
     "hero": {
       "eyebrow": "Service à Domicile",
@@ -98,10 +98,19 @@
       "button": "Réserver Maintenant"
     }
   },
+  "homePromo": {
+    "eyebrow": "Le Barbier Vient Chez Vous",
+    "title": "Coiffeur & Barbier à Domicile",
+    "highlight": "Agadir",
+    "description": "Pas le temps de passer au salon ? Nos barbiers se déplacent partout à Agadir avec tout le matériel nécessaire. Coupes, barbes et rasages — la même qualité premium, chez vous.",
+    "cta": "Réserver un Coiffeur à Domicile Agadir",
+    "fee": "+30 MAD de déplacement",
+    "note": "Mêmes barbiers · Même qualité · Paiement en espèces"
+  },
   "servicesPage": {
     "meta": {
-      "title": "Nos Services — Coiffure & Barbier Agadir | DESART",
-      "description": "Découvrez nos services de coiffure et barbier à Agadir. Coupes dégradées, taille de barbe, rasage à l'ancienne et plus. Réservez en ligne."
+      "title": "Services Coiffure & Barbier Agadir — Coupes, Barbe, Rasage | DESART",
+      "description": "Découvrez nos services de coiffure et barbier à Agadir. Coupes dégradées, taille de barbe, rasage à l'ancienne. Prix et réservation en ligne."
     },
     "hero": {
       "eyebrow": "Ce Que Nous Faisons",

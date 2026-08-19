@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "DESART — Premium Barbershop & Haircut in Agadir | Book Now",
-    "description": "Premium barbershop in Agadir. Precision fades, beard sculpting, hot towel shaves. Book your barber online. Open Sat-Thu 9AM-5PM."
+    "title": "DESART — Barber & Haircut Agadir | Premium Salon & Home Service",
+    "description": "Premium barbershop in Agadir, Morocco. Fades, beard sculpting, hot towel shaves. Book online or choose home service."
   },
   "navigate": "Navigate",
   "services": "Services",
@@ -44,8 +44,8 @@
   },
   "homeVisitPage": {
     "meta": {
-      "title": "Home Haircut Agadir — DESART | Barber at Your Doorstep",
-      "description": "Book a professional barber for home service in Agadir. Haircuts, beard trims, hot towel shaves — our barbers come to you. +30 MAD travel fee."
+      "title": "Barber at Home Agadir — Home Haircut & Beard Service | DESART",
+      "description": "Professional barber at your home in Agadir. Haircuts, beard trims, hot towel shaves — we come to you. Book online. +30 MAD travel fee."
     },
     "hero": {
       "eyebrow": "Home Visit Service",
@@ -98,10 +98,19 @@
       "button": "Book Now"
     }
   },
+  "homePromo": {
+    "eyebrow": "The Barber Comes to You",
+    "title": "Barber at Home",
+    "highlight": "Agadir",
+    "description": "Can't make it to the shop? Our barbers travel anywhere in Agadir with everything they need. Haircuts, beard trims and hot towel shaves — the same premium quality, at your home.",
+    "cta": "Book a Home Visit in Agadir",
+    "fee": "+30 MAD travel fee",
+    "note": "Same barbers · Same quality · Cash on the day"
+  },
   "servicesPage": {
     "meta": {
-      "title": "Our Services — Haircut & Barber Agadir | DESART",
-      "description": "Discover our barbershop services in Agadir. Precision fades, beard sculpting, hot towel shaves and more. Book online today."
+      "title": "Barbershop Services Agadir — Fades, Beard, Shaves | DESART",
+      "description": "Premium barbershop services in Agadir. Precision fades, beard sculpting, hot towel shaves. View prices and book online."
     },
     "hero": {
       "eyebrow": "What We Do",
